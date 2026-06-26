@@ -53,49 +53,62 @@ class LySincApp {
     }
 
     async init() {
-        this.setupEventListeners();
-        this.loadSettings();
+        try {
+            this.setupEventListeners();
+            this.loadSettings();
 
-        // Verifica se havia indicação de login anterior no localStorage para saber se expirou
-        const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
+            // Verifica se havia indicação de login anterior no localStorage para saber se expirou
+            const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
 
-        if (hadRefreshToken) {
-            const btnConnectText = this.btnConnect.querySelector('span');
-            if (btnConnectText) {
-                btnConnectText.textContent = 'Continuar com o Spotify';
+            if (hadRefreshToken) {
+                const btnConnectText = this.btnConnect.querySelector('span');
+                if (btnConnectText) {
+                    btnConnectText.textContent = 'Continuar com o Spotify';
+                }
+                // Se já tem refresh token, tenta validar imediatamente para ir direto ao app
+                try {
+                    const authenticated = await SpotifyService.isAuthenticated();
+                    if (authenticated) {
+                        this.showScreen('idle');
+                        this.startPolling();
+                        this.startTicker();
+                        this.btnLogout.classList.remove('hidden');
+                        return; // Pula o resto da inicialização convencional
+                    }
+                } catch (e) {
+                    console.error('Falha silenciosa ao autenticar refresh token:', e);
+                }
             }
-            // Se já tem refresh token, tenta validar imediatamente para ir direto ao app
-            const authenticated = await SpotifyService.isAuthenticated();
+
+            // Trata o callback do Spotify OAuth ou tenta renovação silenciosa em runtime
+            let authenticated = false;
+            try {
+                authenticated = await SpotifyService.handleCallback();
+            } catch (e) {
+                console.error('Falha no handleCallback:', e);
+            }
+            
             if (authenticated) {
-                this.showScreen('idle');
+                this.showScreen('idle'); // Mostra tela de espera até obter a primeira resposta do player
                 this.startPolling();
                 this.startTicker();
-                this.btnLogout.classList.remove('hidden');
-                return; // Pula o resto da inicialização convencional
-            }
-        }
+                this.btnLogout.classList.remove('hidden'); // Exibe o botão de sair se logado
+            } else {
+                this.showScreen('pre-login');
+                this.btnLogout.classList.add('hidden');
+                
+                // Se tinha refresh token mas falhou a validação agora, a sessão de fato expirou
+                if (hadRefreshToken) {
+                    this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
+                }
 
-        // Trata o callback do Spotify OAuth ou tenta renovação silenciosa em runtime
-        const authenticated = await SpotifyService.handleCallback();
-        
-        if (authenticated) {
-            this.showScreen('idle'); // Mostra tela de espera até obter a primeira resposta do player
-            this.startPolling();
-            this.startTicker();
-            this.btnLogout.classList.remove('hidden'); // Exibe o botão de sair se logado
-        } else {
-            this.showScreen('pre-login');
-            this.btnLogout.classList.add('hidden');
-            
-            // Se tinha refresh token mas falhou a validação agora, a sessão de fato expirou
-            if (hadRefreshToken) {
-                this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
+                // Se o Client ID não estiver configurado, abre as configurações para facilitar o uso
+                if (!Config.getClientId()) {
+                    this.toggleSettingsModal(true);
+                }
             }
-
-            // Se o Client ID não estiver configurado, abre as configurações para facilitar o uso
-            if (!Config.getClientId()) {
-                this.toggleSettingsModal(true);
-            }
+        } catch (globalError) {
+            console.error('Erro crítico na inicialização do aplicativo LySinc:', globalError);
         }
     }
 
