@@ -433,11 +433,19 @@ class LySincApp {
                     el.classList.remove('active');
                     el.classList.add('inactive');
                     
-                    // Remove destaque de palavras de outras linhas
-                    line.words.forEach((_, idx) => {
-                        const wordEl = document.getElementById(`word-${line.id}-${idx}`);
-                        if (wordEl) wordEl.classList.remove('active');
-                    });
+                    // Se for uma linha futura, limpa o destaque das palavras
+                    if (line.id > lineId) {
+                        line.words.forEach((_, idx) => {
+                            const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                            if (wordEl) wordEl.classList.remove('active');
+                        });
+                    } else {
+                        // Se for uma linha passada, garante que todas as palavras fiquem marcadas como ativas
+                        line.words.forEach((_, idx) => {
+                            const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                            if (wordEl) wordEl.classList.add('active');
+                        });
+                    }
                 }
             }
         });
