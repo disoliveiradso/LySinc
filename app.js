@@ -54,15 +54,26 @@ class LySincApp {
         this.setupEventListeners();
         this.loadSettings();
 
-        // Trata o callback do Spotify OAuth
+        // Verifica se havia indicação de login anterior no localStorage para saber se expirou
+        const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
+
+        // Trata o callback do Spotify OAuth ou tenta renovação silenciosa em runtime
         const authenticated = await SpotifyService.handleCallback();
         
         if (authenticated) {
             this.showScreen('idle'); // Mostra tela de espera até obter a primeira resposta do player
             this.startPolling();
             this.startTicker();
+            this.btnLogout.classList.remove('hidden'); // Exibe o botão de sair se logado
         } else {
             this.showScreen('pre-login');
+            this.btnLogout.classList.add('hidden');
+            
+            // Se tinha refresh token mas falhou, a sessão expirou
+            if (hadRefreshToken) {
+                this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
+            }
+
             // Se o Client ID não estiver configurado, abre as configurações para facilitar o uso
             if (!Config.getClientId()) {
                 this.toggleSettingsModal(true);
@@ -131,11 +142,26 @@ class LySincApp {
         }, 2500);
     }
 
+    stopPolling() {
+        if (this.pollingIntervalId) {
+            clearInterval(this.pollingIntervalId);
+            this.pollingIntervalId = null;
+        }
+    }
+
     async pollPlayerState() {
         const state = await SpotifyService.getCurrentlyPlaying();
         
         // Se a chamada falhou ou não há token
         if (!state) {
+            // Verifica se a autenticação caiu
+            const authenticated = await SpotifyService.isAuthenticated();
+            if (!authenticated) {
+                this.stopPolling();
+                this.showScreen('pre-login');
+                this.btnLogout.classList.add('hidden');
+                this.showToast('Sessão encerrada com o Spotify.', 'info');
+            }
             return;
         }
 

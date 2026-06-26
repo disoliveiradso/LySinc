@@ -131,8 +131,8 @@ const SpotifyService = {
             });
 
             if (!response.ok) {
-                // Se falhar a renovação (ex: revogado), desloga o usuário
-                this.logout();
+                // Se falhar a renovação (ex: revogado), limpa as chaves silenciosamente
+                this.clearTokens();
                 return false;
             }
 
@@ -155,11 +155,16 @@ const SpotifyService = {
         localStorage.setItem(this.EXPIRES_AT_KEY, expiresAt.toString());
     },
 
-    // Desconecta o usuário limpando as chaves
-    logout() {
+    // Limpa os tokens do localStorage sem forçar reload imediato
+    clearTokens() {
         localStorage.removeItem(this.ACCESS_TOKEN_KEY);
         localStorage.removeItem(this.REFRESH_TOKEN_KEY);
         localStorage.removeItem(this.EXPIRES_AT_KEY);
+    },
+
+    // Desconecta o usuário limpando as chaves e recarregando a página
+    logout() {
+        this.clearTokens();
         window.location.reload();
     },
 
@@ -167,6 +172,13 @@ const SpotifyService = {
     async isAuthenticated() {
         const accessToken = localStorage.getItem(this.ACCESS_TOKEN_KEY);
         const expiresAt = localStorage.getItem(this.EXPIRES_AT_KEY);
+        const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
+
+        // Se não houver token de acesso ou expiração, mas houver refresh_token, tenta renovação silenciosa
+        if ((!accessToken || !expiresAt) && refreshToken) {
+            console.log('Token de acesso expirado/ausente. Tentando renovação silenciosa com refresh_token...');
+            return await this.refreshToken();
+        }
 
         if (!accessToken || !expiresAt) {
             return false;
