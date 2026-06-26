@@ -69,7 +69,6 @@ const LyricsService = {
 [00:30.50] <00:30.50> Aldhou <00:30.70> mai <00:30.90> hart <00:31.10> iz <00:31.30> folin <00:31.50> tu
 [00:31.90] <00:31.90> Aim <00:32.10> in <00:32.30> lav <00:32.50> uidh <00:32.70> ior <00:32.90> badi`
         }
-        }
     },
 
     // Busca letras na Lrclib API por título e artista
