@@ -64,6 +64,15 @@ class LySincApp {
             if (btnConnectText) {
                 btnConnectText.textContent = 'Continuar com o Spotify';
             }
+            // Se já tem refresh token, tenta validar imediatamente para ir direto ao app
+            const authenticated = await SpotifyService.isAuthenticated();
+            if (authenticated) {
+                this.showScreen('idle');
+                this.startPolling();
+                this.startTicker();
+                this.btnLogout.classList.remove('hidden');
+                return; // Pula o resto da inicialização convencional
+            }
         }
 
         // Trata o callback do Spotify OAuth ou tenta renovação silenciosa em runtime
@@ -78,7 +87,7 @@ class LySincApp {
             this.showScreen('pre-login');
             this.btnLogout.classList.add('hidden');
             
-            // Se tinha refresh token mas falhou, a sessão expirou
+            // Se tinha refresh token mas falhou a validação agora, a sessão de fato expirou
             if (hadRefreshToken) {
                 this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
             }
