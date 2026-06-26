@@ -1,0 +1,170 @@
+/*
+ * LySinc - Estilos Customizados (Aparência Premium Apple Music)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: #050505;
+    color: #ffffff;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* Fundo Desfocado Dinâmico (Estilo Apple Music) */
+.blur-background-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    background-color: #0b0b0f;
+}
+
+.blur-background-image {
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: blur(80px) saturate(180%) brightness(0.4);
+    transform: scale(1.1);
+    transition: background-image 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Overlay para escurecer o fundo e dar harmonia visual */
+.blur-background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(10, 10, 15, 0.2) 0%, rgba(5, 5, 5, 0.85) 100%);
+}
+
+/* Efeito Glassmorphism para Cards e Modais */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-hover:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Estilo da Área de Letras */
+.lyrics-container {
+    height: 60vh;
+    mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
+}
+
+.lyric-line {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.4;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform-origin: left center;
+}
+
+/* Estado Inativo da Linha */
+.lyric-line.inactive {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 1.8rem;
+    transform: scale(0.92);
+    filter: blur(0.5px);
+    cursor: pointer;
+}
+
+.lyric-line.inactive:hover {
+    color: rgba(255, 255, 255, 0.5);
+    filter: none;
+}
+
+/* Estado Ativo da Linha */
+.lyric-line.active {
+    color: #ffffff;
+    font-size: 2.5rem;
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15));
+}
+
+/* Animação e Estilos de Palavras */
+.word {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.25);
+    transition: color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s ease;
+    margin-right: 0.22em;
+}
+
+/* Palavra já cantada ou ativa */
+.word.active {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    transform: scale(1.02);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 0px;
+}
+
+/* Animação do Indicador de Escuta (Fallback) */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 15px rgba(29, 185, 84, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0);
+    }
+}
+
+.listening-indicator {
+    animation: pulse-ring 2s infinite;
+}
+
+/* Botão Conectar Spotify Customizado */
+.btn-spotify {
+    background-color: #1DB954;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-spotify:hover {
+    background-color: #1ed760;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(29, 185, 84, 0.4);
+}
+
+/* Ajustes de layout para telas pequenas */
+@media (max-width: 768px) {
+    .lyric-line.active {
+        font-size: 1.8rem;
+    }
+    .lyric-line.inactive {
+        font-size: 1.3rem;
+    }
+    .lyrics-container {
+        height: 50vh;
+    }
+}
