@@ -32,6 +32,8 @@ class LySincApp {
         // Estado Interno da Música
         this.currentTrackId = null;
         this.lyrics = [];
+        this.lyricsData = null; // Guardará o objeto completo de idiomas
+        this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
         
         // Estado do Relógio Interno (Ticker)
@@ -94,6 +96,14 @@ class LySincApp {
             if (e.target === this.settingsModal) {
                 this.toggleSettingsModal(false);
             }
+        });
+
+        // Abas do rodapé de letras (Tradução / Romanização)
+        document.querySelectorAll('.lyric-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mode = e.currentTarget.getAttribute('data-mode');
+                this.changeLyricsMode(mode);
+            });
         });
     }
 
@@ -207,6 +217,8 @@ class LySincApp {
     async loadLyricsForTrack(state) {
         this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Carregando letras sincronizadas...</div>';
         this.activeLineId = null;
+        const footer = document.getElementById('lyrics-footer');
+        if (footer) footer.classList.add('hidden');
         
         const fetchedLyrics = await LyricsService.getLyrics(
             state.trackName, 
@@ -215,17 +227,53 @@ class LySincApp {
             state.durationMs
         );
 
-        if (fetchedLyrics && fetchedLyrics.length > 0) {
-            this.lyrics = fetchedLyrics;
+        if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
+            this.lyricsData = fetchedLyrics;
+            // Mantém o modo anterior se suportado, senão reseta para original
+            this.lyrics = this.lyricsData[this.currentLyricsMode] || this.lyricsData.original;
             this.renderLyrics();
+            
+            // Exibe a fonte das letras e o seletor de abas
+            if (footer) {
+                const sourceText = document.getElementById('lyrics-source-text');
+                if (sourceText) sourceText.textContent = `Letras via ${fetchedLyrics.source}`;
+                footer.classList.remove('hidden');
+            }
         } else {
+            this.lyricsData = null;
             this.lyrics = [];
             this.lyricsContainer.innerHTML = `
                 <div class="text-center text-white/40 text-xl py-20">
                     Letras não disponíveis para esta música.<br>
                     <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
                 </div>`;
+            if (footer) footer.classList.add('hidden');
         }
+    }
+
+    // Alterna o idioma das letras mantendo a reprodução
+    changeLyricsMode(mode) {
+        if (!this.lyricsData) return;
+        
+        // Altera a aba ativa na UI
+        document.querySelectorAll('.lyric-tab-btn').forEach(btn => {
+            if (btn.getAttribute('data-mode') === mode) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        this.currentLyricsMode = mode;
+        this.lyrics = this.lyricsData[mode] || [];
+        
+        // Re-renderiza e alinha instantaneamente
+        this.renderLyrics();
+        
+        const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+        const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync, this.durationMs);
+        this.activeLineId = null; // Força re-realce da linha
+        this.updateLyricsSync(currentProgressMs);
     }
 
     renderLyrics() {
@@ -373,31 +421,44 @@ class LySincApp {
     scrollToLine(lineElement) {
         const containerHeight = this.lyricsContainer.clientHeight;
         const lineOffsetTop = lineElement.offsetTop;
-        const lineLimitTop = containerHeight / 3.2; // Alinha perto do terço superior/médio da tela
+        const lineHalfHeight = lineElement.clientHeight / 2;
         
+        // Alinha exatamente no centro vertical da área de letras
         this.lyricsContainer.scrollTo({
-            top: lineOffsetTop - lineLimitTop,
+            top: lineOffsetTop - (containerHeight / 2) + lineHalfHeight,
             behavior: 'smooth'
         });
     }
 
-    // Funcionalidade opcional: controle local se o usuário clicar na linha (necessita escopos de escrita e conta Premium)
+    // Navega para o tempo clicado usando o Spotify Connect API (Premium requerido)
     async seekToTime(timeMs) {
         const token = await SpotifyService.getValidToken();
         if (!token) return;
 
         try {
-            await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${timeMs}`, {
+            const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${timeMs}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
+            if (response.status === 403) {
+                this.showToast('Navegação temporal por letras requer conta Spotify Premium.', 'error');
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Falha ao pular reprodução');
+            }
+
             // Atualiza localmente para resposta rápida imediata
             this.progressMs = timeMs;
             this.lastSyncTime = Date.now();
+            this.updateLyricsSync(timeMs);
         } catch (error) {
             console.error('Erro ao pular reprodução:', error);
+            this.showToast('Erro ao atualizar a reprodução no Spotify.', 'error');
         }
     }
 

@@ -42,7 +42,8 @@ const Config = {
     // Escopos necessários para a API do Spotify
     SPOTIFY_SCOPES: [
         'user-read-currently-playing',
-        'user-read-playback-state'
+        'user-read-playback-state',
+        'user-modify-playback-state'
     ].join(' ')
 };
 

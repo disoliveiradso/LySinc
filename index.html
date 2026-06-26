@@ -78,6 +78,16 @@
                 <!-- Injetado dinamicamente via app.js -->
             </div>
 
+            <!-- Rodapé de Letras (Seletor de Idiomas e Fonte) -->
+            <div id="lyrics-footer" class="lyrics-footer hidden">
+                <div class="lyrics-tabs">
+                    <button class="lyric-tab-btn active" id="btn-tab-original" data-mode="original">Original</button>
+                    <button class="lyric-tab-btn" id="btn-tab-translation" data-mode="translation">Tradução</button>
+                    <button class="lyric-tab-btn" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
+                </div>
+                <div class="lyrics-source-badge" id="lyrics-source-text">Letras via Lrclib API</div>
+            </div>
+
             <!-- Player Progress Bar Minimalista -->
             <div class="w-full bg-white/10 h-[3px] rounded-full overflow-hidden mt-6 mb-2">
                 <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-emerald-500 h-full w-0 transition-all duration-300 ease-out"></div>
