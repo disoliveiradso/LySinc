@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LySinc - Letras Sincronizadas do Spotify</title>
     <!-- Favicon do LySinc (lysinc-icon) -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="lysinc-icon.svg">
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
@@ -24,7 +24,7 @@
         <!-- Header Geral (Botão Configurações e Desconectar) -->
         <header class="flex justify-between items-center h-16">
             <div class="flex items-center space-x-3">
-                <img src="favicon.svg" alt="LySinc Icon" class="h-8 w-8" id="lysinc-icon">
+                <img src="lysinc-icon.svg" alt="LySinc Icon" class="h-8 w-8" id="lysinc-icon">
                 <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">LySinc</span>
                 <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/60">v1.0</span>
             </div>
@@ -54,9 +54,7 @@
                 Veja as letras das músicas do Spotify sincronizadas palavra por palavra em tempo real, com o estilo visual fluido do Apple Music.
             </p>
             <button id="btn-connect" class="btn-spotify text-black font-bold py-4 px-8 rounded-full text-lg shadow-lg flex items-center space-x-3">
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.565.387-.86.207-2.377-1.454-5.37-1.783-8.893-.982-.336.075-.668-.135-.744-.47-.077-.337.135-.668.47-.745 3.856-.88 7.15-.51 9.82.112.296.18.387.563.207.86zm1.224-2.723c-.226.367-.707.487-1.074.26-2.72-1.672-6.87-2.157-10.076-1.183-.412.125-.845-.107-.97-.52-.125-.412.107-.846.52-.97 3.666-1.112 8.232-.57 11.34 1.343.367.227.487.708.26 1.07zm.106-2.833C14.384 8.78 8.563 8.59 5.2 9.61c-.55.166-1.123-.153-1.29-.702-.166-.55.153-1.122.702-1.29 3.856-1.17 10.3-0.95 14.36 1.46.495.293.658.932.365 1.428-.293.495-.93.657-1.427.364z"/>
-                </svg>
+                <img src="spotify-icon.svg" alt="Spotify" class="h-6 w-6">
                 <span>Conectar com o Spotify</span>
             </button>
         </section>
@@ -103,8 +101,20 @@
         </section>
 
         <!-- Footer -->
-        <footer class="text-center text-white/20 text-xs py-4">
-            Desenvolvido com carinho para o Spotify Web API • Pure Client-Side
+        <footer class="text-center text-white/30 text-xs py-6 flex flex-col items-center justify-center space-y-3">
+            <div class="flex items-center space-x-3">
+                <a href="https://github.com/disoliveiradso/LySinc" target="_blank" class="hover:text-white transition-colors flex items-center space-x-1.5" title="Repositório LySinc">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z"/>
+                    </svg>
+                    <span>Repositório</span>
+                </a>
+                <span class="text-white/10">•</span>
+                <a href="https://github.com/better-lyrics/better-lyrics" target="_blank" class="hover:text-white transition-colors" title="Referência better-lyrics">better-lyrics</a>
+                <span class="text-white/10">•</span>
+                <a href="https://github.com/binimum/am-lyrics" target="_blank" class="hover:text-white transition-colors" title="Referência am-lyrics">am-lyrics</a>
+            </div>
+            <p class="text-white/20">Desenvolvido com carinho para o Spotify Web API • Pure Client-Side</p>
         </footer>
 
     </main>
