@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Gradiente que combina com a identidade visual do app -->
+    <linearGradient id="lysinc-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Círculo de fundo escuro para melhor legibilidade no navegador -->
+  <circle cx="256" cy="256" r="240" fill="#0b0b0f" stroke="url(#lysinc-gradient)" stroke-width="12" />
+  
+  <!-- Ondas de sincronização (ondas sonoras) -->
+  <path d="M128 256C128 185.3 185.3 128 256 128" stroke="url(#lysinc-gradient)" stroke-width="24" stroke-linecap="round" opacity="0.4" />
+  <path d="M96 256C96 167.6 167.6 96 256 96" stroke="url(#lysinc-gradient)" stroke-width="24" stroke-linecap="round" opacity="0.2" />
+  
+  <!-- Nota musical principal (Colcheia estilizada) -->
+  <!-- Haste e bandeirola -->
+  <path d="M288 160V328C288 359 261 384 228 384C195 384 168 359 168 328C168 297 195 272 228 272C244 272 258 278 268 288V192H344V160H288Z" fill="url(#lysinc-gradient)" />
+  
+  <!-- Onda de propagação para a direita -->
+  <path d="M384 256C384 326.7 326.7 384 256 384" stroke="url(#lysinc-gradient)" stroke-width="24" stroke-linecap="round" opacity="0.4" />
+  <path d="M416 256C416 344.4 344.4 416 256 416" stroke="url(#lysinc-gradient)" stroke-width="24" stroke-linecap="round" opacity="0.2" />
+</svg>

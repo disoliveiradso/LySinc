@@ -44,6 +44,9 @@ class LySincApp {
         // Intervalo de Polling
         this.pollingIntervalId = null;
 
+        // Expõe o gerenciador de notificações globalmente
+        window.showToast = (message, type) => this.showToast(message, type);
+
         this.init();
     }
 
@@ -91,7 +94,7 @@ class LySincApp {
         const id = this.inputClientId.value.trim();
         Config.setClientId(id);
         this.toggleSettingsModal(false);
-        alert('Configurações salvas! Agora você pode conectar sua conta do Spotify.');
+        this.showToast('Configurações salvas! Agora você pode conectar sua conta do Spotify.', 'success');
     }
 
     toggleSettingsModal(show) {
@@ -368,6 +371,56 @@ class LySincApp {
         } catch (error) {
             console.error('Erro ao pular reprodução:', error);
         }
+    }
+
+    // Exibe notificação popup estilizada (Toast) na tela
+    showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        // Cria o elemento da notificação
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+
+        // Indicador de tipo colorido
+        const indicator = document.createElement('div');
+        indicator.className = 'toast-type-indicator';
+        toast.appendChild(indicator);
+
+        // Texto do conteúdo
+        const textContainer = document.createElement('div');
+        textContainer.className = 'flex-1 text-sm font-medium mr-4';
+        textContainer.textContent = message;
+        toast.appendChild(textContainer);
+
+        // Botão de fechar
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'text-white/40 hover:text-white transition-colors focus:outline-none';
+        closeBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        `;
+        toast.appendChild(closeBtn);
+
+        // Injeta no contêiner
+        container.appendChild(toast);
+
+        // Função de remoção com animação
+        const removeToast = () => {
+            if (toast.classList.contains('toast-hide')) return;
+            toast.classList.add('toast-hide');
+            // Aguarda a animação terminar
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        };
+
+        // Evento de clique para fechar imediatamente
+        closeBtn.addEventListener('click', removeToast);
+
+        // Auto-dismiss após 4 segundos
+        setTimeout(removeToast, 4000);
     }
 }
 

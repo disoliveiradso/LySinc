@@ -34,7 +34,7 @@ const SpotifyService = {
     async login() {
         const clientId = Config.getClientId();
         if (!clientId) {
-            alert('Por favor, configure o Spotify Client ID antes de conectar.');
+            window.showToast('Por favor, configure o Spotify Client ID antes de conectar.', 'error');
             return;
         }
 
@@ -72,7 +72,7 @@ const SpotifyService = {
                     return true;
                 } catch (error) {
                     console.error('Erro ao autenticar com o Spotify:', error);
-                    alert('Falha na autenticação com o Spotify. Verifique se o seu Client ID e Redirect URI estão corretos.');
+                    window.showToast('Falha na autenticação com o Spotify. Verifique se o seu Client ID e Redirect URI estão corretos.', 'error');
                 }
             }
         }

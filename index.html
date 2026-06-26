@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LySinc - Letras Sincronizadas do Spotify</title>
+    <!-- Favicon do LySinc (lysinc-icon) -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
@@ -22,6 +24,7 @@
         <!-- Header Geral (Botão Configurações e Desconectar) -->
         <header class="flex justify-between items-center h-16">
             <div class="flex items-center space-x-3">
+                <img src="favicon.svg" alt="LySinc Icon" class="h-8 w-8" id="lysinc-icon">
                 <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">LySinc</span>
                 <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/60">v1.0</span>
             </div>
@@ -147,6 +150,9 @@
             </button>
         </div>
     </div>
+
+    <!-- Container de Notificações Pop-up (Toasts) -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col space-y-3 pointer-events-none max-w-sm w-full px-4 md:px-0"></div>
 
     <!-- Scripts Modulares -->
     <script type="module" src="app.js"></script>
