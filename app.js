@@ -107,6 +107,16 @@ class LySincApp {
         this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
         this.btnSaveSettings.addEventListener('click', () => this.saveSettings());
         
+        const btnClearSession = document.getElementById('btn-clear-session');
+        if (btnClearSession) {
+            btnClearSession.addEventListener('click', () => {
+                this.showToast('Limpando sessão e removendo dados locais...', 'info');
+                setTimeout(() => {
+                    SpotifyService.logout();
+                }, 800);
+            });
+        }
+        
         // Clica fora do modal para fechar
         this.settingsModal.addEventListener('click', (e) => {
             if (e.target === this.settingsModal) {
@@ -529,5 +539,11 @@ class LySincApp {
     }
 }
 
-// Inicializa a aplicação diretamente (scripts type="module" são deferidos por padrão)
-window.app = new LySincApp();
+// Inicializa a aplicação quando o DOM estiver completamente pronto e os nós do cabeçalho acessíveis
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.app = new LySincApp();
+    });
+} else {
+    window.app = new LySincApp();
+}

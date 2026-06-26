@@ -150,7 +150,7 @@
             </div>
 
             <!-- Tutorial de Configuração -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2.5 mb-6 overflow-y-auto max-h-48 text-white/70">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2.5 mb-4 overflow-y-auto max-h-40 text-white/70">
                 <p class="font-semibold text-white">Como obter e configurar seu Client ID:</p>
                 <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
                     <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-emerald-400 hover:underline">Spotify Developer Dashboard</a> e faça login.</li>
@@ -164,10 +164,25 @@
                 </ol>
             </div>
 
-            <!-- Botão Salvar -->
-            <button id="btn-save-settings" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
-                Salvar Configurações
-            </button>
+            <!-- Como remover permissões do Spotify -->
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6 text-white/70">
+                <p class="font-semibold text-white">Como desassociar este site da sua conta Spotify:</p>
+                <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
+                    <li>Acesse a página de aplicativos da sua conta do Spotify: <a href="https://www.spotify.com/account/apps/" target="_blank" class="text-emerald-400 hover:underline">Spotify Apps</a>.</li>
+                    <li>Localize o aplicativo que você criou (ou o padrão "LySinc") e clique em <strong>Remover acesso</strong>.</li>
+                </ol>
+                <p class="text-[10px] text-white/40 mt-2">Isso revoga a autorização do site de acessar seu player em tempo real.</p>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="flex flex-col space-y-3">
+                <button id="btn-save-settings" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
+                    Salvar Configurações
+                </button>
+                <button id="btn-clear-session" class="w-full bg-red-600/20 text-red-400 border border-red-500/20 font-bold py-3 rounded-xl hover:bg-red-600/30 transition-colors">
+                    Remover Login e Dados Locais
+                </button>
+            </div>
         </div>
     </div>
 
