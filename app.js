@@ -98,7 +98,9 @@ class LySincApp {
     }
 
     loadSettings() {
-        this.inputClientId.value = Config.getClientId();
+        // Exibe no input apenas o Client ID salvo localmente no localStorage por este usuário.
+        // O Client ID padrão (Base64) embutido no código é ocultado e nunca exibido aqui.
+        this.inputClientId.value = localStorage.getItem(Config.CLIENT_ID_KEY) || '';
     }
 
     saveSettings() {

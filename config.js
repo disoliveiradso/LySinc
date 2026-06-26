@@ -9,7 +9,7 @@ const Config = {
     // OPCIONAL: Insira o seu Spotify Client ID codificado em Base64 abaixo.
     // Exemplo: SPOTIFY_CLIENT_ID_B64: 'Y2xpZW50X2lkX2hlcmU='
     // Se deixado em branco, o sistema usará o Client ID configurado no navegador.
-    SPOTIFY_CLIENT_ID_B64: '',
+    SPOTIFY_CLIENT_ID_B64: 'MDM1MTRkM2RiZWZlNDVmYTlmNWZjOTdiOWUwMjg4YzU=',
     
     // Obtém o Client ID (prioriza o embutido ofuscado em Base64, senão lê do localStorage)
     getClientId() {
