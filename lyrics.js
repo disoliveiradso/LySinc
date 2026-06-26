@@ -292,7 +292,8 @@ const LyricsService = {
                         words.push({
                             text: wordText,
                             startTime: wordStart,
-                            endTime: wordEnd
+                            endTime: wordEnd,
+                            isBackingVocal: wordText.includes('(') || wordText.includes(')')
                         });
                     }
                     
@@ -305,7 +306,8 @@ const LyricsService = {
                     words = rawWords.map((wordText) => ({
                         text: wordText,
                         startTime: 0, // Será calculado dinamicamente no pós-processamento
-                        endTime: 0
+                        endTime: 0,
+                        isBackingVocal: wordText.includes('(') || wordText.includes(')')
                     }));
                 }
 

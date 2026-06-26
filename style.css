@@ -325,5 +325,14 @@ input:focus {
     box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
 }
 
+/* Estilo Estético Premium para Backing Vocals / Duetos */
+.word.backing-vocal {
+    font-style: italic;
+    opacity: 0.55;
+    transform: scale(0.92) translateZ(0);
+}
 
-
+.lyric-line.active .word.backing-vocal {
+    opacity: 0.75;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}

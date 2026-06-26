@@ -59,6 +59,13 @@ class LySincApp {
         // Verifica se havia indicação de login anterior no localStorage para saber se expirou
         const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
 
+        if (hadRefreshToken) {
+            const btnConnectText = this.btnConnect.querySelector('span');
+            if (btnConnectText) {
+                btnConnectText.textContent = 'Continuar com o Spotify';
+            }
+        }
+
         // Trata o callback do Spotify OAuth ou tenta renovação silenciosa em runtime
         const authenticated = await SpotifyService.handleCallback();
         
@@ -297,7 +304,7 @@ class LySincApp {
             // Constrói a estrutura de palavras (spans)
             line.words.forEach((word, idx) => {
                 const wordSpan = document.createElement('span');
-                wordSpan.className = 'word';
+                wordSpan.className = 'word' + (word.isBackingVocal ? ' backing-vocal' : '');
                 wordSpan.id = `word-${line.id}-${idx}`;
                 wordSpan.textContent = word.text;
                 
@@ -513,7 +520,5 @@ class LySincApp {
     }
 }
 
-// Inicializa a aplicação quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new LySincApp();
-});
+// Inicializa a aplicação diretamente (scripts type="module" são deferidos por padrão)
+window.app = new LySincApp();
