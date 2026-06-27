@@ -49,6 +49,7 @@ class LySincApp {
         // Estado do Scroll Manual do Usuário
         this.isUserInteracting = false;
         this.userScrollTimeout = null;
+        this.lastAutoScrollTime = 0;
 
         // Expõe o gerenciador de notificações globalmente
         window.showToast = (message, type) => this.showToast(message, type);
@@ -200,14 +201,12 @@ class LySincApp {
             });
         });
 
-        // Detecção de Rolagem/Interação Manual do Usuário nas Letras
-        const registerUserInteraction = () => {
+        // Detecção Fisiológica Dinâmica de Interação Manual do Usuário
+        const handleUserInteraction = () => {
             this.isUserInteracting = true;
-            
             if (this.userScrollTimeout) {
                 clearTimeout(this.userScrollTimeout);
             }
-            
             this.userScrollTimeout = setTimeout(() => {
                 this.isUserInteracting = false;
                 // Re-centraliza suavemente na linha ativa atual se ela existir
@@ -217,12 +216,33 @@ class LySincApp {
                         this.scrollToLine(activeEl);
                     }
                 }
-            }, 3000); // 3 segundos de inatividade
+            }, 4000); // 4 segundos de inatividade
         };
 
-        this.lyricsContainer.addEventListener('wheel', registerUserInteraction, { passive: true });
-        this.lyricsContainer.addEventListener('touchmove', registerUserInteraction, { passive: true });
-        this.lyricsContainer.addEventListener('mousedown', registerUserInteraction, { passive: true });
+        // Ouvintes físicos de interação para capturar mouse, teclado e toque imediatamente
+        this.lyricsContainer.addEventListener('wheel', handleUserInteraction, { passive: true });
+        this.lyricsContainer.addEventListener('touchmove', handleUserInteraction, { passive: true });
+        this.lyricsContainer.addEventListener('mousedown', handleUserInteraction, { passive: true });
+        this.lyricsContainer.addEventListener('keydown', handleUserInteraction, { passive: true });
+
+        // Ouvimos o evento 'scroll' do container apenas para prolongar o timer de inatividade
+        // caso o scroll continue ocorrendo por inércia física após o usuário soltar a tela
+        this.lyricsContainer.addEventListener('scroll', () => {
+            if (this.isUserInteracting) {
+                if (this.userScrollTimeout) {
+                    clearTimeout(this.userScrollTimeout);
+                }
+                this.userScrollTimeout = setTimeout(() => {
+                    this.isUserInteracting = false;
+                    if (this.activeLineId !== null) {
+                        const activeEl = document.getElementById(`line-${this.activeLineId}`);
+                        if (activeEl) {
+                            this.scrollToLine(activeEl);
+                        }
+                    }
+                }, 4000);
+            }
+        });
     }
 
     loadSettings() {
@@ -399,36 +419,68 @@ class LySincApp {
         
         // Espaçador no início para empurrar a primeira linha para o centro
         const topSpacer = document.createElement('div');
-        topSpacer.className = 'h-24';
+        topSpacer.style.height = '45vh';
         this.lyricsContainer.appendChild(topSpacer);
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
-            lineEl.className = 'lyric-line inactive py-3 my-2 pr-6';
             
-            // Clica na linha para saltar no player do Spotify (Se implementado no futuro)
+            // Determina as classes de alinhamento e tipo de linha (dueto / backing vocal)
+            let lineClass = 'lyric-line inactive py-3 my-2 transition-all duration-300';
+            if (line.isBackingVocal) {
+                lineClass += ' backing-vocal-line';
+            }
+            
+            // singerIndex === 1 -> Alinhamento à direita (dueto)
+            // singerIndex === 0 -> Alinhamento à esquerda (voz principal)
+            if (line.singerIndex === 1) {
+                lineClass += ' text-right justify-end ml-auto pl-6 pr-0';
+            } else {
+                lineClass += ' text-left justify-start mr-auto pr-6 pl-0';
+            }
+            
+            lineEl.className = lineClass;
+            
+            // Clica na linha para saltar no player do Spotify
             lineEl.addEventListener('click', () => {
                 this.seekToTime(line.startTime);
             });
 
+            // Verifica se a linha tem mistura de palavras normais e backing vocals
+            const hasNormalWords = line.words.some(w => !w.isBackingVocal);
+            const hasBackingWords = line.words.some(w => w.isBackingVocal);
+            const needsBreak = hasNormalWords && hasBackingWords;
+
             // Constrói a estrutura de palavras (spans)
             line.words.forEach((word, idx) => {
                 const wordSpan = document.createElement('span');
-                wordSpan.className = 'word' + (word.isBackingVocal ? ' backing-vocal' : '');
+                // Se a linha for do segundo cantor (singerIndex === 1), adiciona a classe duet-word para estilização (Destaque)
+                let wordClass = 'word';
+                if (word.isBackingVocal) wordClass += ' backing-vocal';
+                if (line.singerIndex === 1) wordClass += ' duet-word';
+                
+                wordSpan.className = wordClass;
                 wordSpan.id = `word-${line.id}-${idx}`;
                 wordSpan.textContent = word.text;
                 
-                // Adiciona espaço após a palavra
                 lineEl.appendChild(wordSpan);
             });
+
+            // Se a linha contiver voz principal e backing vocal juntos, insere elemento de quebra
+            // que forçará o backing vocal a se posicionar na linha de baixo (via Flexbox order)
+            if (needsBreak) {
+                const breakEl = document.createElement('div');
+                breakEl.className = 'lyric-break';
+                lineEl.appendChild(breakEl);
+            }
 
             this.lyricsContainer.appendChild(lineEl);
         });
 
         // Espaçador no final
         const bottomSpacer = document.createElement('div');
-        bottomSpacer.className = 'h-48';
+        bottomSpacer.style.height = '50vh';
         this.lyricsContainer.appendChild(bottomSpacer);
     }
 
@@ -440,7 +492,9 @@ class LySincApp {
                 const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync, this.durationMs);
                 
                 this.updateProgressBar(currentProgressMs);
-                this.updateLyricsSync(currentProgressMs);
+                
+                // Aplica compensação temporal de 150ms (Timing Offset) contra atrasos/latência de reprodução
+                this.updateLyricsSync(currentProgressMs + 150);
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };
@@ -458,34 +512,41 @@ class LySincApp {
     updateLyricsSync(currentProgressMs) {
         if (this.lyrics.length === 0) return;
 
-        // Encontra a linha atual correspondente ao tempo
-        let activeLine = null;
-        for (let i = 0; i < this.lyrics.length; i++) {
-            const line = this.lyrics[i];
-            if (currentProgressMs >= line.startTime && currentProgressMs < line.endTime) {
-                activeLine = line;
-                break;
-            }
+        // Encontra todas as linhas ativas correspondentes ao tempo (suporta sobreposições!)
+        const activeLines = this.lyrics.filter(line => currentProgressMs >= line.startTime && currentProgressMs < line.endTime);
+        const activeLineIds = new Set(activeLines.map(l => l.id));
+        
+        let minActiveId = Infinity;
+        let maxActiveId = -Infinity;
+        if (activeLines.length > 0) {
+            activeLines.forEach(l => {
+                if (l.id < minActiveId) minActiveId = l.id;
+                if (l.id > maxActiveId) maxActiveId = l.id;
+            });
         }
 
-        // Caso o tempo seja anterior à primeira linha
-        if (!activeLine && this.lyrics.length > 0 && currentProgressMs < this.lyrics[0].startTime) {
-            activeLine = null;
-        }
-        
-        // Se a linha ativa mudou
-        if (activeLine && activeLine.id !== this.activeLineId) {
-            this.activeLineId = activeLine.id;
-            this.highlightActiveLine(activeLine.id);
-        } else if (!activeLine && this.activeLineId !== null) {
+        // Se a linha ativa principal (a primeira das ativas) mudou
+        if (activeLines.length > 0) {
+            const primaryActiveId = minActiveId;
+            if (primaryActiveId !== this.activeLineId) {
+                this.activeLineId = primaryActiveId;
+                this.highlightActiveLines(activeLineIds, primaryActiveId);
+            }
+        } else if (this.activeLineId !== null) {
             this.activeLineId = null;
             this.clearHighlights();
         }
 
-        // Atualiza a sincronização interna de todas as palavras (efeito karaoke de 0% a 100%)
+        // Atualiza a sincronização interna de todas as palavras (karaoke fluido de 0% a 100%)
         this.lyrics.forEach((line) => {
-            if (activeLine && line.id === activeLine.id) {
-                // Linha ativa atual: calcula o preenchimento proporcional de cada palavra
+            const isActive = activeLineIds.has(line.id);
+            // Considera linha passada se for anterior à primeira das ativas
+            const isPassed = activeLines.length > 0 
+                ? line.id < minActiveId 
+                : (this.activeLineId !== null ? line.id < this.activeLineId : false);
+
+            if (isActive) {
+                // Linha ativa: calcula o preenchimento proporcional de cada palavra
                 line.words.forEach((word, idx) => {
                     const wordEl = document.getElementById(`word-${line.id}-${idx}`);
                     if (wordEl) {
@@ -507,7 +568,7 @@ class LySincApp {
                         }
                     }
                 });
-            } else if (activeLine && line.id < activeLine.id) {
+            } else if (isPassed) {
                 // Linhas passadas: define progresso de todas as palavras para 100%
                 line.words.forEach((word, idx) => {
                     const wordEl = document.getElementById(`word-${line.id}-${idx}`);
@@ -530,25 +591,28 @@ class LySincApp {
         });
     }
 
-    highlightActiveLine(lineId) {
-        // Atualiza classes das linhas
+    highlightActiveLines(activeLineIds, scrollTargetId) {
+        // Atualiza classes de todas as linhas
         this.lyrics.forEach((line) => {
             const el = document.getElementById(`line-${line.id}`);
             if (el) {
-                if (line.id === lineId) {
+                if (activeLineIds.has(line.id)) {
                     el.classList.remove('inactive');
                     el.classList.add('active');
-                    
-                    // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
-                    if (!this.isUserInteracting) {
-                        this.scrollToLine(el);
-                    }
                 } else {
                     el.classList.remove('active');
                     el.classList.add('inactive');
                 }
             }
         });
+
+        // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
+        if (!this.isUserInteracting) {
+            const targetEl = document.getElementById(`line-${scrollTargetId}`);
+            if (targetEl) {
+                this.scrollToLine(targetEl);
+            }
+        }
     }
 
     clearHighlights() {
@@ -573,6 +637,9 @@ class LySincApp {
         const lineOffsetTop = lineElement.offsetTop;
         const lineHalfHeight = lineElement.clientHeight / 2;
         
+        // Registra o momento em que realizamos o auto-scroll programático para ignorar no listener de scroll
+        this.lastAutoScrollTime = Date.now();
+
         // Alinha exatamente no centro vertical da área de letras
         this.lyricsContainer.scrollTo({
             top: lineOffsetTop - (containerHeight / 2) + lineHalfHeight,

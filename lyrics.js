@@ -19,10 +19,10 @@ const LyricsService = {
 [00:15.20] <00:15.20> Girl, <00:15.40> you <00:15.60> know <00:15.80> I <00:16.00> want <00:16.20> your <00:16.40> love
 [00:16.70] <00:16.70> Your <00:16.90> love <00:17.10> was <00:17.30> handmade <00:17.50> for <00:17.70> somebody <00:17.90> like <00:18.10> me
 [00:18.30] <00:18.30> Come <00:18.50> on <00:18.70> now, <00:18.90> follow <00:19.10> my <00:19.30> lead
-[00:19.60] <00:19.60> I <00:19.80> may <00:20.00> be <00:20.20> crazy, <00:20.40> don't <00:20.60> mind <00:20.80> me
-[00:21.00] <00:21.00> Say, <00:21.20> boy, <00:21.40> let's <00:21.60> not <00:21.80> talk <00:22.00> too <00:22.20> much
-[00:22.40] <00:22.40> Grab <00:22.60> on <00:22.80> my <00:23.00> waist <00:23.20> and <00:23.40> put <00:23.60> that <00:23.80> body <00:24.00> on <00:24.20> me
-[00:24.40] <00:24.40> Come <00:24.60> on <00:24.80> now, <00:25.00> follow <00:25.20> my <00:25.40> lead
+[00:19.60] <00:19.60> I <00:19.80> may <00:20.00> be <00:20.20> crazy, <00:20.40> don't <00:20.60> mind <00:20.80> me <00:20.95> (Oh, <00:21.05> yeah)
+[00:21.10] - <00:21.20> Say, <00:21.40> boy, <00:21.60> let's <00:21.80> not <00:22.00> talk <00:22.20> too <00:22.40> much
+[00:22.40] - <00:22.60> Grab <00:22.80> on <00:23.00> my <00:23.20> waist <00:23.40> and <00:23.60> put <00:23.80> that <00:24.00> body <00:24.20> on <00:24.40> me
+[00:24.60] <00:24.60> Come <00:24.80> on <00:25.00> now, <00:25.20> follow <00:25.40> my <00:25.60> lead
 [00:25.60] <00:25.60> Come, <00:25.80> come <00:26.00> on <00:26.20> now, <00:26.40> follow <00:26.60> my <00:26.80> lead
 [00:27.10] <00:27.10> I'm <00:27.30> in <00:27.50> love <00:27.70> with <00:27.90> the <00:28.10> shape <00:28.30> of <00:28.50> you
 [00:28.80] <00:28.80> We <00:29.00> push <00:29.20> and <00:29.40> pull <00:29.60> like <00:29.80> a <00:30.00> magnet <00:30.20> do
@@ -115,18 +115,21 @@ const LyricsService = {
             }
         }
 
+        // Divide a string de artistas em uma lista de nomes
+        const artistsList = artistName ? artistName.split(/,|\b&\b|\bfeat\b|\bwith\b/i).map(a => a.trim()).filter(Boolean) : [];
+
         if (isMock && mockData) {
             console.log('Usando letra simulada (Mock) para:', trackName);
-            original = this.parseLrc(mockData.syncedLyrics, durationMs);
+            original = this.parseLrc(mockData.syncedLyrics, durationMs, artistsList);
             source = 'LySinc Mock Database';
 
             let translation = null;
             let romanized = null;
             if (mockData.translationLyrics) {
-                translation = this.parseLrc(mockData.translationLyrics, durationMs);
+                translation = this.parseLrc(mockData.translationLyrics, durationMs, artistsList);
             }
             if (mockData.romanizedLyrics) {
-                romanized = this.parseLrc(mockData.romanizedLyrics, durationMs);
+                romanized = this.parseLrc(mockData.romanizedLyrics, durationMs, artistsList);
             }
 
             return {
@@ -141,7 +144,7 @@ const LyricsService = {
         const lrclibData = await this.fetchFromLrcLib(trackName, artistName, albumName, durationMs);
         if (lrclibData) {
             if (lrclibData.syncedLyrics) {
-                original = this.parseLrc(lrclibData.syncedLyrics, durationMs);
+                original = this.parseLrc(lrclibData.syncedLyrics, durationMs, artistsList);
             } else if (lrclibData.plainLyrics) {
                 original = this.parsePlainLyrics(lrclibData.plainLyrics);
                 source = 'Lrclib API (Plain)';
@@ -255,7 +258,7 @@ const LyricsService = {
     },
 
     // Converte letras LRC (incluindo marcações palavra a palavra opcionais)
-    parseLrc(lrcText, totalDurationMs = 0) {
+    parseLrc(lrcText, totalDurationMs = 0, artistsList = []) {
         const lines = lrcText.split('\n');
         const parsedLines = [];
 
@@ -269,6 +272,44 @@ const LyricsService = {
             if (match) {
                 const startTime = this.parseTimestamp(match[1]);
                 let lineTextContent = line.replace(lineTimeRegex, '').trim();
+
+                // Se a linha for vazia (ou seja, apenas timestamp de controle/solo instrumental), 
+                // nós ignoramos para evitar espaços em branco indesejados no layout.
+                if (lineTextContent === '') {
+                    continue;
+                }
+
+                // --- DETECÇÃO DE DUETO / SINGER INDEX ---
+                let singerIndex = 0; // 0 = principal (esquerda), 1 = secundário (direita)
+                let cleanText = lineTextContent.trim();
+                
+                // Se a linha começar com hífen/travessão, indica que é o segundo cantor (diálogo)
+                if (cleanText.startsWith('-') || cleanText.startsWith('—')) {
+                    singerIndex = 1;
+                    // Remove o hífen e espaços adicionais
+                    lineTextContent = cleanText.replace(/^[-—]\s*/, '').trim();
+                } else if (artistsList.length > 1) {
+                    // Se houver mais de um artista e a linha contiver a tag do nome do segundo artista
+                    const secondArtist = artistsList[1].toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const firstArtist = artistsList[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                    
+                    // Regex para capturar tags como: [Artista] ou Artista:
+                    const prefixRegex = /^\[([^\]]+)\]|^([^:]+):/;
+                    const prefixMatch = cleanText.match(prefixRegex);
+                    if (prefixMatch) {
+                        const matchedName = (prefixMatch[1] || prefixMatch[2]).toLowerCase().replace(/[^a-z0-9]/g, '');
+                        if (matchedName.includes(secondArtist) || secondArtist.includes(matchedName)) {
+                            singerIndex = 1;
+                            lineTextContent = cleanText.replace(prefixRegex, '').trim();
+                        } else if (matchedName.includes(firstArtist) || firstArtist.includes(matchedName)) {
+                            singerIndex = 0;
+                            lineTextContent = cleanText.replace(prefixRegex, '').trim();
+                        }
+                    }
+                }
+
+                // Lista de interjeições e vocalizações comuns de backing vocals
+                const backingKeywords = ['ah', 'oh', 'ooh', 'yeah', 'uh', 'la la', 'hoo', 'hey', 'huh', 'mmm', 'shh', 'woo', 'wow', 'ha', 'breathe'];
 
                 // Regex para checar se a linha possui tags de palavra por palavra, ex: <00:12.34> palavra
                 const wordTagRegex = /<(\d+:\d+(?:\.\d+)?)>\s*([^\s<>]+)/g;
@@ -288,11 +329,16 @@ const LyricsService = {
                             wordEnd = this.parseTimestamp(wordMatches[j + 1][1]);
                         }
 
+                        const wordLower = wordText.toLowerCase().replace(/[^a-z0-9()\[\]]/g, '');
+                        const wordIsBacking = wordText.includes('(') || wordText.includes(')') || 
+                                             wordText.includes('[') || wordText.includes(']') || 
+                                             backingKeywords.some(keyword => wordLower === keyword || wordLower.includes('(' + keyword) || wordLower.includes(keyword + ')'));
+
                         words.push({
                             text: wordText,
                             startTime: wordStart,
                             endTime: wordEnd,
-                            isBackingVocal: wordText.includes('(') || wordText.includes(')')
+                            isBackingVocal: wordIsBacking
                         });
                     }
                     
@@ -300,14 +346,31 @@ const LyricsService = {
                     lineTextContent = lineTextContent.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
                 } else {
                     // Formato tradicional linha por linha.
-                    // Faremos uma divisão e simulação linear das palavras da linha para ter efeito de preenchimento fluido!
                     const rawWords = lineTextContent.split(/\s+/);
-                    words = rawWords.map((wordText) => ({
-                        text: wordText,
-                        startTime: 0, // Será calculado dinamicamente no pós-processamento
-                        endTime: 0,
-                        isBackingVocal: wordText.includes('(') || wordText.includes(')')
-                    }));
+                    words = rawWords.map((wordText) => {
+                        const wordLower = wordText.toLowerCase().replace(/[^a-z0-9()\[\]]/g, '');
+                        const wordIsBacking = wordText.includes('(') || wordText.includes(')') || 
+                                             wordText.includes('[') || wordText.includes(']') || 
+                                             backingKeywords.some(keyword => wordLower === keyword || wordLower.includes('(' + keyword) || wordLower.includes(keyword + ')'));
+                        return {
+                            text: wordText,
+                            startTime: 0, // Será calculado dinamicamente no pós-processamento
+                            endTime: 0,
+                            isBackingVocal: wordIsBacking
+                        };
+                    });
+                }
+
+                // Classifica a linha inteira como backing vocal se for cercada por parênteses/colchetes
+                // OU se consistir inteiramente de interjeições de vocal de apoio
+                const cleanTextFinal = lineTextContent.trim();
+                const lowerText = cleanTextFinal.toLowerCase();
+                let isBackingVocal = (cleanTextFinal.startsWith('(') && cleanTextFinal.endsWith(')')) || 
+                                       (cleanTextFinal.startsWith('[') && cleanTextFinal.endsWith(']'));
+                
+                if (!isBackingVocal) {
+                    const wordsOnly = lowerText.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+                    isBackingVocal = wordsOnly.every(w => backingKeywords.includes(w)) && wordsOnly.length > 0;
                 }
 
                 parsedLines.push({
@@ -316,7 +379,9 @@ const LyricsService = {
                     endTime: 0, // Será calculado em relação à próxima linha
                     text: lineTextContent,
                     words: words,
-                    hasDetailedWords: wordMatches.length > 0
+                    hasDetailedWords: wordMatches.length > 0,
+                    isBackingVocal: isBackingVocal,
+                    singerIndex: singerIndex
                 });
             }
         }
@@ -325,14 +390,38 @@ const LyricsService = {
         for (let i = 0; i < parsedLines.length; i++) {
             const currentLine = parsedLines[i];
             
-            // O tempo final da linha é o início da próxima ou o final da música (ou +5s se indefinido)
+            // Estima a duração ideal/natural da linha baseada nas palavras (cerca de 450ms por palavra + 1s de folga)
+            const wordCount = currentLine.words.length || 1;
+            const estimatedDuration = Math.max(2500, Math.min(8000, wordCount * 450 + 1000));
+            let idealEndTime = currentLine.startTime + estimatedDuration;
+
+            // O tempo final padrão da linha é o início da próxima ou o final da música
             let nextLineStart = currentLine.startTime + 5000;
             if (i < parsedLines.length - 1) {
                 nextLineStart = parsedLines[i + 1].startTime;
             } else if (totalDurationMs > currentLine.startTime) {
                 nextLineStart = totalDurationMs;
             }
-            currentLine.endTime = nextLineStart;
+            
+            // Se a próxima linha for backing vocal (sobreposta) e a atual for a principal,
+            // não cortamos a atual! A atual se estende até a próxima linha principal (Singer 0) ou até a duração ideal.
+            if (i < parsedLines.length - 1 && parsedLines[i + 1].isBackingVocal && !currentLine.isBackingVocal) {
+                let nextPrincipalStart = nextLineStart;
+                for (let k = i + 2; k < parsedLines.length; k++) {
+                    if (!parsedLines[k].isBackingVocal) {
+                        nextPrincipalStart = parsedLines[k].startTime;
+                        break;
+                    }
+                }
+                currentLine.endTime = Math.min(idealEndTime, nextPrincipalStart);
+            } else {
+                currentLine.endTime = nextLineStart;
+            }
+
+            // Garante que o tempo final seja maior que o de início
+            if (currentLine.endTime <= currentLine.startTime) {
+                currentLine.endTime = currentLine.startTime + 1000;
+            }
 
             // Se as palavras foram simuladas (não tinham tags explícitas), distribui o tempo linearmente
             if (!currentLine.hasDetailedWords && currentLine.words.length > 0) {
