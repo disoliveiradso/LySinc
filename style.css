@@ -74,6 +74,16 @@ body {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
 }
 
+@keyframes lyric-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        /* O valor final de opacidade será herdado do estado active/inactive */
+    }
+}
+
 .lyric-line {
     font-family: var(--font-heading);
     font-weight: 700;
@@ -83,21 +93,21 @@ body {
                 filter 0.3s ease;
     transform-origin: left center;
     cursor: pointer;
+    animation: lyric-fade-in 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
 }
 
-/* Estado Inativo da Linha (Apple Music blur gradual) */
+/* Estado Inativo da Linha (Sem blur, mais nítido como na imagem 1 e 3) */
 .lyric-line.inactive {
-    color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.4);
     font-size: 1.8rem;
-    transform: scale3d(0.93, 0.93, 0.95);
-    filter: blur(1.5px);
-    opacity: 0.35;
+    transform: scale3d(0.95, 0.95, 0.98);
+    filter: none;
+    opacity: 0.6;
 }
 
 .lyric-line.inactive:hover {
-    color: rgba(255, 255, 255, 0.65);
-    filter: blur(0);
-    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.85;
 }
 
 /* Estado Ativo da Linha (Escala total e foco nítido) */
@@ -105,24 +115,33 @@ body {
     color: #ffffff;
     font-size: 2.5rem;
     transform: scale3d(1.001, 1.001, 1);
-    filter: blur(0);
+    filter: none;
     opacity: 1;
 }
 
-/* Animação e Estilos de Palavras */
+/* Animação e Estilos de Palavras em Karaokê Contínuo */
 .word {
     display: inline-block;
-    color: rgba(255, 255, 255, 0.25);
-    transition: color 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                transform 0.5s ease;
+    background: linear-gradient(to right, #ffffff var(--word-progress, 0%), rgba(255, 255, 255, 0.3) var(--word-progress, 0%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                filter 0.3s ease;
     margin-right: 0.22em;
 }
 
-/* Palavra já cantada ou ativa */
-.word.active {
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
-    transform: translateY(-2.5%) scale(1.01);
+.word.passed {
+    --word-progress: 100% !important;
+}
+
+.word.future {
+    --word-progress: 0% !important;
+}
+
+/* Palavra ativa atual (Efeito glow da imagem 2) */
+.word.current {
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75));
+    transform: scale(1.02) translateY(-1%);
 }
 
 /* Custom Scrollbar */
@@ -331,11 +350,14 @@ input:focus {
 /* Estilo Estético Premium para Backing Vocals / Duetos */
 .word.backing-vocal {
     font-style: italic;
-    opacity: 0.55;
-    transform: scale(0.92) translateZ(0);
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.75) var(--word-progress, 0%), rgba(255, 255, 255, 0.15) var(--word-progress, 0%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: scale(0.95) translateZ(0);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.lyric-line.active .word.backing-vocal {
-    opacity: 0.75;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+.word.backing-vocal.current {
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
+    transform: scale(0.97) translateY(-0.5%);
 }

@@ -46,6 +46,10 @@ class LySincApp {
         // Intervalo de Polling
         this.pollingIntervalId = null;
 
+        // Estado do Scroll Manual do Usuário
+        this.isUserInteracting = false;
+        this.userScrollTimeout = null;
+
         // Expõe o gerenciador de notificações globalmente
         window.showToast = (message, type) => this.showToast(message, type);
 
@@ -54,8 +58,18 @@ class LySincApp {
 
     async init() {
         try {
+            console.log("%c LySinc v1.0.1 - Melhorias de Karaoke e Scroll Ativas ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
             this.setupEventListeners();
             this.loadSettings();
+
+            // Modo de Demonstração Local (sem necessidade de API do Spotify)
+            const urlParams = new URLSearchParams(window.location.search);
+            this.isDemoMode = urlParams.get('mock') === 'true';
+
+            if (this.isDemoMode) {
+                this.setupDemoMode();
+                return;
+            }
 
             // Verifica se havia indicação de login anterior no localStorage para saber se expirou
             const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
@@ -112,6 +126,47 @@ class LySincApp {
         }
     }
 
+    setupDemoMode() {
+        this.showScreen('main');
+        
+        const state = {
+            isPlaying: true,
+            isEmpty: false,
+            progressMs: 0,
+            durationMs: 32000, // 32 segundos de demo
+            trackId: 'shape_of_you',
+            trackName: 'Shape of You',
+            artists: 'Ed Sheeran',
+            albumName: 'Divide',
+            albumArtUrl: 'assets/icons/lysinc-logo.svg'
+        };
+
+        this.isPlaying = true;
+        this.progressMs = 0;
+        this.lastSyncTime = Date.now();
+        this.durationMs = state.durationMs;
+
+        this.updateTrackDetails(state);
+        this.loadLyricsForTrack(state).then(() => {
+            this.startTicker();
+            
+            // Loop para simular o progresso da música continuamente na demonstração
+            setInterval(() => {
+                if (this.isPlaying) {
+                    const elapsed = Date.now() - this.lastSyncTime;
+                    const currentProgress = this.progressMs + elapsed;
+                    if (currentProgress >= this.durationMs) {
+                        this.progressMs = 0;
+                        this.lastSyncTime = Date.now();
+                    }
+                }
+            }, 1000);
+        });
+
+        // Oculta o botão logout na demonstração
+        this.btnLogout.classList.add('hidden');
+    }
+
     setupEventListeners() {
         this.btnConnect.addEventListener('click', () => SpotifyService.login());
         this.btnLogout.addEventListener('click', () => SpotifyService.logout());
@@ -144,6 +199,30 @@ class LySincApp {
                 this.changeLyricsMode(mode);
             });
         });
+
+        // Detecção de Rolagem/Interação Manual do Usuário nas Letras
+        const registerUserInteraction = () => {
+            this.isUserInteracting = true;
+            
+            if (this.userScrollTimeout) {
+                clearTimeout(this.userScrollTimeout);
+            }
+            
+            this.userScrollTimeout = setTimeout(() => {
+                this.isUserInteracting = false;
+                // Re-centraliza suavemente na linha ativa atual se ela existir
+                if (this.activeLineId !== null) {
+                    const activeEl = document.getElementById(`line-${this.activeLineId}`);
+                    if (activeEl) {
+                        this.scrollToLine(activeEl);
+                    }
+                }
+            }, 3000); // 3 segundos de inatividade
+        };
+
+        this.lyricsContainer.addEventListener('wheel', registerUserInteraction, { passive: true });
+        this.lyricsContainer.addEventListener('touchmove', registerUserInteraction, { passive: true });
+        this.lyricsContainer.addEventListener('mousedown', registerUserInteraction, { passive: true });
     }
 
     loadSettings() {
@@ -403,19 +482,52 @@ class LySincApp {
             this.clearHighlights();
         }
 
-        // Atualiza a sincronização interna das palavras da linha ativa
-        if (activeLine) {
-            activeLine.words.forEach((word, idx) => {
-                const wordEl = document.getElementById(`word-${activeLine.id}-${idx}`);
-                if (wordEl) {
-                    if (currentProgressMs >= word.startTime) {
-                        wordEl.classList.add('active');
-                    } else {
-                        wordEl.classList.remove('active');
+        // Atualiza a sincronização interna de todas as palavras (efeito karaoke de 0% a 100%)
+        this.lyrics.forEach((line) => {
+            if (activeLine && line.id === activeLine.id) {
+                // Linha ativa atual: calcula o preenchimento proporcional de cada palavra
+                line.words.forEach((word, idx) => {
+                    const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                    if (wordEl) {
+                        if (currentProgressMs >= word.endTime) {
+                            wordEl.style.setProperty('--word-progress', '100%');
+                            wordEl.classList.add('passed');
+                            wordEl.classList.remove('current');
+                        } else if (currentProgressMs < word.startTime) {
+                            wordEl.style.setProperty('--word-progress', '0%');
+                            wordEl.classList.remove('passed', 'current');
+                        } else {
+                            // Palavra sendo cantada no frame atual
+                            const duration = word.endTime - word.startTime;
+                            const elapsed = currentProgressMs - word.startTime;
+                            const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
+                            wordEl.style.setProperty('--word-progress', `${progress}%`);
+                            wordEl.classList.add('current');
+                            wordEl.classList.remove('passed');
+                        }
                     }
-                }
-            });
-        }
+                });
+            } else if (activeLine && line.id < activeLine.id) {
+                // Linhas passadas: define progresso de todas as palavras para 100%
+                line.words.forEach((word, idx) => {
+                    const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                    if (wordEl) {
+                        wordEl.style.setProperty('--word-progress', '100%');
+                        wordEl.classList.add('passed');
+                        wordEl.classList.remove('current');
+                    }
+                });
+            } else {
+                // Linhas futuras: define progresso de todas as palavras para 0%
+                line.words.forEach((word, idx) => {
+                    const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                    if (wordEl) {
+                        wordEl.style.setProperty('--word-progress', '0%');
+                        wordEl.classList.remove('passed', 'current');
+                    }
+                });
+            }
+        });
     }
 
     highlightActiveLine(lineId) {
@@ -427,25 +539,13 @@ class LySincApp {
                     el.classList.remove('inactive');
                     el.classList.add('active');
                     
-                    // Rola a linha ativa suavemente para a posição ideal (terço central)
-                    this.scrollToLine(el);
+                    // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
+                    if (!this.isUserInteracting) {
+                        this.scrollToLine(el);
+                    }
                 } else {
                     el.classList.remove('active');
                     el.classList.add('inactive');
-                    
-                    // Se for uma linha futura, limpa o destaque das palavras
-                    if (line.id > lineId) {
-                        line.words.forEach((_, idx) => {
-                            const wordEl = document.getElementById(`word-${line.id}-${idx}`);
-                            if (wordEl) wordEl.classList.remove('active');
-                        });
-                    } else {
-                        // Se for uma linha passada, garante que todas as palavras fiquem marcadas como ativas
-                        line.words.forEach((_, idx) => {
-                            const wordEl = document.getElementById(`word-${line.id}-${idx}`);
-                            if (wordEl) wordEl.classList.add('active');
-                        });
-                    }
                 }
             }
         });
@@ -460,7 +560,10 @@ class LySincApp {
             }
             line.words.forEach((_, idx) => {
                 const wordEl = document.getElementById(`word-${line.id}-${idx}`);
-                if (wordEl) wordEl.classList.remove('active');
+                if (wordEl) {
+                    wordEl.style.removeProperty('--word-progress');
+                    wordEl.classList.remove('passed', 'current');
+                }
             });
         });
     }
