@@ -408,7 +408,37 @@ class LySincApp {
 
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
             this.lyricsData = fetchedLyrics;
-            // Mantém o modo anterior se suportado, senão reseta para original
+            
+            // Gerencia exibição das abas de Tradução/Romanização reais
+            const tabTranslation = document.querySelector('.lyric-tab-btn[data-mode="translation"]');
+            const tabRomanized = document.querySelector('.lyric-tab-btn[data-mode="romanized"]');
+            
+            if (tabTranslation) {
+                if (fetchedLyrics.translation && fetchedLyrics.translation.length > 0) {
+                    tabTranslation.classList.remove('hidden');
+                } else {
+                    tabTranslation.classList.add('hidden');
+                    if (this.currentLyricsMode === 'translation') this.currentLyricsMode = 'original';
+                }
+            }
+            if (tabRomanized) {
+                if (fetchedLyrics.romanized && fetchedLyrics.romanized.length > 0) {
+                    tabRomanized.classList.remove('hidden');
+                } else {
+                    tabRomanized.classList.add('hidden');
+                    if (this.currentLyricsMode === 'romanized') this.currentLyricsMode = 'original';
+                }
+            }
+
+            // Seleciona a aba ativa com base no estado
+            document.querySelectorAll('.lyric-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-mode') === this.currentLyricsMode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
             this.lyrics = this.lyricsData[this.currentLyricsMode] || this.lyricsData.original;
             this.renderLyrics();
             
@@ -419,7 +449,7 @@ class LySincApp {
                 footer.classList.remove('hidden');
             }
 
-            // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
+            // Força a atualização de sincronização e o scroll imediato para a linha ativa atual
             this.activeLineId = null;
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             this.updateLyricsSync(this.progressMs + elapsed);
@@ -435,8 +465,8 @@ class LySincApp {
         }
     }
 
-    // Alterna o idioma das letras mantendo a reprodução e processando sob demanda
-    async changeLyricsMode(mode) {
+    // Alterna o idioma das letras mantendo a reprodução de forma síncrona simples
+    changeLyricsMode(mode) {
         if (!this.lyricsData) return;
         
         // Altera a aba ativa na UI
@@ -449,24 +479,6 @@ class LySincApp {
         });
 
         this.currentLyricsMode = mode;
-
-        // Se o modo selecionado ainda não foi gerado, processa dinamicamente via GoogleService
-        if (!this.lyricsData[mode]) {
-            if (mode === 'translation') {
-                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
-                this.showToast('Traduzindo letras para o português...', 'info');
-                
-                const translated = await LyricsService.translateLyrics(this.lyricsData.original);
-                this.lyricsData.translation = translated;
-            } else if (mode === 'romanized') {
-                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
-                this.showToast('Convertendo escrita para caracteres latinos...', 'info');
-                
-                const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
-                this.lyricsData.romanized = romanized;
-            }
-        }
-
         this.lyrics = this.lyricsData[mode] || this.lyricsData.original;
         
         // Re-renderiza e alinha instantaneamente
@@ -481,43 +493,42 @@ class LySincApp {
     renderLyrics() {
         this.lyricsContainer.innerHTML = '';
 
-        this.lyrics.forEach((line) => {
+        this.lyrics.forEach((line, index) => {
             const lineEl = document.createElement('div');
-            lineEl.id = `line-${line.id}`;
+            lineEl.id = `line-${index}`;
             
-            // Determina as classes de alinhamento da linha (dueto / voz principal)
+            // Determina as classes de alinhamento da linha de forma limpa seguindo a fonte original
             let lineClass = 'lyric-line inactive py-3 my-2 transition-all duration-300';
-            if (line.isBackingVocal) {
-                lineClass += ' backing-vocal-line';
-            }
             
-            // singerIndex === 1 -> Alinhamento à direita (dueto)
-            // singerIndex === 0 -> Alinhamento à esquerda (voz principal)
-            if (line.singerIndex === 1) {
-                lineClass += ' text-right justify-end ml-auto pl-6 pr-0';
-            } else {
-                lineClass += ' text-left justify-start mr-auto pr-6 pl-0';
+            // Verifica se a frase tem formato de backing vocal (como parênteses)
+            const isBacking = /^\(.*?\)$/u.test(line.words.trim());
+            if (isBacking) {
+                lineClass += ' backing-vocal-line';
             }
             
             lineEl.className = lineClass;
             
             // Clica na linha para saltar no player do Spotify
             lineEl.addEventListener('click', () => {
-                this.seekToTime(line.startTime);
+                this.seekToTime(line.startTimeMs);
             });
 
-            // Constrói a estrutura de palavras (spans) fluindo continuamente na mesma linha
-            line.words.forEach((word, idx) => {
+            // Constrói a estrutura de palavras (spans) de acordo com a fonte
+            if (line.parts && line.parts.length > 0) {
+                line.parts.forEach((part, pIdx) => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = 'word';
+                    wordSpan.id = `word-${index}-${pIdx}`;
+                    wordSpan.textContent = part.words;
+                    lineEl.appendChild(wordSpan);
+                });
+            } else {
                 const wordSpan = document.createElement('span');
-                let wordClass = 'word';
-                if (line.singerIndex === 1) wordClass += ' duet-word';
-                
-                wordSpan.className = wordClass;
-                wordSpan.id = `word-${line.id}-${idx}`;
-                wordSpan.textContent = word.text;
-                
+                wordSpan.className = 'word';
+                wordSpan.id = `word-${index}-0`;
+                wordSpan.textContent = line.words;
                 lineEl.appendChild(wordSpan);
-            });
+            }
 
             this.lyricsContainer.appendChild(lineEl);
         });
@@ -551,55 +562,60 @@ class LySincApp {
     updateLyricsSync(currentProgressMs) {
         if (this.lyrics.length === 0) return;
 
-        // Encontra todas as linhas ativas correspondentes ao tempo (suporta sobreposições!)
-        const activeLines = this.lyrics.filter(line => currentProgressMs >= line.startTime && currentProgressMs < line.endTime);
-        const activeLineIds = new Set(activeLines.map(l => l.id));
+        // Encontra todas as linhas ativas correspondentes ao tempo (em milissegundos)
+        const activeLines = this.lyrics.filter(line => 
+            currentProgressMs >= line.startTimeMs && 
+            currentProgressMs < (line.startTimeMs + line.durationMs)
+        );
         
-        let minActiveId = Infinity;
-        let maxActiveId = -Infinity;
+        let minActiveIndex = Infinity;
         if (activeLines.length > 0) {
-            activeLines.forEach(l => {
-                if (l.id < minActiveId) minActiveId = l.id;
-                if (l.id > maxActiveId) maxActiveId = l.id;
+            this.lyrics.forEach((line, idx) => {
+                if (activeLines.includes(line) && idx < minActiveIndex) {
+                    minActiveIndex = idx;
+                }
             });
         }
 
-        // Se a linha ativa principal (a primeira das ativas) mudou
+        // Se a linha ativa principal mudou
         if (activeLines.length > 0) {
-            const primaryActiveId = minActiveId;
-            if (primaryActiveId !== this.activeLineId) {
-                this.activeLineId = primaryActiveId;
-                this.highlightActiveLines(activeLineIds, primaryActiveId);
+            const primaryActiveIndex = minActiveIndex;
+            if (primaryActiveIndex !== this.activeLineId) {
+                this.activeLineId = primaryActiveIndex;
+                
+                const activeIndices = new Set();
+                this.lyrics.forEach((line, idx) => {
+                    if (activeLines.includes(line)) {
+                        activeIndices.add(idx);
+                    }
+                });
+                this.highlightActiveLines(activeIndices, primaryActiveIndex);
             }
         } else if (this.activeLineId !== null) {
             this.activeLineId = null;
             this.clearHighlights();
         }
 
-        // Atualiza a sincronização interna de todas as palavras (karaoke fluido de 0% a 100%)
-        this.lyrics.forEach((line) => {
-            const isActive = activeLineIds.has(line.id);
-            // Considera linha passada se for anterior à primeira das ativas
-            const isPassed = activeLines.length > 0 
-                ? line.id < minActiveId 
-                : (this.activeLineId !== null ? line.id < this.activeLineId : false);
+        // Atualiza a sincronização interna de todas as palavras
+        this.lyrics.forEach((line, idx) => {
+            const isActive = activeLines.includes(line);
+            const isPassed = minActiveIndex !== Infinity ? idx < minActiveIndex : (this.activeLineId !== null ? idx < this.activeLineId : false);
 
-            if (isActive) {
-                // Linha ativa: calcula o preenchimento proporcional de cada palavra
-                line.words.forEach((word, idx) => {
-                    const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+            if (line.parts && line.parts.length > 0) {
+                line.parts.forEach((part, pIdx) => {
+                    const wordEl = document.getElementById(`word-${idx}-${pIdx}`);
                     if (wordEl) {
-                        if (currentProgressMs >= word.endTime) {
+                        const partEnd = part.startTimeMs + part.durationMs;
+                        if (currentProgressMs >= partEnd) {
                             wordEl.style.setProperty('--word-progress', '100%');
                             wordEl.classList.add('passed');
                             wordEl.classList.remove('current');
-                        } else if (currentProgressMs < word.startTime) {
+                        } else if (currentProgressMs < part.startTimeMs) {
                             wordEl.style.setProperty('--word-progress', '0%');
                             wordEl.classList.remove('passed', 'current');
                         } else {
-                            // Palavra sendo cantada no frame atual
-                            const duration = word.endTime - word.startTime;
-                            const elapsed = currentProgressMs - word.startTime;
+                            const duration = part.durationMs;
+                            const elapsed = currentProgressMs - part.startTimeMs;
                             const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
                             wordEl.style.setProperty('--word-progress', `${progress}%`);
                             wordEl.classList.add('current');
@@ -607,35 +623,33 @@ class LySincApp {
                         }
                     }
                 });
-            } else if (isPassed) {
-                // Linhas passadas: define progresso de todas as palavras para 100%
-                line.words.forEach((word, idx) => {
-                    const wordEl = document.getElementById(`word-${line.id}-${idx}`);
-                    if (wordEl) {
+            } else {
+                const wordEl = document.getElementById(`word-${idx}-0`);
+                if (wordEl) {
+                    if (isPassed) {
                         wordEl.style.setProperty('--word-progress', '100%');
                         wordEl.classList.add('passed');
                         wordEl.classList.remove('current');
-                    }
-                });
-            } else {
-                // Linhas futuras: define progresso de todas as palavras para 0%
-                line.words.forEach((word, idx) => {
-                    const wordEl = document.getElementById(`word-${line.id}-${idx}`);
-                    if (wordEl) {
+                    } else if (isActive) {
+                        const elapsed = currentProgressMs - line.startTimeMs;
+                        const progress = line.durationMs > 0 ? (elapsed / line.durationMs) * 100 : 0;
+                        wordEl.style.setProperty('--word-progress', `${progress}%`);
+                        wordEl.classList.add('current');
+                        wordEl.classList.remove('passed');
+                    } else {
                         wordEl.style.setProperty('--word-progress', '0%');
                         wordEl.classList.remove('passed', 'current');
                     }
-                });
+                }
             }
         });
     }
 
-    highlightActiveLines(activeLineIds, scrollTargetId) {
-        // Atualiza classes de todas as linhas
-        this.lyrics.forEach((line) => {
-            const el = document.getElementById(`line-${line.id}`);
+    highlightActiveLines(activeIndices, scrollTargetId) {
+        this.lyrics.forEach((line, idx) => {
+            const el = document.getElementById(`line-${idx}`);
             if (el) {
-                if (activeLineIds.has(line.id)) {
+                if (activeIndices.has(idx)) {
                     el.classList.remove('inactive');
                     el.classList.add('active');
                 } else {
@@ -647,31 +661,39 @@ class LySincApp {
 
         // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
         if (!this.isUserInteracting) {
-            const targetEl = document.getElementById(`line-${scrollTargetId}`);
-            if (targetEl) {
-                this.scrollToLine(targetEl);
-            }
+            this.scrollToLine(scrollTargetId);
         }
     }
 
     clearHighlights() {
-        this.lyrics.forEach((line) => {
-            const el = document.getElementById(`line-${line.id}`);
+        this.lyrics.forEach((line, idx) => {
+            const el = document.getElementById(`line-${idx}`);
             if (el) {
                 el.classList.remove('active');
                 el.classList.add('inactive');
             }
-            line.words.forEach((_, idx) => {
-                const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+            if (line.parts && line.parts.length > 0) {
+                line.parts.forEach((_, pIdx) => {
+                    const wordEl = document.getElementById(`word-${idx}-${pIdx}`);
+                    if (wordEl) {
+                        wordEl.style.removeProperty('--word-progress');
+                        wordEl.classList.remove('passed', 'current');
+                    }
+                });
+            } else {
+                const wordEl = document.getElementById(`word-${idx}-0`);
                 if (wordEl) {
                     wordEl.style.removeProperty('--word-progress');
                     wordEl.classList.remove('passed', 'current');
                 }
-            });
+            }
         });
     }
 
-    scrollToLine(lineElement) {
+    scrollToLine(index) {
+        const lineElement = document.getElementById(`line-${index}`);
+        if (!lineElement) return;
+
         const containerRect = this.lyricsContainer.getBoundingClientRect();
         const lineRect = lineElement.getBoundingClientRect();
         

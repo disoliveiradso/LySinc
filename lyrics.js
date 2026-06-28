@@ -1,218 +1,10 @@
 /**
  * LySinc - Serviço de Busca e Parsing de Letras
+ * Baseado estritamente no repositório de referência better-lyrics-master
  */
-// Serviço auxiliar para tradução e romanização usando a API livre do Google Translate (gtx)
-class GoogleService {
-    static delay(ms) {
-        return new Promise(resolve => {
-            setTimeout(resolve, ms);
-        });
-    }
-    
-    static fetchWithTimeout(url, timeoutMs = 6000) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-        return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeoutId));
-    }
-    
-    static isPurelyLatinScript(text) {
-        return /^[\u0000-\u007F\u0080-\u00FF\u0100-\u017F\u0180-\u024F]*$/.test(text);
-    }
-    
-    static async translate(textOrArray, targetLang) {
-        if (!textOrArray || (Array.isArray(textOrArray) && textOrArray.length === 0)) {
-            return Array.isArray(textOrArray) ? [] : '';
-        }
-        const isArray = Array.isArray(textOrArray);
-        const texts = isArray ? textOrArray : [textOrArray];
-        const nonEmptyIndices = [];
-        const textsToTranslate = [];
-        
-        texts.forEach((t, i) => {
-            if (t && t.trim()) {
-                nonEmptyIndices.push(i);
-                textsToTranslate.push(t);
-            }
-        });
-        
-        if (textsToTranslate.length === 0) {
-            return isArray ? texts : texts[0];
-        }
-        
-        const BATCH_SIZE_CHARS = 1500;
-        const translatedResults = new Array(textsToTranslate.length).fill('');
-        let currentBatch = [];
-        let currentBatchIndices = [];
-        let currentBatchLength = 0;
-        
-        const processBatch = async (batch, indices) => {
-            if (batch.length === 0) return;
-            const joinedText = batch.join('\n');
-            let attempt = 0;
-            let success = false;
-            
-            while (attempt < 3 && !success) {
-                try {
-                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(joinedText)}`;
-                    const response = await GoogleService.fetchWithTimeout(url);
-                    if (!response.ok) throw new Error(`Status ${response.status}`);
-                    const data = await response.json();
-                    const fullTranslation = data?.[0]?.map((seg) => seg?.[0]).join('') || '';
-                    const lines = fullTranslation.split('\n');
-                    
-                    indices.forEach((originalIdx, i) => {
-                        if (i < lines.length) {
-                            translatedResults[originalIdx] = lines[i];
-                        } else {
-                            translatedResults[originalIdx] = batch[i];
-                        }
-                    });
-                    success = true;
-                } catch (e) {
-                    attempt += 1;
-                    if (attempt < 3) {
-                        await GoogleService.delay(1000 * 2 ** (attempt - 1));
-                    } else {
-                        indices.forEach((originalIdx, i) => {
-                            translatedResults[originalIdx] = batch[i];
-                        });
-                    }
-                }
-            }
-        };
-        
-        for (let i = 0; i < textsToTranslate.length; i += 1) {
-            const text = textsToTranslate[i];
-            if (currentBatchLength + text.length > BATCH_SIZE_CHARS) {
-                await processBatch(currentBatch, currentBatchIndices);
-                currentBatch = [];
-                currentBatchIndices = [];
-                currentBatchLength = 0;
-            }
-            currentBatch.push(text);
-            currentBatchIndices.push(i);
-            currentBatchLength += text.length;
-        }
-        
-        if (currentBatch.length > 0) {
-            await processBatch(currentBatch, currentBatchIndices);
-        }
-        
-        const finalArray = [...texts];
-        nonEmptyIndices.forEach((realIdx, mappedIdx) => {
-            finalArray[realIdx] = translatedResults[mappedIdx];
-        });
-        return isArray ? finalArray : finalArray[0];
-    }
-    
-    static async romanizeTexts(texts) {
-        const contextText = texts.join(' ');
-        if (GoogleService.isPurelyLatinScript(contextText)) {
-            return texts;
-        }
-        const romanizedTexts = [];
-        
-        for (const text of texts) {
-            if (!text || GoogleService.isPurelyLatinScript(text)) {
-                romanizedTexts.push(text);
-            } else {
-                let attempt = 0;
-                let success = false;
-                
-                while (attempt < 3 && !success) {
-                    try {
-                        const romanizeUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=rm&q=${encodeURIComponent(text)}`;
-                        const response = await GoogleService.fetchWithTimeout(romanizeUrl);
-                        const data = await response.json();
-                        const romanized = data?.[0]?.[0]?.[3] || text;
-                        romanizedTexts.push(romanized);
-                        success = true;
-                    } catch (error) {
-                        attempt += 1;
-                        if (attempt < 3) {
-                            await GoogleService.delay(1000 * 2 ** (attempt - 1));
-                        }
-                    }
-                }
-                
-                if (!success) {
-                    romanizedTexts.push(text);
-                }
-            }
-        }
-        return romanizedTexts;
-    }
-}
-const LyricsService = {
-    // Banco de dados simulado (Mocks) para testes offline ou demonstrações imediatas
-    MOCK_LYRICS: {
-        "shape_of_you": {
-            trackName: "Shape of You",
-            artistName: "Ed Sheeran",
-            syncedLyrics: `[00:00.00] <00:00.00> Club <00:00.20> isn't <00:00.40> the <00:00.60> best <00:00.80> place <00:01.00> to <00:01.20> find <00:01.40> a <00:01.60> lover
-[00:01.90] <00:01.90> So <00:02.10> the <00:02.30> bar <00:02.50> is <00:02.70> where <00:02.90> I <00:03.10> go
-[00:03.50] <00:03.50> Me <00:03.70> and <00:03.90> my <00:04.10> friends <00:04.30> at <00:04.50> the <00:04.70> table <00:04.90> doing <00:05.10> shots
-[00:05.30] <00:05.30> Drinking <00:05.50> fast <00:05.70> and <00:05.90> then <00:06.10> we <00:06.30> talk <00:06.50> slow
-[00:06.80] <00:06.80> And <00:07.00> you <00:07.20> come <00:07.40> over <00:07.60> and <00:07.80> start <00:08.00> up <00:08.20> a <00:08.40> conversation <00:08.60> with <00:08.80> just <00:09.00> me
-[00:09.20] <00:09.20> And <00:09.40> trust <00:09.60> me <00:09.80> I'll <00:10.00> give <00:10.20> it <00:10.40> a <00:10.60> chance
-[00:10.80] <00:10.80> Now <00:11.00> take <00:11.20> my <00:11.40> hand, <00:11.60> stop, <00:11.80> put <00:12.00> "The <00:12.20> Man" <00:12.40> on <00:12.60> the <00:12.80> jukebox
-[00:13.00] <00:13.00> And <00:13.20> then <00:13.40> we <00:13.60> start <00:13.80> to <00:14.00> dance, <00:14.20> and <00:14.40> now <00:14.60> I'm <00:14.80> singing <00:15.00> like
-[00:15.20] <00:15.20> Girl, <00:15.40> you <00:15.60> know <00:15.80> I <00:16.00> want <00:16.20> your <00:16.40> love
-[00:16.70] <00:16.70> Your <00:16.90> love <00:17.10> was <00:17.30> handmade <00:17.50> for <00:17.70> somebody <00:17.90> like <00:18.10> me
-[00:18.30] <00:18.30> Come <00:18.50> on <00:18.70> now, <00:18.90> follow <00:19.10> my <00:19.30> lead
-[00:19.60] <00:19.60> I <00:19.80> may <00:20.00> be <00:20.20> crazy, <00:20.40> don't <00:20.60> mind <00:20.80> me <00:20.95> (Oh, <00:21.05> yeah)
-[00:21.10] - <00:21.20> Say, <00:21.40> boy, <00:21.60> let's <00:21.80> not <00:22.00> talk <00:22.20> too <00:22.40> much
-[00:22.40] - <00:22.60> Grab <00:22.80> on <00:23.00> my <00:23.20> waist <00:23.40> and <00:23.60> put <00:23.80> that <00:24.00> body <00:24.20> on <00:24.40> me
-[00:24.60] <00:24.60> Come <00:24.80> on <00:25.00> now, <00:25.20> follow <00:25.40> my <00:25.60> lead
-[00:25.60] <00:25.60> Come, <00:25.80> come <00:26.00> on <00:26.20> now, <00:26.40> follow <00:26.60> my <00:26.80> lead
-[00:27.10] <00:27.10> I'm <00:27.30> in <00:27.50> love <00:27.70> with <00:27.90> the <00:28.10> shape <00:28.30> of <00:28.50> you
-[00:28.80] <00:28.80> We <00:29.00> push <00:29.20> and <00:29.40> pull <00:29.60> like <00:29.80> a <00:30.00> magnet <00:30.20> do
-[00:30.50] <00:30.50> Although <00:30.70> my <00:30.90> heart <00:31.10> is <00:31.30> falling <00:31.50> too
-[00:31.90] <00:31.90> I'm <00:32.10> in <00:32.30> love <00:32.50> with <00:32.70> your <00:32.90> body`,
-            translationLyrics: `[00:00.00] <00:00.00> O clube <00:00.20> não <00:00.40> é o <00:00.60> melhor <00:00.80> lugar <00:01.00> para <00:01.20> encontrar <00:01.40> alguém
-[00:01.90] <00:01.90> Então <00:02.10> o <00:02.30> bar <00:02.50> é <00:02.70> para onde <00:02.90> eu <00:03.10> vou
-[00:03.50] <00:03.50> Eu <00:03.70> e <00:03.90> meus <00:04.10> amigos <00:04.30> na <00:04.50> mesa <00:04.70> tomando <00:04.90> doses
-[00:05.30] <00:05.30> Bebendo <00:05.50> rápido <00:05.70> e <00:05.90> conversando <00:06.10> devagar
-[00:06.80] <00:06.80> E <00:07.00> você <00:07.20> se <00:07.40> aproxima <00:07.60> e <00:07.80> começa <00:08.00> a <00:08.20> conversar <00:08.40> apenas <00:08.60> comigo
-[00:09.20] <00:09.20> E <00:09.40> confie <00:09.60> em mim <00:09.80> eu <00:10.00> vou <00:10.20> te <00:10.40> dar <00:10.60> uma chance
-[00:10.80] <00:10.80> Agora <00:11.00> pegue <00:11.20> minha <00:11.40> mão, <00:11.60> pare, <00:11.80> coloque <00:12.00> "The <00:12.20> Man" <00:12.40> para <00:12.60> tocar <00:12.80> na máquina
-[00:13.00] <00:13.00> E <00:13.20> então <00:13.40> começamos <00:13.60> a <00:13.80> dançar, <00:14.20> e <00:14.40> agora <00:14.60> canto <00:14.80> assim:
-[00:15.20] <00:15.20> Garota, <00:15.40> você <00:15.60> sabe <00:15.80> que <00:16.00> eu <00:16.20> quero <00:16.40> seu amor
-[00:16.70] <00:16.70> Seu <00:16.90> amor <00:17.10> foi <00:17.30> feito sob medida <00:17.50> para <00:17.70> alguém <00:17.90> como <00:18.10> eu
-[00:18.30] <00:18.30> Venha <00:18.50> agora, <00:18.90> siga <00:19.10> meus <00:19.30> passos
-[00:19.60] <00:19.60> Eu <00:19.80> posso <00:20.00> ser <00:20.20> louco, <00:20.40> mas <00:20.60> não <00:20.80> ligue
-[00:21.00] <00:21.00> Diga, <00:21.20> garoto, <00:21.40> não <00:21.60> vamos <00:21.80> falar <00:22.00> muito
-[00:22.40] <00:22.40> Segure <00:22.60> na <00:22.80> minha <00:23.00> cintura <00:23.20> e <00:23.40> encoste <00:23.60> em <00:23.80> mim
-[00:24.40] <00:24.40> Venha <00:24.60> agora, <00:25.00> siga <00:25.20> meus <00:25.40> passos
-[00:25.60] <00:25.60> Venha, <00:25.80> venha <00:26.00> agora, <00:26.40> siga <00:26.60> meus <00:26.80> passos
-[00:27.10] <00:27.10> Estou <00:27.30> apaixonado <00:27.50> pela <00:27.70> sua <00:27.90> forma
-[00:28.80] <00:28.80> Nós <00:29.00> nos <00:29.20> atraímos <00:29.40> como <00:29.60> um <00:29.80> ímã
-[00:30.50] <00:30.50> Embora <00:30.70> meu <00:30.90> coração <00:31.10> esteja <00:31.30> se apaixonando <00:31.50> também
-[00:31.90] <00:31.90> Estou <00:32.10> apaixonado <00:32.30> pelo <00:32.50> seu <00:32.90> corpo`,
-            romanizedLyrics: `[00:00.00] <00:00.00> Clab <00:00.20> iznt <00:00.40> dhe <00:00.60> best <00:00.80> pleis <00:01.00> tu <00:01.20> faind <00:01.40> a <00:01.60> lavar
-[00:01.90] <00:01.90> Sou <00:02.10> dhe <00:02.30> bar <00:02.50> iz <00:02.70> uer <00:02.90> Ai <00:03.10> gou
-[00:03.50] <00:03.50> Mi <00:03.70> end <00:03.90> mai <00:04.10> frendz <00:04.30> et <00:04.50> dhe <00:04.70> teibol <00:04.90> duing <00:05.10> shots
-[00:05.30] <00:05.30> Drinkin <00:05.50> fest <00:05.70> end <00:05.90> dhen <00:06.10> ui <00:06.30> tok <00:06.50> slou
-[00:06.80] <00:06.80> End <00:07.00> iu <00:07.20> kam <00:07.40> ouver <00:07.60> end <00:07.80> start <00:08.00> ap <00:08.20> a <00:08.40> konverseishan <00:08.60> uidh <00:08.80> djast <00:09.00> mi
-[00:09.20] <00:09.20> End <00:09.40> trast <00:09.60> mi <00:09.80> Ail <00:10.00> giv <00:10.20> it <00:10.40> a <00:10.60> chens
-[00:10.80] <00:10.80> Nau <00:11.00> teik <00:11.20> mai <00:11.40> hend, <00:11.60> stóp, <00:11.80> put <00:12.00> "Dhe <00:12.20> Men" <00:12.40> on <00:12.60> dhe <00:12.80> djukbóks
-[00:13.00] <00:13.00> End <00:13.20> dhen <00:13.40> ui <00:13.60> start <00:13.80> tu <00:14.00> dens, <00:14.20> end <00:14.40> nau <00:14.60> Aim <00:14.80> singin <00:15.00> laik
-[00:15.20] <00:15.20> Garl, <00:15.40> iu <00:15.60> nou <00:15.80> Ai <00:16.00> uont <00:16.20> ior <00:16.40> lav
-[00:16.70] <00:16.70> Ior <00:16.90> lav <00:17.10> uoz <00:17.30> hendmeid <00:17.50> for <00:17.70> sambadi <00:17.90> laik <00:18.10> mi
-[00:18.30] <00:18.30> Kam <00:18.50> on <00:18.70> nau, <00:18.90> falou <00:19.10> mai <00:19.30> lid
-[00:19.60] <00:19.60> Ai <00:19.80> mei <00:20.00> bi <00:20.20> kreizi, <00:20.40> dount <00:20.60> maind <00:20.80> mi
-[00:21.00] <00:21.00> Sei, <00:21.20> boi, <00:21.40> lets <00:21.60> not <00:21.80> tok <00:22.00> tu <00:22.20> macz
-[00:22.40] <00:22.40> Greb <00:22.60> on <00:22.80> mai <00:23.00> ueist <00:23.20> end <00:23.40> put <00:23.60> dhet <00:23.80> badi <00:24.00> on <00:24.20> mi
-[00:24.40] <00:24.40> Kam <00:24.60> on <00:24.80> nau, <00:25.00> falou <00:25.20> mai <00:25.40> lid
-[00:25.60] <00:25.60> Kam, <00:25.80> kam <00:26.00> on <00:26.20> nau, <00:26.40> falou <00:26.60> mai <00:26.80> lid
-[00:27.10] <00:27.10> Aim <00:27.30> in <00:27.50> lav <00:27.70> uidh <00:27.90> dhe <00:28.10> szeip <00:28.30> of <00:28.50> iu
-[00:28.80] <00:28.80> Ui <00:29.00> pusz <00:29.20> end <00:29.40> pul <00:29.60> laik <00:29.80> a <00:30.00> megnet <00:30.20> du
-[00:30.50] <00:30.50> Aldhou <00:30.70> mai <00:30.90> hart <00:31.10> iz <00:31.30> folin <00:31.50> tu
-[00:31.90] <00:31.90> Aim <00:32.10> in <00:32.30> lav <00:32.50> uidh <00:32.70> ior <00:32.90> badi`
-        }
-    },
 
-    // Busca letras na Lrclib API por título e artista
+const LyricsService = {
+    // Busca letras na Lrclib API
     async fetchFromLrcLib(trackName, artistName, albumName, durationMs) {
         try {
             const queryParams = new URLSearchParams({
@@ -224,25 +16,18 @@ const LyricsService = {
 
             const response = await fetch(`https://lrclib.net/api/get?${queryParams.toString()}`);
             if (!response.ok) {
-                if (response.status === 404) {
-                    console.log('Letras não encontradas na Lrclib');
-                    return null;
-                }
-                throw new Error('Falha na resposta do Lrclib');
+                return null;
             }
-
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
-            console.error('Erro ao buscar letras da API Lrclib:', error);
+            console.error('Erro ao buscar letras na Lrclib API:', error);
             return null;
         }
     },
 
-    // Busca letras sincronizadas ricas via BiniLyrics Cache ou servidores LyricsPlus (KPoe)
+    // Busca letras no cache da BiniLyrics (Better Lyrics)
     async fetchFromBetterLyrics(trackName, artistName, durationMs) {
         try {
-            // Tenta no BiniLyrics Cache primeiro
             const cacheParams = new URLSearchParams({
                 track: trackName,
                 artist: artistName
@@ -260,255 +45,54 @@ const LyricsService = {
                     if (result.lyricsUrl) {
                         const lyricsRes = await fetch(result.lyricsUrl);
                         if (lyricsRes.ok) {
-                            const lyricsText = await lyricsRes.text();
-                            return {
-                                syncedLyrics: lyricsText,
-                                source: 'Better Lyrics'
-                            };
+                            return await lyricsRes.text();
                         }
                     }
                 }
             }
-            
-            // Fallback: Tenta um servidor do LyricsPlus (KPoe)
-            const servers = [
-                'https://lyricsplus.binimum.org',
-                'https://lyricsplus.atomix.one',
-                'https://lyrics-plus-backend.vercel.app'
-            ];
-            
-            const params = new URLSearchParams({
-                title: trackName,
-                artist: artistName
-            });
-            if (durationMs) {
-                params.append('duration', Math.round(durationMs / 1000).toString());
-            }
-            
-            for (const server of servers) {
-                try {
-                    const url = `${server}/v2/lyrics/get?${params.toString()}`;
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const payload = await res.json();
-                        if (payload && payload.lyrics && payload.lyrics.lines) {
-                            const lrcText = this.convertKPoeToLrc(payload.lyrics);
-                            if (lrcText) {
-                                return {
-                                    syncedLyrics: lrcText,
-                                    source: 'Better Lyrics'
-                                };
-                            }
-                        }
-                    }
-                } catch (e) {
-                    // Tenta o próximo
-                }
-            }
             return null;
         } catch (error) {
-            console.error('Erro ao buscar no Better Lyrics:', error);
+            console.error('Erro ao buscar no cache Better Lyrics:', error);
             return null;
         }
     },
 
-    // Função de conversão do formato KPoe (LyricsPlus) para LRC clássico
-    convertKPoeToLrc(lyricsPayload) {
-        try {
-            if (!lyricsPayload || !lyricsPayload.lines) return null;
-            let lrcLines = [];
-            
-            lyricsPayload.lines.forEach((line) => {
-                const timeMs = line.time || 0;
-                const minutes = Math.floor(timeMs / 60000);
-                const seconds = ((timeMs % 60000) / 1000).toFixed(2);
-                const timeStr = `[${minutes.toString().padStart(2, '0')}:${seconds.padStart(5, '0')}]`;
-                
-                let lineText = '';
-                if (line.words) {
-                    line.words.forEach((word) => {
-                        const wTimeMs = word.time || 0;
-                        const wMin = Math.floor(wTimeMs / 60000);
-                        const wSec = ((wTimeMs % 60000) / 1000).toFixed(2);
-                        const wTimeStr = `<${wMin.toString().padStart(2, '0')}:${wSec.padStart(5, '0')}>`;
-                        lineText += `${wTimeStr} ${word.string || ''} `;
-                    });
-                } else {
-                    lineText = line.string || '';
-                }
-                
-                lrcLines.push(`${timeStr} ${lineText.trim()}`);
-            });
-            
-            return lrcLines.join('\n');
-        } catch (e) {
-            console.error('Falha ao converter formato KPoe:', e);
-            return null;
-        }
-    },
-
-    // Traduz um array de linhas sincronizadas para o português (pt) usando o GoogleService
-    async translateLyrics(lines) {
-        if (!lines || lines.length === 0) return [];
-        try {
-            const textsToTranslate = lines.map(line => line.text || '');
-            if (textsToTranslate.every(t => t === '')) return lines;
-            
-            const translatedBatch = await GoogleService.translate(textsToTranslate, 'pt');
-            
-            return lines.map((line, idx) => {
-                const translatedText = translatedBatch[idx] || line.text;
-                const rawWords = translatedText.split(/\s+/).filter(Boolean);
-                const duration = line.endTime - line.startTime;
-                const wordDuration = (duration * 0.9) / (rawWords.length || 1);
-                
-                const words = rawWords.map((wordText, wIdx) => {
-                    const wStart = Math.round(line.startTime + (wIdx * wordDuration));
-                    return {
-                        text: wordText,
-                        startTime: wStart,
-                        endTime: Math.round(wStart + wordDuration),
-                        isBackingVocal: line.isBackingVocal
-                    };
-                });
-                
-                return {
-                    ...line,
-                    text: translatedText,
-                    words: words,
-                    translation: translatedText
-                };
-            });
-        } catch (error) {
-            console.error('Falha ao traduzir letras:', error);
-            return lines;
-        }
-    },
-
-    // Romaniza (translitera para caracteres latinos) as linhas usando o GoogleService
-    async romanizeLyrics(lines) {
-        if (!lines || lines.length === 0) return [];
-        try {
-            const textsToRomanize = lines.map(line => line.text || '');
-            if (textsToRomanize.every(t => t === '')) return lines;
-            
-            const romanizedBatch = await GoogleService.romanizeTexts(textsToRomanize);
-            
-            return lines.map((line, idx) => {
-                const romanizedText = romanizedBatch[idx] || line.text;
-                const rawWords = romanizedText.split(/\s+/).filter(Boolean);
-                let words = [];
-                
-                if (rawWords.length === line.words.length) {
-                    words = rawWords.map((wordText, wIdx) => ({
-                        ...line.words[wIdx],
-                        text: wordText
-                    }));
-                } else {
-                    const duration = line.endTime - line.startTime;
-                    const wordDuration = (duration * 0.9) / (rawWords.length || 1);
-                    words = rawWords.map((wordText, wIdx) => {
-                        const wStart = Math.round(line.startTime + (wIdx * wordDuration));
-                        return {
-                            text: wordText,
-                            startTime: wStart,
-                            endTime: Math.round(wStart + wordDuration),
-                            isBackingVocal: line.isBackingVocal
-                        };
-                    });
-                }
-                
-                return {
-                    ...line,
-                    text: romanizedText,
-                    words: words,
-                    romanizedText: romanizedText
-                };
-            });
-        } catch (error) {
-            console.error('Falha ao romanizar letras:', error);
-            return lines;
-        }
-    },
-
-    // Retorna as letras (reais ou simuladas) de acordo com os dados da faixa
+    // Função unificada de obtenção de letras
     async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics') {
-        let original = null;
-        
-        const providerNames = {
-            'betterlyrics': 'Better Lyrics',
-            'musixmatch': 'Musixmatch API',
-            'spotify': 'Spotify API',
-            'lrclib': 'Lrclib API',
-            'netease': 'NetEase API',
-            'genius': 'Genius API'
-        };
-        let source = providerNames[provider] || 'Better Lyrics';
+        const songDuration = durationMs || 0;
+        let originalLrc = null;
+        let source = 'Better Lyrics';
 
-        const mockKey = `${trackName}_${artistName}`.toLowerCase().replace(/[^a-z0-9_]/g, '_');
-        let isMock = false;
-        let mockData = null;
-
-        for (const key of Object.keys(this.MOCK_LYRICS)) {
-            if (trackName.toLowerCase().includes(key.replace(/_/g, ' ')) || mockKey.includes(key)) {
-                isMock = true;
-                mockData = this.MOCK_LYRICS[key];
-                break;
-            }
-        }
-
-        // Divide a string de artistas em uma lista de nomes
-        const artistsList = artistName ? artistName.split(/,|\b&\b|\bfeat\b|\bwith\b/i).map(a => a.trim()).filter(Boolean) : [];
-
-        if (isMock && mockData) {
-            console.log('Usando letra simulada (Mock) para:', trackName);
-            original = this.parseLrc(mockData.syncedLyrics, durationMs, artistsList);
-            source = `${providerNames[provider] || 'Better Lyrics'} (Mocked)`;
-
-            let translation = null;
-            let romanized = null;
-            if (mockData.translationLyrics) {
-                translation = this.parseLrc(mockData.translationLyrics, durationMs, artistsList);
-            }
-            if (mockData.romanizedLyrics) {
-                romanized = this.parseLrc(mockData.romanizedLyrics, durationMs, artistsList);
-            }
-
-            return {
-                original: original,
-                translation: translation,
-                romanized: romanized,
-                source: source
-            };
-        }
-
-        // Tenta buscar no BiniLyrics/LyricsPlus se for o provedor Better Lyrics (Padrão)
         if (provider === 'betterlyrics') {
-            const betterLyricsData = await this.fetchFromBetterLyrics(trackName, artistName, durationMs);
-            if (betterLyricsData && betterLyricsData.syncedLyrics) {
-                original = this.parseLrc(betterLyricsData.syncedLyrics, durationMs, artistsList);
-                source = betterLyricsData.source;
+            const betterLyricsText = await this.fetchFromBetterLyrics(trackName, artistName, durationMs);
+            if (betterLyricsText) {
+                originalLrc = betterLyricsText;
+                source = 'Better Lyrics';
             }
         }
 
-        // Se falhar ou for outro provedor, cai para a LrcLib
-        if (!original) {
+        if (!originalLrc) {
             const lrclibData = await this.fetchFromLrcLib(trackName, artistName, albumName, durationMs);
             if (lrclibData) {
                 if (lrclibData.syncedLyrics) {
-                    original = this.parseLrc(lrclibData.syncedLyrics, durationMs, artistsList);
+                    originalLrc = lrclibData.syncedLyrics;
+                    source = 'Lrclib API';
                 } else if (lrclibData.plainLyrics) {
-                    original = this.parsePlainLyrics(lrclibData.plainLyrics);
-                    source = `${providerNames[provider] || 'Better Lyrics'} (Plain)`;
+                    return {
+                        original: this.parsePlainLyrics(lrclibData.plainLyrics),
+                        translation: null,
+                        romanized: null,
+                        source: 'Lrclib API (Plain)'
+                    };
                 }
             }
         }
 
-        if (original) {
+        if (originalLrc) {
             return {
-                original: original,
-                translation: null, // Será preenchido assincronamente sob demanda
-                romanized: null,   // Será preenchido assincronamente sob demanda
+                original: this.parseLRC(originalLrc, songDuration),
+                translation: null,
+                romanized: null,
                 source: source
             };
         }
@@ -516,282 +100,163 @@ const LyricsService = {
         return null;
     },
 
-    // Gera fallbacks dinâmicos de tradução e romanização simulados
-    generateFallbackLyrics(lyrics, mode) {
-        if (!lyrics) return [];
-        return lyrics.map(line => {
-            let newText = line.text;
-            if (mode === 'translation') {
-                newText = newText
-                    .replace(/\bClub\b/gi, 'Clube')
-                    .replace(/\blover\b/gi, 'amante')
-                    .replace(/\bbar\b/gi, 'bar')
-                    .replace(/\bfriends\b/gi, 'amigos')
-                    .replace(/\btable\b/gi, 'mesa')
-                    .replace(/\bdance\b/gi, 'dançar')
-                    .replace(/\bsing\b/gi, 'cantar')
-                    .replace(/\bshape\b/gi, 'forma')
-                    .replace(/\bheart\b/gi, 'coração')
-                    .replace(/\bmagnet\b/gi, 'ímã')
-                    .replace(/\bin love\b/gi, 'apaixonado');
-                
-                if (newText === line.text && !line.isStatic) {
-                    newText = `[Tradução] ${line.text}`;
-                }
-            } else {
-                newText = `[Romaji] ${line.text}`;
+    // Converte representação de tempo para milissegundos
+    parseTime(timeStr) {
+        if (!timeStr) return 0;
+        if (typeof timeStr === 'number') return timeStr;
+
+        const parts = timeStr.split(':');
+        let totalMs = 0;
+
+        try {
+            if (parts.length === 1) {
+                totalMs = parseFloat(parts[0]) * 1000;
+            } else if (parts.length === 2) {
+                const minutes = parseInt(parts[0], 10);
+                const seconds = parseFloat(parts[1]);
+                totalMs = minutes * 60 * 1000 + seconds * 1000;
+            } else if (parts.length === 3) {
+                const hours = parseInt(parts[0], 10);
+                const minutes = parseInt(parts[1], 10);
+                const seconds = parseFloat(parts[2]);
+                totalMs = hours * 3600 * 1000 + minutes * 60 * 1000 + seconds * 1000;
+            }
+            return Math.round(totalMs);
+        } catch (e) {
+            console.error(`Erro ao parsear tempo: ${timeStr}`, e);
+            return 0;
+        }
+    },
+
+    // Parser LRC completo do better-lyrics-master
+    parseLRC(lrcText, songDuration) {
+        const possibleIdTags = ["ti", "ar", "al", "au", "lr", "length", "by", "offset", "re", "tool", "ve", "#"];
+        const TIME_TAG_REGEX = /[\[](\d+:\d+\.\d+)[\]]/g;
+        const ENHANCED_WORD_REGEX = /<(\d+:\d+\.\d+)>/g;
+        const ID_TAG_REGEX = /^[\[](\w+):(.*)[\]]$/;
+
+        const lines = lrcText.split('\n');
+        const result = [];
+        const idTags = {};
+
+        lines.forEach(line => {
+            line = line.trim();
+
+            const idTagMatch = line.match(ID_TAG_REGEX);
+            if (idTagMatch && possibleIdTags.includes(idTagMatch[1])) {
+                idTags[idTagMatch[1]] = idTagMatch[2];
+                return;
             }
 
-            const newWords = line.words.map(w => {
-                let wText = w.text;
-                if (mode === 'translation') {
-                    wText = wText
-                        .replace(/\bClub\b/gi, 'Clube')
-                        .replace(/\blover\b/gi, 'amante')
-                        .replace(/\bbar\b/gi, 'bar')
-                        .replace(/\bfriends\b/gi, 'amigos')
-                        .replace(/\btable\b/gi, 'mesa')
-                        .replace(/\bdance\b/gi, 'dançar')
-                        .replace(/\bsing\b/gi, 'cantar')
-                        .replace(/\bshape\b/gi, 'forma')
-                        .replace(/\bheart\b/gi, 'coração')
-                        .replace(/\bmagnet\b/gi, 'ímã');
+            const timeTags = [];
+            let match;
+            while ((match = TIME_TAG_REGEX.exec(line)) !== null) {
+                timeTags.push(this.parseTime(match[1]));
+            }
+
+            if (timeTags.length === 0) return;
+
+            const lyricPart = line.replace(TIME_TAG_REGEX, '').trim();
+
+            const parts = [];
+            let lastTime = null;
+            let plainText = '';
+
+            const fragments = lyricPart.split(ENHANCED_WORD_REGEX);
+            const isMusixmatchStyle = fragments.some(
+                (f, i) => i % 2 === 0 && i > 0 && i < fragments.length - 1 && f.length > 0 && f.trim() === ""
+            );
+
+            fragments.forEach((fragment, index) => {
+                if (index % 2 === 0) {
+                    if (isMusixmatchStyle) {
+                        const trimmed = fragment.trim();
+                        fragment = trimmed === "" && fragment.length > 0 ? " " : trimmed;
+                    }
+                    plainText += fragment;
+                    if (parts.length > 0 && parts[parts.length - 1].startTimeMs) {
+                        parts[parts.length - 1].words += fragment;
+                    }
+                } else {
+                    const startTime = this.parseTime(fragment);
+                    if (lastTime !== null && parts.length > 0) {
+                        parts[parts.length - 1].durationMs = startTime - lastTime;
+                    }
+                    parts.push({
+                        startTimeMs: startTime,
+                        words: '',
+                        durationMs: 0,
+                    });
+                    lastTime = startTime;
                 }
-                return {
-                    ...w,
-                    text: wText
-                };
             });
 
-            return {
-                ...line,
-                text: newText,
-                words: newWords
-            };
+            const startTime = Math.min(...timeTags);
+            const endTime = Math.max(...timeTags);
+            const duration = endTime - startTime;
+
+            result.push({
+                startTimeMs: startTime,
+                words: plainText.trim() || lyricPart.trim(),
+                durationMs: duration,
+                parts: parts.length > 0 ? parts : undefined,
+            });
         });
-    },
 
-    // Converte timestamp string [mm:ss.xx] ou <mm:ss.xx> em milissegundos
-    parseTimestamp(timeStr) {
-        const cleaned = timeStr.replace(/[\[\]<>]/g, '').trim();
-        const parts = cleaned.split(':');
-        if (parts.length < 2) return 0;
-        
-        const minutes = parseInt(parts[0], 10);
-        const secondsAndMs = parts[1].split('.');
-        const seconds = parseInt(secondsAndMs[0], 10);
-        let ms = 0;
-        
-        if (secondsAndMs.length > 1) {
-            const msStr = secondsAndMs[1].padEnd(3, '0').slice(0, 3);
-            ms = parseInt(msStr, 10);
-        }
-        
-        return (minutes * 60 + seconds) * 1000 + ms;
-    },
-
-    // Processa o formato de letra estática
-    parsePlainLyrics(plainText) {
-        return plainText.split('\n').map((lineText, index) => {
-            const cleanText = lineText.trim();
-            // Cria linhas artificiais espaçadas a cada 4 segundos apenas para exibição
-            return {
-                id: index,
-                startTime: index * 4000,
-                endTime: (index + 1) * 4000,
-                text: cleanText,
-                words: [{
-                    text: cleanText,
-                    startTime: index * 4000,
-                    endTime: (index + 1) * 4000
-                }],
-                isStatic: true
-            };
-        });
-    },
-
-    // Converte letras LRC (incluindo marcações palavra a palavra opcionais)
-    parseLrc(lrcText, totalDurationMs = 0, artistsList = []) {
-        const lines = lrcText.split('\n');
-        const parsedLines = [];
-
-        // Regex para extrair a marcação de tempo da linha inteira, ex: [01:23.45]
-        const lineTimeRegex = /^\[(\d+:\d+(?:\.\d+)?)\]/;
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            const match = lineTimeRegex.exec(line);
-            
-            if (match) {
-                const startTime = this.parseTimestamp(match[1]);
-                let lineTextContent = line.replace(lineTimeRegex, '').trim();
-
-                // Se a linha for vazia (ou seja, apenas timestamp de controle/solo instrumental), 
-                // nós ignoramos para evitar espaços em branco indesejados no layout.
-                if (lineTextContent === '') {
-                    continue;
+        result.forEach((lyric, index) => {
+            if (index + 1 < result.length) {
+                const nextLyric = result[index + 1];
+                if (lyric.durationMs === 0) {
+                    lyric.durationMs = Math.max(nextLyric.startTimeMs - lyric.startTimeMs, 0);
                 }
-
-                // --- DETECÇÃO DE DUETO / SINGER INDEX ---
-                let singerIndex = 0; // 0 = principal (esquerda), 1 = secundário (direita)
-                let cleanText = lineTextContent.trim();
-                
-                // Se a linha começar com hífen/travessão, indica que é o segundo cantor (diálogo)
-                if (cleanText.startsWith('-') || cleanText.startsWith('—')) {
-                    singerIndex = 1;
-                    // Remove o hífen e espaços adicionais
-                    lineTextContent = cleanText.replace(/^[-—]\s*/, '').trim();
-                } else if (artistsList.length > 1) {
-                    // Se houver mais de um artista e a linha contiver a tag do nome do segundo artista
-                    const secondArtist = artistsList[1].toLowerCase().replace(/[^a-z0-9]/g, '');
-                    const firstArtist = artistsList[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-                    
-                    // Regex para capturar tags como: [Artista] ou Artista:
-                    const prefixRegex = /^\[([^\]]+)\]|^([^:]+):/;
-                    const prefixMatch = cleanText.match(prefixRegex);
-                    if (prefixMatch) {
-                        const matchedName = (prefixMatch[1] || prefixMatch[2]).toLowerCase().replace(/[^a-z0-9]/g, '');
-                        if (matchedName.includes(secondArtist) || secondArtist.includes(matchedName)) {
-                            singerIndex = 1;
-                            lineTextContent = cleanText.replace(prefixRegex, '').trim();
-                        } else if (matchedName.includes(firstArtist) || firstArtist.includes(matchedName)) {
-                            singerIndex = 0;
-                            lineTextContent = cleanText.replace(prefixRegex, '').trim();
-                        }
-                    }
-                }
-
-                // Lista de interjeições e vocalizações comuns de backing vocals
-                const backingKeywords = ['ah', 'oh', 'ooh', 'yeah', 'uh', 'la la', 'hoo', 'hey', 'huh', 'mmm', 'shh', 'woo', 'wow', 'ha', 'breathe'];
-
-                // Regex para checar se a linha possui tags de palavra por palavra, ex: <00:12.34> palavra
-                const wordTagRegex = /<(\d+:\d+(?:\.\d+)?)>\s*([^\s<>]+)/g;
-                let wordMatches = [...lineTextContent.matchAll(wordTagRegex)];
-                
-                let words = [];
-
-                if (wordMatches.length > 0) {
-                    // Possui marcação detalhada palavra por palavra
-                    for (let j = 0; j < wordMatches.length; j++) {
-                        const wordStart = this.parseTimestamp(wordMatches[j][1]);
-                        const wordText = wordMatches[j][2];
-                        
-                        // O tempo final da palavra atual é o início da próxima ou +1s
-                        let wordEnd = wordStart + 1000;
-                        if (j < wordMatches.length - 1) {
-                            wordEnd = this.parseTimestamp(wordMatches[j + 1][1]);
-                        }
-
-                        const wordLower = wordText.toLowerCase().replace(/[^a-z0-9()\[\]]/g, '');
-                        const wordIsBacking = wordText.includes('(') || wordText.includes(')') || 
-                                             wordText.includes('[') || wordText.includes(']') || 
-                                             backingKeywords.some(keyword => wordLower === keyword || wordLower.includes('(' + keyword) || wordLower.includes(keyword + ')'));
-
-                        words.push({
-                            text: wordText,
-                            startTime: wordStart,
-                            endTime: wordEnd,
-                            isBackingVocal: wordIsBacking
-                        });
-                    }
-                    
-                    // Remove as tags para obter o texto limpo da linha
-                    lineTextContent = lineTextContent.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-                } else {
-                    // Formato tradicional linha por linha.
-                    const rawWords = lineTextContent.split(/\s+/);
-                    words = rawWords.map((wordText) => {
-                        const wordLower = wordText.toLowerCase().replace(/[^a-z0-9()\[\]]/g, '');
-                        const wordIsBacking = wordText.includes('(') || wordText.includes(')') || 
-                                             wordText.includes('[') || wordText.includes(']') || 
-                                             backingKeywords.some(keyword => wordLower === keyword || wordLower.includes('(' + keyword) || wordLower.includes(keyword + ')'));
-                        return {
-                            text: wordText,
-                            startTime: 0, // Será calculado dinamicamente no pós-processamento
-                            endTime: 0,
-                            isBackingVocal: wordIsBacking
-                        };
+                if (lyric.parts && lyric.parts.length > 0) {
+                    let latestStart = nextLyric.startTimeMs;
+                    lyric.parts.forEach(val => {
+                        latestStart = Math.max(latestStart, val.startTimeMs);
                     });
+
+                    const lastPartInLyric = lyric.parts[lyric.parts.length - 1];
+                    lastPartInLyric.durationMs = Math.max(nextLyric.startTimeMs - lastPartInLyric.startTimeMs, 0);
+                    lyric.durationMs = Math.max(latestStart - lyric.startTimeMs, 0);
                 }
-
-                // Classifica a linha inteira como backing vocal se for cercada por parênteses/colchetes
-                // OU se consistir inteiramente de interjeições de vocal de apoio
-                const cleanTextFinal = lineTextContent.trim();
-                const lowerText = cleanTextFinal.toLowerCase();
-                let isBackingVocal = (cleanTextFinal.startsWith('(') && cleanTextFinal.endsWith(')')) || 
-                                       (cleanTextFinal.startsWith('[') && cleanTextFinal.endsWith(']'));
-                
-                if (!isBackingVocal) {
-                    const wordsOnly = lowerText.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-                    isBackingVocal = wordsOnly.every(w => backingKeywords.includes(w)) && wordsOnly.length > 0;
-                }
-
-                parsedLines.push({
-                    id: parsedLines.length,
-                    startTime: startTime,
-                    endTime: 0, // Será calculado em relação à próxima linha
-                    text: lineTextContent,
-                    words: words,
-                    hasDetailedWords: wordMatches.length > 0,
-                    isBackingVocal: isBackingVocal,
-                    singerIndex: singerIndex
-                });
-            }
-        }
-
-        // Pós-processamento para definir os tempos finais de cada linha e de palavras
-        for (let i = 0; i < parsedLines.length; i++) {
-            const currentLine = parsedLines[i];
-            
-            // Estima a duração ideal/natural da linha baseada nas palavras (cerca de 450ms por palavra + 1s de folga)
-            const wordCount = currentLine.words.length || 1;
-            const estimatedDuration = Math.max(2500, Math.min(8000, wordCount * 450 + 1000));
-            let idealEndTime = currentLine.startTime + estimatedDuration;
-
-            // O tempo final padrão da linha é o início da próxima ou o final da música
-            let nextLineStart = currentLine.startTime + 5000;
-            if (i < parsedLines.length - 1) {
-                nextLineStart = parsedLines[i + 1].startTime;
-            } else if (totalDurationMs > currentLine.startTime) {
-                nextLineStart = totalDurationMs;
-            }
-            
-            // Se a próxima linha for backing vocal (sobreposta) e a atual for a principal,
-            // não cortamos a atual! A atual se estende até a próxima linha principal (Singer 0) ou até a duração ideal.
-            if (i < parsedLines.length - 1 && parsedLines[i + 1].isBackingVocal && !currentLine.isBackingVocal) {
-                let nextPrincipalStart = nextLineStart;
-                for (let k = i + 2; k < parsedLines.length; k++) {
-                    if (!parsedLines[k].isBackingVocal) {
-                        nextPrincipalStart = parsedLines[k].startTime;
-                        break;
-                    }
-                }
-                currentLine.endTime = Math.min(idealEndTime, nextPrincipalStart);
             } else {
-                currentLine.endTime = nextLineStart;
+                if (lyric.durationMs === 0) {
+                    lyric.durationMs = songDuration - lyric.startTimeMs;
+                }
+                if (lyric.parts && lyric.parts.length > 0) {
+                    const lastPartInLyric = lyric.parts[lyric.parts.length - 1];
+                    lastPartInLyric.durationMs = songDuration - lastPartInLyric.startTimeMs;
+                }
             }
+        });
 
-            // Garante que o tempo final seja maior que o de início
-            if (currentLine.endTime <= currentLine.startTime) {
-                currentLine.endTime = currentLine.startTime + 1000;
-            }
-
-            // Se as palavras foram simuladas (não tinham tags explícitas), distribui o tempo linearmente
-            if (!currentLine.hasDetailedWords && currentLine.words.length > 0) {
-                const duration = currentLine.endTime - currentLine.startTime;
-                // Deixa uma pequena folga no final da frase para respirar
-                const activeDuration = duration * 0.9; 
-                const wordDuration = activeDuration / currentLine.words.length;
-
-                currentLine.words.forEach((word, idx) => {
-                    word.startTime = Math.round(currentLine.startTime + (idx * wordDuration));
-                    word.endTime = Math.round(word.startTime + wordDuration);
+        if (idTags["offset"]) {
+            let offset = Number(idTags["offset"]);
+            if (!isNaN(offset)) {
+                offset = offset * 1000;
+                result.forEach(lyric => {
+                    lyric.startTimeMs -= offset;
+                    lyric.parts?.forEach(part => {
+                        part.startTimeMs -= offset;
+                    });
                 });
             }
         }
 
-        // Ordena por tempo de início para garantir consistência
-        return parsedLines.sort((a, b) => a.startTime - b.startTime);
+        return result;
+    },
+
+    // Parser simples para texto sem formatação síncrona
+    parsePlainLyrics(lyricsText) {
+        const lyricsArray = [];
+        lyricsText.split('\n').forEach(words => {
+            lyricsArray.push({
+                startTimeMs: 0,
+                words: words,
+                durationMs: 0,
+            });
+        });
+        return lyricsArray;
     }
 };
 
