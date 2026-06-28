@@ -99,17 +99,18 @@ const LyricsService = {
     },
 
     // Retorna as letras (reais ou simuladas) de acordo com os dados da faixa
-    async getLyrics(trackName, artistName, albumName, durationMs, provider = 'musixmatch') {
+    async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics') {
         let original = null;
         
         const providerNames = {
+            'betterlyrics': 'Better Lyrics',
             'musixmatch': 'Musixmatch API',
             'spotify': 'Spotify API',
             'lrclib': 'Lrclib API',
             'netease': 'NetEase API',
             'genius': 'Genius API'
         };
-        let source = providerNames[provider] || 'Musixmatch API';
+        let source = providerNames[provider] || 'Better Lyrics';
 
         const mockKey = `${trackName}_${artistName}`.toLowerCase().replace(/[^a-z0-9_]/g, '_');
         let isMock = false;

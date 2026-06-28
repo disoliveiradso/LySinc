@@ -35,7 +35,7 @@ class LySincApp {
         this.lyricsData = null; // Guardará o objeto completo de idiomas
         this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
-        this.currentLyricsProvider = 'musixmatch'; // Provedor de letras padrão (Better-Lyrics style)
+        this.currentLyricsProvider = 'betterlyrics'; // Provedor de letras padrão (Better-Lyrics style)
         
         // Estado do Relógio Interno (Ticker)
         this.isPlaying = false;
@@ -206,12 +206,21 @@ class LySincApp {
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
             btnChangeSource.addEventListener('click', async () => {
-                const providers = ['musixmatch', 'spotify', 'lrclib', 'netease', 'genius'];
+                const providers = ['betterlyrics', 'musixmatch', 'spotify', 'lrclib', 'netease', 'genius'];
                 const currentIndex = providers.indexOf(this.currentLyricsProvider);
                 const nextIndex = (currentIndex + 1) % providers.length;
                 this.currentLyricsProvider = providers[nextIndex];
                 
-                this.showToast(`Buscando letras via ${this.currentLyricsProvider.toUpperCase()}...`, 'info');
+                const providerLabels = {
+                    'betterlyrics': 'Better Lyrics',
+                    'musixmatch': 'Musixmatch',
+                    'spotify': 'Spotify',
+                    'lrclib': 'LrcLib',
+                    'netease': 'NetEase',
+                    'genius': 'Genius'
+                };
+                
+                this.showToast(`Buscando letras via ${providerLabels[this.currentLyricsProvider]}...`, 'info');
                 
                 // Recarrega as letras da música atual com o novo provedor
                 if (this.currentTrackId || this.isDemoMode) {
@@ -350,9 +359,12 @@ class LySincApp {
             return;
         }
 
-        // Atualiza a sincronização do tempo
+        // Atualiza a sincronização do tempo com compensação de latência de tráfego de rede
+        const latencyCompensation = state.timestamp ? (Date.now() - state.timestamp) : 0;
+        const safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
+
         this.isPlaying = state.isPlaying;
-        this.progressMs = state.progressMs;
+        this.progressMs = state.progressMs + safeCompensation;
         this.lastSyncTime = Date.now();
         this.durationMs = state.durationMs;
 
@@ -406,6 +418,11 @@ class LySincApp {
                 if (sourceText) sourceText.textContent = `Letras via ${fetchedLyrics.source}`;
                 footer.classList.remove('hidden');
             }
+
+            // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
+            this.activeLineId = null;
+            const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+            this.updateLyricsSync(this.progressMs + elapsed);
         } else {
             this.lyricsData = null;
             this.lyrics = [];
