@@ -4,33 +4,38 @@
  */
 
 const LyricsService = {
-    // Busca letras na Lrclib API
+    // Busca letras na Lrclib API de forma tolerante (Search por query)
     async fetchFromLrcLib(trackName, artistName, albumName, durationMs) {
         try {
-            const queryParams = new URLSearchParams({
-                track_name: trackName,
-                artist_name: artistName
-            });
-            if (albumName) queryParams.append('album_name', albumName);
-            if (durationMs) queryParams.append('duration', Math.round(durationMs / 1000).toString());
+            const mainArtist = artistName ? artistName.split(/,|\bfeat\b|\bwith\b|\b&\b/i)[0].trim() : '';
+            const searchQuery = `${mainArtist} ${trackName}`;
+            const params = new URLSearchParams({ q: searchQuery });
 
-            const response = await fetch(`https://lrclib.net/api/get?${queryParams.toString()}`);
+            const response = await fetch(`https://lrclib.net/api/search?${params.toString()}`);
             if (!response.ok) {
                 return null;
             }
-            return await response.json();
+            const results = await response.json();
+            if (!Array.isArray(results) || results.length === 0) {
+                return null;
+            }
+            
+            // Dá preferência a resultados que contenham letras síncronas
+            const withSynced = results.find(r => r.syncedLyrics && typeof r.syncedLyrics === 'string');
+            return withSynced || results[0];
         } catch (error) {
             console.error('Erro ao buscar letras na Lrclib API:', error);
             return null;
         }
     },
 
-    // Busca letras no cache da BiniLyrics (Better Lyrics)
+    // Busca letras no cache da BiniLyrics (Better Lyrics) com higienização de artista principal
     async fetchFromBetterLyrics(trackName, artistName, durationMs) {
         try {
+            const mainArtist = artistName ? artistName.split(/,|\bfeat\b|\bwith\b|\b&\b/i)[0].trim() : '';
             const cacheParams = new URLSearchParams({
                 track: trackName,
-                artist: artistName
+                artist: mainArtist
             });
             if (durationMs) {
                 cacheParams.append('duration', Math.round(durationMs / 1000).toString());
