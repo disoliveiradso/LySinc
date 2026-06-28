@@ -99,9 +99,17 @@ const LyricsService = {
     },
 
     // Retorna as letras (reais ou simuladas) de acordo com os dados da faixa
-    async getLyrics(trackName, artistName, albumName, durationMs) {
+    async getLyrics(trackName, artistName, albumName, durationMs, provider = 'musixmatch') {
         let original = null;
-        let source = 'Lrclib API';
+        
+        const providerNames = {
+            'musixmatch': 'Musixmatch API',
+            'spotify': 'Spotify API',
+            'lrclib': 'Lrclib API',
+            'netease': 'NetEase API',
+            'genius': 'Genius API'
+        };
+        let source = providerNames[provider] || 'Musixmatch API';
 
         const mockKey = `${trackName}_${artistName}`.toLowerCase().replace(/[^a-z0-9_]/g, '_');
         let isMock = false;
@@ -121,7 +129,7 @@ const LyricsService = {
         if (isMock && mockData) {
             console.log('Usando letra simulada (Mock) para:', trackName);
             original = this.parseLrc(mockData.syncedLyrics, durationMs, artistsList);
-            source = 'LySinc Mock Database';
+            source = `${providerNames[provider] || 'Musixmatch API'} (Mocked)`;
 
             let translation = null;
             let romanized = null;

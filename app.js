@@ -35,6 +35,7 @@ class LySincApp {
         this.lyricsData = null; // Guardará o objeto completo de idiomas
         this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
+        this.currentLyricsProvider = 'musixmatch'; // Provedor de letras padrão (Better-Lyrics style)
         
         // Estado do Relógio Interno (Ticker)
         this.isPlaying = false;
@@ -201,6 +202,33 @@ class LySincApp {
             });
         });
 
+        // Clique no ícone para alterar dinamicamente o provedor (fonte) de letras
+        const btnChangeSource = document.getElementById('btn-change-source');
+        if (btnChangeSource) {
+            btnChangeSource.addEventListener('click', async () => {
+                const providers = ['musixmatch', 'spotify', 'lrclib', 'netease', 'genius'];
+                const currentIndex = providers.indexOf(this.currentLyricsProvider);
+                const nextIndex = (currentIndex + 1) % providers.length;
+                this.currentLyricsProvider = providers[nextIndex];
+                
+                this.showToast(`Buscando letras via ${this.currentLyricsProvider.toUpperCase()}...`, 'info');
+                
+                // Recarrega as letras da música atual com o novo provedor
+                if (this.currentTrackId || this.isDemoMode) {
+                    const currentTitle = this.trackName.textContent;
+                    const currentArtists = this.trackArtists.textContent;
+                    const state = {
+                        trackId: this.currentTrackId || 'shape_of_you',
+                        trackName: currentTitle,
+                        artists: currentArtists,
+                        albumName: '',
+                        durationMs: this.durationMs
+                    };
+                    await this.loadLyricsForTrack(state);
+                }
+            });
+        }
+
         // Detecção Fisiológica Dinâmica de Interação Manual do Usuário
         const handleUserInteraction = () => {
             this.isUserInteracting = true;
@@ -362,7 +390,8 @@ class LySincApp {
             state.trackName, 
             state.artists, 
             state.albumName, 
-            state.durationMs
+            state.durationMs,
+            this.currentLyricsProvider
         );
 
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
@@ -416,17 +445,12 @@ class LySincApp {
 
     renderLyrics() {
         this.lyricsContainer.innerHTML = '';
-        
-        // Espaçador no início para empurrar a primeira linha para o centro
-        const topSpacer = document.createElement('div');
-        topSpacer.style.height = '45vh';
-        this.lyricsContainer.appendChild(topSpacer);
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
             
-            // Determina as classes de alinhamento e tipo de linha (dueto / backing vocal)
+            // Determina as classes de alinhamento da linha (dueto / voz principal)
             let lineClass = 'lyric-line inactive py-3 my-2 transition-all duration-300';
             if (line.isBackingVocal) {
                 lineClass += ' backing-vocal-line';
@@ -447,17 +471,10 @@ class LySincApp {
                 this.seekToTime(line.startTime);
             });
 
-            // Verifica se a linha tem mistura de palavras normais e backing vocals
-            const hasNormalWords = line.words.some(w => !w.isBackingVocal);
-            const hasBackingWords = line.words.some(w => w.isBackingVocal);
-            const needsBreak = hasNormalWords && hasBackingWords;
-
-            // Constrói a estrutura de palavras (spans)
+            // Constrói a estrutura de palavras (spans) fluindo continuamente na mesma linha
             line.words.forEach((word, idx) => {
                 const wordSpan = document.createElement('span');
-                // Se a linha for do segundo cantor (singerIndex === 1), adiciona a classe duet-word para estilização (Destaque)
                 let wordClass = 'word';
-                if (word.isBackingVocal) wordClass += ' backing-vocal';
                 if (line.singerIndex === 1) wordClass += ' duet-word';
                 
                 wordSpan.className = wordClass;
@@ -467,21 +484,8 @@ class LySincApp {
                 lineEl.appendChild(wordSpan);
             });
 
-            // Se a linha contiver voz principal e backing vocal juntos, insere elemento de quebra
-            // que forçará o backing vocal a se posicionar na linha de baixo (via Flexbox order)
-            if (needsBreak) {
-                const breakEl = document.createElement('div');
-                breakEl.className = 'lyric-break';
-                lineEl.appendChild(breakEl);
-            }
-
             this.lyricsContainer.appendChild(lineEl);
         });
-
-        // Espaçador no final
-        const bottomSpacer = document.createElement('div');
-        bottomSpacer.style.height = '50vh';
-        this.lyricsContainer.appendChild(bottomSpacer);
     }
 
     // Calcula o progresso em milissegundos localmente a cada frame
@@ -633,16 +637,19 @@ class LySincApp {
     }
 
     scrollToLine(lineElement) {
-        const containerHeight = this.lyricsContainer.clientHeight;
-        const lineOffsetTop = lineElement.offsetTop;
-        const lineHalfHeight = lineElement.clientHeight / 2;
+        const containerRect = this.lyricsContainer.getBoundingClientRect();
+        const lineRect = lineElement.getBoundingClientRect();
         
-        // Registra o momento em que realizamos o auto-scroll programático para ignorar no listener de scroll
+        // Distância física da linha em relação ao topo atual da viewport do container (soma o scrollTop corrente)
+        const relativeLineTop = lineRect.top - containerRect.top + this.lyricsContainer.scrollTop;
+        
+        // Alinhamento matemático perfeito no meio do visor
+        const targetScrollTop = relativeLineTop - (containerRect.height / 2) + (lineRect.height / 2);
+        
         this.lastAutoScrollTime = Date.now();
 
-        // Alinha exatamente no centro vertical da área de letras
         this.lyricsContainer.scrollTo({
-            top: lineOffsetTop - (containerHeight / 2) + lineHalfHeight,
+            top: targetScrollTop,
             behavior: 'smooth'
         });
     }

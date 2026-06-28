@@ -87,7 +87,14 @@
                     <button class="lyric-tab-btn" id="btn-tab-translation" data-mode="translation">Tradução</button>
                     <button class="lyric-tab-btn" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
                 </div>
-                <div class="lyrics-source-badge" id="lyrics-source-text">Letras via Lrclib API</div>
+                <div class="flex items-center justify-center space-x-2 text-white/40 text-xs mt-2" id="lyrics-footer-source">
+                    <span id="lyrics-source-text">Letras via Musixmatch API</span>
+                    <button id="btn-change-source" class="p-1 rounded hover:bg-white/10 hover:text-white transition-colors" title="Alterar Provedor de Letras">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1021 12h-1.5" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Player Progress Bar Minimalista -->
