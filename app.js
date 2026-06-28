@@ -409,38 +409,15 @@ class LySincApp {
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
             this.lyricsData = fetchedLyrics;
             
-            // Gerencia exibição das abas de Tradução/Romanização reais
-            const tabTranslation = document.querySelector('.lyric-tab-btn[data-mode="translation"]');
-            const tabRomanized = document.querySelector('.lyric-tab-btn[data-mode="romanized"]');
-            
-            if (tabTranslation) {
-                if (fetchedLyrics.translation && fetchedLyrics.translation.length > 0) {
-                    tabTranslation.classList.remove('hidden');
-                } else {
-                    tabTranslation.classList.add('hidden');
-                    if (this.currentLyricsMode === 'translation') this.currentLyricsMode = 'original';
-                }
+            // Se o modo selecionado for tradução/romanização mas não estiver pré-carregado, aciona a carga assíncrona
+            if (this.currentLyricsMode !== 'original' && !this.lyricsData[this.currentLyricsMode]) {
+                this.lyrics = this.lyricsData.original;
+                this.renderLyrics();
+                this.changeLyricsMode(this.currentLyricsMode);
+            } else {
+                this.lyrics = this.lyricsData[this.currentLyricsMode] || this.lyricsData.original;
+                this.renderLyrics();
             }
-            if (tabRomanized) {
-                if (fetchedLyrics.romanized && fetchedLyrics.romanized.length > 0) {
-                    tabRomanized.classList.remove('hidden');
-                } else {
-                    tabRomanized.classList.add('hidden');
-                    if (this.currentLyricsMode === 'romanized') this.currentLyricsMode = 'original';
-                }
-            }
-
-            // Seleciona a aba ativa com base no estado
-            document.querySelectorAll('.lyric-tab-btn').forEach(btn => {
-                if (btn.getAttribute('data-mode') === this.currentLyricsMode) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            this.lyrics = this.lyricsData[this.currentLyricsMode] || this.lyricsData.original;
-            this.renderLyrics();
             
             // Exibe a fonte das letras e o seletor de abas
             if (footer) {
@@ -449,7 +426,7 @@ class LySincApp {
                 footer.classList.remove('hidden');
             }
 
-            // Força a atualização de sincronização e o scroll imediato para a linha ativa atual
+            // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
             this.activeLineId = null;
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             this.updateLyricsSync(this.progressMs + elapsed);
@@ -465,8 +442,8 @@ class LySincApp {
         }
     }
 
-    // Alterna o idioma das letras mantendo a reprodução de forma síncrona simples
-    changeLyricsMode(mode) {
+    // Alterna o idioma das letras mantendo a reprodução e processando sob demanda
+    async changeLyricsMode(mode) {
         if (!this.lyricsData) return;
         
         // Altera a aba ativa na UI
@@ -479,7 +456,28 @@ class LySincApp {
         });
 
         this.currentLyricsMode = mode;
-        this.lyrics = this.lyricsData[mode] || this.lyricsData.original;
+
+        // Se o modo selecionado ainda não foi gerado no original, processa dinamicamente via GoogleService
+        const needsTranslation = mode === 'translation' && this.lyricsData.original.some(line => !line.translation);
+        const needsRomanization = mode === 'romanized' && this.lyricsData.original.some(line => !line.romanizedText);
+
+        if (needsTranslation || needsRomanization) {
+            if (mode === 'translation') {
+                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
+                this.showToast('Traduzindo letras para o português...', 'info');
+                
+                const translated = await LyricsService.translateLyrics(this.lyricsData.original);
+                this.lyricsData.original = translated;
+            } else if (mode === 'romanized') {
+                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
+                this.showToast('Convertendo escrita para caracteres latinos...', 'info');
+                
+                const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
+                this.lyricsData.original = romanized;
+            }
+        }
+
+        this.lyrics = this.lyricsData.original;
         
         // Re-renderiza e alinha instantaneamente
         this.renderLyrics();
@@ -493,43 +491,73 @@ class LySincApp {
     renderLyrics() {
         this.lyricsContainer.innerHTML = '';
 
-        this.lyrics.forEach((line, index) => {
+        this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
-            lineEl.id = `line-${index}`;
+            lineEl.id = `line-${line.id}`;
             
-            // Determina as classes de alinhamento da linha de forma limpa seguindo a fonte original
+            // Classes de alinhamento e voz
             let lineClass = 'lyric-line inactive py-3 my-2 transition-all duration-300';
-            
-            // Verifica se a frase tem formato de backing vocal (como parênteses)
-            const isBacking = /^\(.*?\)$/u.test(line.words.trim());
-            if (isBacking) {
-                lineClass += ' backing-vocal-line';
+            if (line.oppositeTurn || line.alignment === 'end') {
+                lineClass += ' text-right justify-end ml-auto pl-6 pr-0 singer-right';
+            } else {
+                lineClass += ' text-left justify-start mr-auto pr-6 pl-0';
             }
             
             lineEl.className = lineClass;
             
-            // Clica na linha para saltar no player do Spotify
+            // Clique para saltar no player do Spotify
             lineEl.addEventListener('click', () => {
-                this.seekToTime(line.startTimeMs);
+                const firstSyl = line.text[0];
+                if (firstSyl) {
+                    this.seekToTime(firstSyl.timestamp);
+                }
             });
 
-            // Constrói a estrutura de palavras (spans) de acordo com a fonte
-            if (line.parts && line.parts.length > 0) {
-                line.parts.forEach((part, pIdx) => {
-                    const wordSpan = document.createElement('span');
-                    wordSpan.className = 'word';
-                    wordSpan.id = `word-${index}-${pIdx}`;
-                    wordSpan.textContent = part.words;
-                    lineEl.appendChild(wordSpan);
+            const lineContainer = document.createElement('div');
+            lineContainer.className = 'lyrics-line-container';
+
+            // Voz principal
+            const mainVocal = document.createElement('div');
+            mainVocal.className = 'main-vocal-container';
+            
+            line.text.forEach((syl, idx) => {
+                const sylSpan = document.createElement('span');
+                sylSpan.className = 'lyrics-syllable';
+                sylSpan.id = `word-${line.id}-${idx}`;
+                sylSpan.textContent = syl.text;
+                mainVocal.appendChild(sylSpan);
+            });
+            lineContainer.appendChild(mainVocal);
+
+            // Voz secundária (Backing Vocal)
+            if (line.background && line.backgroundText && line.backgroundText.length > 0) {
+                const bgVocal = document.createElement('div');
+                bgVocal.className = 'background-vocal-container';
+                
+                line.backgroundText.forEach((syl, idx) => {
+                    const sylSpan = document.createElement('span');
+                    sylSpan.className = 'lyrics-syllable backing-vocal';
+                    sylSpan.id = `bgword-${line.id}-${idx}`;
+                    sylSpan.textContent = syl.text;
+                    bgVocal.appendChild(sylSpan);
                 });
-            } else {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'word';
-                wordSpan.id = `word-${index}-0`;
-                wordSpan.textContent = line.words;
-                lineEl.appendChild(wordSpan);
+                lineContainer.appendChild(bgVocal);
             }
 
+            // Tradução ou Romanização na interface
+            if (this.currentLyricsMode === 'translation' && line.translation) {
+                const transEl = document.createElement('div');
+                transEl.className = 'lyrics-translation-container';
+                transEl.textContent = line.translation;
+                lineContainer.appendChild(transEl);
+            } else if (this.currentLyricsMode === 'romanized' && line.romanizedText) {
+                const romEl = document.createElement('div');
+                romEl.className = 'lyrics-romanization-container';
+                romEl.textContent = line.romanizedText;
+                lineContainer.appendChild(romEl);
+            }
+
+            lineEl.appendChild(lineContainer);
             this.lyricsContainer.appendChild(lineEl);
         });
     }
@@ -562,60 +590,74 @@ class LySincApp {
     updateLyricsSync(currentProgressMs) {
         if (this.lyrics.length === 0) return;
 
-        // Encontra todas as linhas ativas correspondentes ao tempo (em milissegundos)
-        const activeLines = this.lyrics.filter(line => 
-            currentProgressMs >= line.startTimeMs && 
-            currentProgressMs < (line.startTimeMs + line.durationMs)
-        );
+        // Encontra todas as linhas ativas correspondentes ao tempo (suporta sobreposições!)
+        const activeLines = this.lyrics.filter(line => currentProgressMs >= line.timestamp && currentProgressMs < line.endtime);
+        const activeLineIds = new Set(activeLines.map(l => l.id));
         
-        let minActiveIndex = Infinity;
+        let minActiveId = Infinity;
         if (activeLines.length > 0) {
-            this.lyrics.forEach((line, idx) => {
-                if (activeLines.includes(line) && idx < minActiveIndex) {
-                    minActiveIndex = idx;
-                }
+            activeLines.forEach(l => {
+                if (l.id < minActiveId) minActiveId = l.id;
             });
         }
 
-        // Se a linha ativa principal mudou
+        // Se a linha ativa principal (a primeira das ativas) mudou
         if (activeLines.length > 0) {
-            const primaryActiveIndex = minActiveIndex;
-            if (primaryActiveIndex !== this.activeLineId) {
-                this.activeLineId = primaryActiveIndex;
-                
-                const activeIndices = new Set();
-                this.lyrics.forEach((line, idx) => {
-                    if (activeLines.includes(line)) {
-                        activeIndices.add(idx);
-                    }
-                });
-                this.highlightActiveLines(activeIndices, primaryActiveIndex);
+            const primaryActiveId = minActiveId;
+            if (primaryActiveId !== this.activeLineId) {
+                this.activeLineId = primaryActiveId;
+                this.highlightActiveLines(activeLineIds, primaryActiveId);
             }
         } else if (this.activeLineId !== null) {
             this.activeLineId = null;
             this.clearHighlights();
         }
 
-        // Atualiza a sincronização interna de todas as palavras
-        this.lyrics.forEach((line, idx) => {
-            const isActive = activeLines.includes(line);
-            const isPassed = minActiveIndex !== Infinity ? idx < minActiveIndex : (this.activeLineId !== null ? idx < this.activeLineId : false);
+        // Sincronização interna de todas as palavras (karaoke fluido de 0% a 100%)
+        this.lyrics.forEach((line) => {
+            const isActive = activeLineIds.has(line.id);
+            const isPassed = activeLines.length > 0 
+                ? line.id < minActiveId 
+                : (this.activeLineId !== null ? line.id < this.activeLineId : false);
 
-            if (line.parts && line.parts.length > 0) {
-                line.parts.forEach((part, pIdx) => {
-                    const wordEl = document.getElementById(`word-${idx}-${pIdx}`);
+            // Sincroniza sílabas da voz principal
+            line.text.forEach((syl, idx) => {
+                const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                if (wordEl) {
+                    if (isPassed || currentProgressMs >= syl.endtime) {
+                        wordEl.style.setProperty('--word-progress', '100%');
+                        wordEl.classList.add('passed');
+                        wordEl.classList.remove('current');
+                    } else if (currentProgressMs < syl.timestamp) {
+                        wordEl.style.setProperty('--word-progress', '0%');
+                        wordEl.classList.remove('passed', 'current');
+                    } else {
+                        // Sílaba sendo cantada no frame atual
+                        const duration = syl.endtime - syl.timestamp;
+                        const elapsed = currentProgressMs - syl.timestamp;
+                        const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
+                        wordEl.style.setProperty('--word-progress', `${progress}%`);
+                        wordEl.classList.add('current');
+                        wordEl.classList.remove('passed');
+                    }
+                }
+            });
+
+            // Sincroniza sílabas da voz secundária (backing vocal)
+            if (line.backgroundText && line.backgroundText.length > 0) {
+                line.backgroundText.forEach((syl, idx) => {
+                    const wordEl = document.getElementById(`bgword-${line.id}-${idx}`);
                     if (wordEl) {
-                        const partEnd = part.startTimeMs + part.durationMs;
-                        if (currentProgressMs >= partEnd) {
+                        if (isPassed || currentProgressMs >= syl.endtime) {
                             wordEl.style.setProperty('--word-progress', '100%');
                             wordEl.classList.add('passed');
                             wordEl.classList.remove('current');
-                        } else if (currentProgressMs < part.startTimeMs) {
+                        } else if (currentProgressMs < syl.timestamp) {
                             wordEl.style.setProperty('--word-progress', '0%');
                             wordEl.classList.remove('passed', 'current');
                         } else {
-                            const duration = part.durationMs;
-                            const elapsed = currentProgressMs - part.startTimeMs;
+                            const duration = syl.endtime - syl.timestamp;
+                            const elapsed = currentProgressMs - syl.timestamp;
                             const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
                             wordEl.style.setProperty('--word-progress', `${progress}%`);
                             wordEl.classList.add('current');
@@ -623,33 +665,16 @@ class LySincApp {
                         }
                     }
                 });
-            } else {
-                const wordEl = document.getElementById(`word-${idx}-0`);
-                if (wordEl) {
-                    if (isPassed) {
-                        wordEl.style.setProperty('--word-progress', '100%');
-                        wordEl.classList.add('passed');
-                        wordEl.classList.remove('current');
-                    } else if (isActive) {
-                        const elapsed = currentProgressMs - line.startTimeMs;
-                        const progress = line.durationMs > 0 ? (elapsed / line.durationMs) * 100 : 0;
-                        wordEl.style.setProperty('--word-progress', `${progress}%`);
-                        wordEl.classList.add('current');
-                        wordEl.classList.remove('passed');
-                    } else {
-                        wordEl.style.setProperty('--word-progress', '0%');
-                        wordEl.classList.remove('passed', 'current');
-                    }
-                }
             }
         });
     }
 
-    highlightActiveLines(activeIndices, scrollTargetId) {
-        this.lyrics.forEach((line, idx) => {
-            const el = document.getElementById(`line-${idx}`);
+    highlightActiveLines(activeLineIds, scrollTargetId) {
+        // Atualiza classes de todas as linhas
+        this.lyrics.forEach((line) => {
+            const el = document.getElementById(`line-${line.id}`);
             if (el) {
-                if (activeIndices.has(idx)) {
+                if (activeLineIds.has(line.id)) {
                     el.classList.remove('inactive');
                     el.classList.add('active');
                 } else {
@@ -661,39 +686,44 @@ class LySincApp {
 
         // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
         if (!this.isUserInteracting) {
-            this.scrollToLine(scrollTargetId);
+            const targetEl = document.getElementById(`line-${scrollTargetId}`);
+            if (targetEl) {
+                this.scrollToLine(targetEl);
+            }
         }
     }
 
     clearHighlights() {
-        this.lyrics.forEach((line, idx) => {
-            const el = document.getElementById(`line-${idx}`);
+        this.lyrics.forEach((line) => {
+            const el = document.getElementById(`line-${line.id}`);
             if (el) {
                 el.classList.remove('active');
                 el.classList.add('inactive');
             }
-            if (line.parts && line.parts.length > 0) {
-                line.parts.forEach((_, pIdx) => {
-                    const wordEl = document.getElementById(`word-${idx}-${pIdx}`);
+            
+            // Limpa voz principal
+            line.text.forEach((_, idx) => {
+                const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                if (wordEl) {
+                    wordEl.style.removeProperty('--word-progress');
+                    wordEl.classList.remove('passed', 'current');
+                }
+            });
+
+            // Limpa voz secundária
+            if (line.backgroundText && line.backgroundText.length > 0) {
+                line.backgroundText.forEach((_, idx) => {
+                    const wordEl = document.getElementById(`bgword-${line.id}-${idx}`);
                     if (wordEl) {
                         wordEl.style.removeProperty('--word-progress');
                         wordEl.classList.remove('passed', 'current');
                     }
                 });
-            } else {
-                const wordEl = document.getElementById(`word-${idx}-0`);
-                if (wordEl) {
-                    wordEl.style.removeProperty('--word-progress');
-                    wordEl.classList.remove('passed', 'current');
-                }
             }
         });
     }
 
-    scrollToLine(index) {
-        const lineElement = document.getElementById(`line-${index}`);
-        if (!lineElement) return;
-
+    scrollToLine(lineElement) {
         const containerRect = this.lyricsContainer.getBoundingClientRect();
         const lineRect = lineElement.getBoundingClientRect();
         
