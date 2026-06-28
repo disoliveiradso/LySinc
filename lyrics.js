@@ -1,7 +1,148 @@
 /**
  * LySinc - Serviço de Busca e Parsing de Letras
  */
-
+// Serviço auxiliar para tradução e romanização usando a API livre do Google Translate (gtx)
+class GoogleService {
+    static delay(ms) {
+        return new Promise(resolve => {
+            setTimeout(resolve, ms);
+        });
+    }
+    
+    static fetchWithTimeout(url, timeoutMs = 6000) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeoutId));
+    }
+    
+    static isPurelyLatinScript(text) {
+        return /^[\u0000-\u007F\u0080-\u00FF\u0100-\u017F\u0180-\u024F]*$/.test(text);
+    }
+    
+    static async translate(textOrArray, targetLang) {
+        if (!textOrArray || (Array.isArray(textOrArray) && textOrArray.length === 0)) {
+            return Array.isArray(textOrArray) ? [] : '';
+        }
+        const isArray = Array.isArray(textOrArray);
+        const texts = isArray ? textOrArray : [textOrArray];
+        const nonEmptyIndices = [];
+        const textsToTranslate = [];
+        
+        texts.forEach((t, i) => {
+            if (t && t.trim()) {
+                nonEmptyIndices.push(i);
+                textsToTranslate.push(t);
+            }
+        });
+        
+        if (textsToTranslate.length === 0) {
+            return isArray ? texts : texts[0];
+        }
+        
+        const BATCH_SIZE_CHARS = 1500;
+        const translatedResults = new Array(textsToTranslate.length).fill('');
+        let currentBatch = [];
+        let currentBatchIndices = [];
+        let currentBatchLength = 0;
+        
+        const processBatch = async (batch, indices) => {
+            if (batch.length === 0) return;
+            const joinedText = batch.join('\n');
+            let attempt = 0;
+            let success = false;
+            
+            while (attempt < 3 && !success) {
+                try {
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(joinedText)}`;
+                    const response = await GoogleService.fetchWithTimeout(url);
+                    if (!response.ok) throw new Error(`Status ${response.status}`);
+                    const data = await response.json();
+                    const fullTranslation = data?.[0]?.map((seg) => seg?.[0]).join('') || '';
+                    const lines = fullTranslation.split('\n');
+                    
+                    indices.forEach((originalIdx, i) => {
+                        if (i < lines.length) {
+                            translatedResults[originalIdx] = lines[i];
+                        } else {
+                            translatedResults[originalIdx] = batch[i];
+                        }
+                    });
+                    success = true;
+                } catch (e) {
+                    attempt += 1;
+                    if (attempt < 3) {
+                        await GoogleService.delay(1000 * 2 ** (attempt - 1));
+                    } else {
+                        indices.forEach((originalIdx, i) => {
+                            translatedResults[originalIdx] = batch[i];
+                        });
+                    }
+                }
+            }
+        };
+        
+        for (let i = 0; i < textsToTranslate.length; i += 1) {
+            const text = textsToTranslate[i];
+            if (currentBatchLength + text.length > BATCH_SIZE_CHARS) {
+                await processBatch(currentBatch, currentBatchIndices);
+                currentBatch = [];
+                currentBatchIndices = [];
+                currentBatchLength = 0;
+            }
+            currentBatch.push(text);
+            currentBatchIndices.push(i);
+            currentBatchLength += text.length;
+        }
+        
+        if (currentBatch.length > 0) {
+            await processBatch(currentBatch, currentBatchIndices);
+        }
+        
+        const finalArray = [...texts];
+        nonEmptyIndices.forEach((realIdx, mappedIdx) => {
+            finalArray[realIdx] = translatedResults[mappedIdx];
+        });
+        return isArray ? finalArray : finalArray[0];
+    }
+    
+    static async romanizeTexts(texts) {
+        const contextText = texts.join(' ');
+        if (GoogleService.isPurelyLatinScript(contextText)) {
+            return texts;
+        }
+        const romanizedTexts = [];
+        
+        for (const text of texts) {
+            if (!text || GoogleService.isPurelyLatinScript(text)) {
+                romanizedTexts.push(text);
+            } else {
+                let attempt = 0;
+                let success = false;
+                
+                while (attempt < 3 && !success) {
+                    try {
+                        const romanizeUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=rm&q=${encodeURIComponent(text)}`;
+                        const response = await GoogleService.fetchWithTimeout(romanizeUrl);
+                        const data = await response.json();
+                        const romanized = data?.[0]?.[0]?.[3] || text;
+                        romanizedTexts.push(romanized);
+                        success = true;
+                    } catch (error) {
+                        attempt += 1;
+                        if (attempt < 3) {
+                            await GoogleService.delay(1000 * 2 ** (attempt - 1));
+                        }
+                    }
+                }
+                
+                if (!success) {
+                    romanizedTexts.push(text);
+                }
+            }
+        }
+        return romanizedTexts;
+    }
+}
 const LyricsService = {
     // Banco de dados simulado (Mocks) para testes offline ou demonstrações imediatas
     MOCK_LYRICS: {
@@ -98,6 +239,198 @@ const LyricsService = {
         }
     },
 
+    // Busca letras sincronizadas ricas via BiniLyrics Cache ou servidores LyricsPlus (KPoe)
+    async fetchFromBetterLyrics(trackName, artistName, durationMs) {
+        try {
+            // Tenta no BiniLyrics Cache primeiro
+            const cacheParams = new URLSearchParams({
+                track: trackName,
+                artist: artistName
+            });
+            if (durationMs) {
+                cacheParams.append('duration', Math.round(durationMs / 1000).toString());
+            }
+            
+            const cacheUrl = `https://lyrics-api.binimum.org/?${cacheParams.toString()}`;
+            const response = await fetch(cacheUrl);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    if (result.lyricsUrl) {
+                        const lyricsRes = await fetch(result.lyricsUrl);
+                        if (lyricsRes.ok) {
+                            const lyricsText = await lyricsRes.text();
+                            return {
+                                syncedLyrics: lyricsText,
+                                source: 'Better Lyrics'
+                            };
+                        }
+                    }
+                }
+            }
+            
+            // Fallback: Tenta um servidor do LyricsPlus (KPoe)
+            const servers = [
+                'https://lyricsplus.binimum.org',
+                'https://lyricsplus.atomix.one',
+                'https://lyrics-plus-backend.vercel.app'
+            ];
+            
+            const params = new URLSearchParams({
+                title: trackName,
+                artist: artistName
+            });
+            if (durationMs) {
+                params.append('duration', Math.round(durationMs / 1000).toString());
+            }
+            
+            for (const server of servers) {
+                try {
+                    const url = `${server}/v2/lyrics/get?${params.toString()}`;
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        const payload = await res.json();
+                        if (payload && payload.lyrics && payload.lyrics.lines) {
+                            const lrcText = this.convertKPoeToLrc(payload.lyrics);
+                            if (lrcText) {
+                                return {
+                                    syncedLyrics: lrcText,
+                                    source: 'Better Lyrics'
+                                };
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Tenta o próximo
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Erro ao buscar no Better Lyrics:', error);
+            return null;
+        }
+    },
+
+    // Função de conversão do formato KPoe (LyricsPlus) para LRC clássico
+    convertKPoeToLrc(lyricsPayload) {
+        try {
+            if (!lyricsPayload || !lyricsPayload.lines) return null;
+            let lrcLines = [];
+            
+            lyricsPayload.lines.forEach((line) => {
+                const timeMs = line.time || 0;
+                const minutes = Math.floor(timeMs / 60000);
+                const seconds = ((timeMs % 60000) / 1000).toFixed(2);
+                const timeStr = `[${minutes.toString().padStart(2, '0')}:${seconds.padStart(5, '0')}]`;
+                
+                let lineText = '';
+                if (line.words) {
+                    line.words.forEach((word) => {
+                        const wTimeMs = word.time || 0;
+                        const wMin = Math.floor(wTimeMs / 60000);
+                        const wSec = ((wTimeMs % 60000) / 1000).toFixed(2);
+                        const wTimeStr = `<${wMin.toString().padStart(2, '0')}:${wSec.padStart(5, '0')}>`;
+                        lineText += `${wTimeStr} ${word.string || ''} `;
+                    });
+                } else {
+                    lineText = line.string || '';
+                }
+                
+                lrcLines.push(`${timeStr} ${lineText.trim()}`);
+            });
+            
+            return lrcLines.join('\n');
+        } catch (e) {
+            console.error('Falha ao converter formato KPoe:', e);
+            return null;
+        }
+    },
+
+    // Traduz um array de linhas sincronizadas para o português (pt) usando o GoogleService
+    async translateLyrics(lines) {
+        if (!lines || lines.length === 0) return [];
+        try {
+            const textsToTranslate = lines.map(line => line.text || '');
+            if (textsToTranslate.every(t => t === '')) return lines;
+            
+            const translatedBatch = await GoogleService.translate(textsToTranslate, 'pt');
+            
+            return lines.map((line, idx) => {
+                const translatedText = translatedBatch[idx] || line.text;
+                const rawWords = translatedText.split(/\s+/).filter(Boolean);
+                const duration = line.endTime - line.startTime;
+                const wordDuration = (duration * 0.9) / (rawWords.length || 1);
+                
+                const words = rawWords.map((wordText, wIdx) => {
+                    const wStart = Math.round(line.startTime + (wIdx * wordDuration));
+                    return {
+                        text: wordText,
+                        startTime: wStart,
+                        endTime: Math.round(wStart + wordDuration),
+                        isBackingVocal: line.isBackingVocal
+                    };
+                });
+                
+                return {
+                    ...line,
+                    text: translatedText,
+                    words: words,
+                    translation: translatedText
+                };
+            });
+        } catch (error) {
+            console.error('Falha ao traduzir letras:', error);
+            return lines;
+        }
+    },
+
+    // Romaniza (translitera para caracteres latinos) as linhas usando o GoogleService
+    async romanizeLyrics(lines) {
+        if (!lines || lines.length === 0) return [];
+        try {
+            const textsToRomanize = lines.map(line => line.text || '');
+            if (textsToRomanize.every(t => t === '')) return lines;
+            
+            const romanizedBatch = await GoogleService.romanizeTexts(textsToRomanize);
+            
+            return lines.map((line, idx) => {
+                const romanizedText = romanizedBatch[idx] || line.text;
+                const rawWords = romanizedText.split(/\s+/).filter(Boolean);
+                let words = [];
+                
+                if (rawWords.length === line.words.length) {
+                    words = rawWords.map((wordText, wIdx) => ({
+                        ...line.words[wIdx],
+                        text: wordText
+                    }));
+                } else {
+                    const duration = line.endTime - line.startTime;
+                    const wordDuration = (duration * 0.9) / (rawWords.length || 1);
+                    words = rawWords.map((wordText, wIdx) => {
+                        const wStart = Math.round(line.startTime + (wIdx * wordDuration));
+                        return {
+                            text: wordText,
+                            startTime: wStart,
+                            endTime: Math.round(wStart + wordDuration),
+                            isBackingVocal: line.isBackingVocal
+                        };
+                    });
+                }
+                
+                return {
+                    ...line,
+                    text: romanizedText,
+                    words: words,
+                    romanizedText: romanizedText
+                };
+            });
+        } catch (error) {
+            console.error('Falha ao romanizar letras:', error);
+            return lines;
+        }
+    },
+
     // Retorna as letras (reais ou simuladas) de acordo com os dados da faixa
     async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics') {
         let original = null;
@@ -130,7 +463,7 @@ const LyricsService = {
         if (isMock && mockData) {
             console.log('Usando letra simulada (Mock) para:', trackName);
             original = this.parseLrc(mockData.syncedLyrics, durationMs, artistsList);
-            source = `${providerNames[provider] || 'Musixmatch API'} (Mocked)`;
+            source = `${providerNames[provider] || 'Better Lyrics'} (Mocked)`;
 
             let translation = null;
             let romanized = null;
@@ -143,28 +476,39 @@ const LyricsService = {
 
             return {
                 original: original,
-                translation: translation || this.generateFallbackLyrics(original, 'translation'),
-                romanized: romanized || this.generateFallbackLyrics(original, 'romanized'),
+                translation: translation,
+                romanized: romanized,
                 source: source
             };
         }
 
-        // Tenta buscar na Lrclib
-        const lrclibData = await this.fetchFromLrcLib(trackName, artistName, albumName, durationMs);
-        if (lrclibData) {
-            if (lrclibData.syncedLyrics) {
-                original = this.parseLrc(lrclibData.syncedLyrics, durationMs, artistsList);
-            } else if (lrclibData.plainLyrics) {
-                original = this.parsePlainLyrics(lrclibData.plainLyrics);
-                source = 'Lrclib API (Plain)';
+        // Tenta buscar no BiniLyrics/LyricsPlus se for o provedor Better Lyrics (Padrão)
+        if (provider === 'betterlyrics') {
+            const betterLyricsData = await this.fetchFromBetterLyrics(trackName, artistName, durationMs);
+            if (betterLyricsData && betterLyricsData.syncedLyrics) {
+                original = this.parseLrc(betterLyricsData.syncedLyrics, durationMs, artistsList);
+                source = betterLyricsData.source;
+            }
+        }
+
+        // Se falhar ou for outro provedor, cai para a LrcLib
+        if (!original) {
+            const lrclibData = await this.fetchFromLrcLib(trackName, artistName, albumName, durationMs);
+            if (lrclibData) {
+                if (lrclibData.syncedLyrics) {
+                    original = this.parseLrc(lrclibData.syncedLyrics, durationMs, artistsList);
+                } else if (lrclibData.plainLyrics) {
+                    original = this.parsePlainLyrics(lrclibData.plainLyrics);
+                    source = `${providerNames[provider] || 'Better Lyrics'} (Plain)`;
+                }
             }
         }
 
         if (original) {
             return {
                 original: original,
-                translation: this.generateFallbackLyrics(original, 'translation'),
-                romanized: this.generateFallbackLyrics(original, 'romanized'),
+                translation: null, // Será preenchido assincronamente sob demanda
+                romanized: null,   // Será preenchido assincronamente sob demanda
                 source: source
             };
         }

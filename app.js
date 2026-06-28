@@ -435,8 +435,8 @@ class LySincApp {
         }
     }
 
-    // Alterna o idioma das letras mantendo a reprodução
-    changeLyricsMode(mode) {
+    // Alterna o idioma das letras mantendo a reprodução e processando sob demanda
+    async changeLyricsMode(mode) {
         if (!this.lyricsData) return;
         
         // Altera a aba ativa na UI
@@ -449,7 +449,25 @@ class LySincApp {
         });
 
         this.currentLyricsMode = mode;
-        this.lyrics = this.lyricsData[mode] || [];
+
+        // Se o modo selecionado ainda não foi gerado, processa dinamicamente via GoogleService
+        if (!this.lyricsData[mode]) {
+            if (mode === 'translation') {
+                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
+                this.showToast('Traduzindo letras para o português...', 'info');
+                
+                const translated = await LyricsService.translateLyrics(this.lyricsData.original);
+                this.lyricsData.translation = translated;
+            } else if (mode === 'romanized') {
+                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
+                this.showToast('Convertendo escrita para caracteres latinos...', 'info');
+                
+                const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
+                this.lyricsData.romanized = romanized;
+            }
+        }
+
+        this.lyrics = this.lyricsData[mode] || this.lyricsData.original;
         
         // Re-renderiza e alinha instantaneamente
         this.renderLyrics();
