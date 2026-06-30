@@ -94,7 +94,17 @@
                     <button class="lyric-tab-btn" id="btn-tab-translation" data-mode="translation">Tradução</button>
                     <button class="lyric-tab-btn" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
                 </div>
-                <div class="flex items-center justify-center space-x-2 text-white/40 text-xs mt-2" id="lyrics-footer-source">
+                <div class="flex items-center justify-center space-x-3 text-white/40 text-xs mt-3" id="lyrics-footer-source">
+                    <!-- Sync Adjust Controls -->
+                    <div class="flex items-center space-x-1.5 bg-white/5 rounded-md px-2 py-1">
+                        <button id="btn-sync-down" class="hover:text-white transition-colors px-1 font-bold" title="Atrasar letras">-</button>
+                        <span id="sync-offset-display" class="w-8 text-center font-mono text-[10px]">0.0s</span>
+                        <button id="btn-sync-up" class="hover:text-white transition-colors px-1 font-bold" title="Adiantar letras">+</button>
+                        <button id="btn-sync-reset" class="hover:text-white transition-colors ml-1 px-1" title="Resetar sincronização">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+                    </div>
+                    <span class="opacity-30">|</span>
                     <span id="lyrics-source-text">Letras via Musixmatch API</span>
                     <button id="btn-change-source" class="p-1 rounded hover:bg-white/10 hover:text-white transition-colors" title="Alterar Provedor de Letras">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3.5 w-3.5">

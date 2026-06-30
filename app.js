@@ -35,6 +35,9 @@ class LySincApp {
         this.btnFullscreen = document.getElementById('btn-fullscreen');
         this.iconToggleControls = document.getElementById('icon-toggle-controls');
 
+        // Offset Global
+        this.syncOffset = 0;
+
         // Estado Interno da Música
         this.currentTrackId = null;
         this.lyrics = [];
@@ -171,6 +174,9 @@ class LySincApp {
             }, 1000);
         });
 
+        // Offset manual de sincronização (em ms)
+        this.syncOffset = 0;
+
         // Oculta o botão logout na demonstração
         this.btnLogout.classList.add('hidden');
     }
@@ -260,6 +266,21 @@ class LySincApp {
             });
         });
 
+        // Controles de Sincronização (Offset)
+        const btnSyncUp = document.getElementById('btn-sync-up');
+        const btnSyncDown = document.getElementById('btn-sync-down');
+        const btnSyncReset = document.getElementById('btn-sync-reset');
+
+        if (btnSyncUp) {
+            btnSyncUp.addEventListener('click', () => this.adjustSyncOffset(100));
+        }
+        if (btnSyncDown) {
+            btnSyncDown.addEventListener('click', () => this.adjustSyncOffset(-100));
+        }
+        if (btnSyncReset) {
+            btnSyncReset.addEventListener('click', () => this.adjustSyncOffset(0, true));
+        }
+        
         // Clique no ícone para alterar dinamicamente o provedor (fonte) de letras
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
@@ -327,6 +348,29 @@ class LySincApp {
             // Caso contrário, foi uma rolagem real do usuário (inclui arrastar a barra de rolagem)
             handleUserInteraction();
         });
+    }
+
+    adjustSyncOffset(ms, reset = false) {
+        if (reset) {
+            this.syncOffset = 0;
+        } else {
+            this.syncOffset += ms;
+        }
+        
+        const display = document.getElementById('sync-offset-display');
+        if (display) {
+            display.textContent = (this.syncOffset / 1000).toFixed(1) + 's';
+        }
+        
+        // Re-sincroniza as letras instantaneamente
+        this.activeLineId = null;
+        if (this.lyricsContainer) {
+            const els = this.lyricsContainer.querySelectorAll('.lyric-line, .lyrics-syllable');
+            els.forEach(el => el.classList.remove('active', 'passed', 'current'));
+            
+            const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+            this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
+        }
     }
 
     loadSettings() {
@@ -445,7 +489,20 @@ class LySincApp {
     }
 
     async loadLyricsForTrack(state) {
-        this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Carregando letras sincronizadas...</div>';
+        // Zera o offset sempre que mudar de música
+        this.adjustSyncOffset(0, true);
+        
+        const requestTrackId = state.trackId || (state.trackName + state.albumName);
+        this._currentLyricsRequest = requestTrackId;
+
+        this.lyricsContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full space-y-6 pt-32">
+                <div class="loader-pulse">
+                    <svg viewBox="0 0 24 24" class="w-8 h-8 text-emerald-400 ml-1 fill-current"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div class="text-emerald-400/80 text-lg font-medium tracking-wide">Carregando letras sincronizadas...</div>
+            </div>
+        `;
         this.activeLineId = null;
         const footer = document.getElementById('lyrics-footer');
         if (footer) footer.classList.add('hidden');
@@ -457,6 +514,12 @@ class LySincApp {
             state.durationMs,
             this.currentLyricsProvider
         );
+
+        // Verifica se a música não mudou enquanto buscava
+        const activeTrackId = this.trackId || (this.trackName + this.albumName);
+        if (this._currentLyricsRequest !== activeTrackId) {
+            return; // Outra música já começou a tocar, ignora o resultado
+        }
 
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
             this.lyricsData = fetchedLyrics;
@@ -481,7 +544,7 @@ class LySincApp {
             // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
             this.activeLineId = null;
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-            this.updateLyricsSync(this.progressMs + elapsed);
+            this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
         } else {
             this.lyricsData = null;
             this.lyrics = [];
@@ -535,7 +598,7 @@ class LySincApp {
         this.renderLyrics();
         
         const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-        const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync, this.durationMs);
+        const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
         this.activeLineId = null; // Força re-realce da linha
         this.updateLyricsSync(currentProgressMs);
     }
@@ -588,9 +651,9 @@ class LySincApp {
                 lineClass += ' line-synced';
             }
             
-            const isInstrumental = line.text.length === 1 && line.text[0].text.trim() === '♪';
+            const isInstrumental = line.isInstrumental || (line.text.length === 1 && line.text[0].text.trim() === '♪');
             if (isInstrumental) {
-                lineClass += ' instrumental-line text-center w-full justify-center mx-auto pr-0 pl-0';
+                lineClass += ' instrumental-line';
             }
             
             lineEl.className = lineClass;
