@@ -510,13 +510,20 @@ class LySincApp {
         // Checagem de overflow para animar o título (efeito Marquee)
         setTimeout(() => {
             const containerWidth = this.trackName.parentElement.clientWidth;
+            
+            // Remove momentaneamente truncate para pegar tamanho real
+            this.trackName.classList.remove('truncate');
             const textWidth = this.trackName.scrollWidth;
+
             if (textWidth > containerWidth) {
-                this.trackName.style.setProperty('--scroll-dist', `-${textWidth - containerWidth + 24}px`);
+                this.trackName.style.setProperty('--scroll-dist', `-${textWidth - containerWidth + 30}px`);
                 this.trackName.classList.add('marquee-text');
+                this.trackName.parentElement.classList.add('overflow-hidden'); // Parent precisa esconder a ponta
             } else {
+                this.trackName.classList.add('truncate');
                 this.trackName.classList.remove('marquee-text');
                 this.trackName.style.removeProperty('--scroll-dist');
+                this.trackName.parentElement.classList.remove('overflow-hidden');
             }
         }, 50);
         

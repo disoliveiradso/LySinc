@@ -275,29 +275,35 @@ body, html {
     width: 0px;
 }
 
-/* Animação do Indicador de Escuta (Fallback) */
-@keyframes pulse-ring {
+/* Animação do Indicador de Escuta com Múltiplos Círculos (Ripples) */
+.listening-indicator {
+    position: relative;
+    z-index: 1;
+}
+.listening-indicator::before,
+.listening-indicator::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    z-index: -1;
+    background-color: rgba(29, 185, 84, 0.5);
+    animation: ripple-out 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.listening-indicator::after {
+    animation-delay: 1s;
+}
+
+@keyframes ripple-out {
     0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7);
-    }
-    70% {
         transform: scale(1);
-        box-shadow: 0 0 0 15px rgba(29, 185, 84, 0);
+        opacity: 0.8;
     }
     100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0);
+        transform: scale(1.8);
+        opacity: 0;
     }
 }
-
-}
-
-.listening-indicator, .loader-pulse {
-    animation: pulse-ring 2s infinite;
-}
-
-.loader-pulse {
     width: 5rem;
     height: 5rem;
     border-radius: 9999px;
