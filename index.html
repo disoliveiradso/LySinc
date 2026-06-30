@@ -12,7 +12,7 @@
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=1.0.1">
 </head>
-<body class="bg-[#050505] text-white flex flex-col h-screen overflow-hidden">
+<body class="bg-[#050505] text-white flex flex-col min-h-screen">
 
     <!-- Fundo Desfocado Dinâmico (Apple Music Effect) -->
     <div class="blur-background-container">
@@ -21,28 +21,35 @@
     </div>
 
     <!-- Layout Container Principal -->
-    <main class="flex-1 flex flex-col justify-between max-w-4xl mx-auto w-full px-6 py-8 relative z-10 overflow-hidden">
+    <main class="flex-1 flex flex-col justify-between max-w-4xl mx-auto w-full px-6 py-8 relative z-10">
         
         <!-- Header Geral (Botão Configurações e Desconectar) -->
-        <header class="flex justify-between items-center h-16">
+        <header class="flex justify-between items-center h-16 relative">
             <div class="flex items-center space-x-3">
                 <img src="assets/icons/lysinc-logo.svg" alt="LySinc Icon" class="h-8 w-8" id="lysinc-icon">
                 <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">LySinc</span>
                 <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/60">v1.0</span>
             </div>
             
-            <div class="flex items-center space-x-3">
-                <!-- Botão de Configurações -->
-                <button id="btn-settings" class="p-2.5 rounded-full glass-panel glass-panel-hover text-white/80 transition-colors" title="Configurações do Spotify">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <div class="flex items-center space-x-3 overflow-hidden relative" style="min-width: 40px; justify-content: flex-end;">
+                <!-- Controls Container -->
+                <div id="header-controls-container" class="flex items-center space-x-2 transition-all duration-300 translate-x-full opacity-0 absolute right-10 pointer-events-none">
+                    <button id="btn-fullscreen" class="text-white hover:text-gray-300 transition p-2 rounded-full hover:bg-white/10" title="Tela Cheia">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    </button>
+                    <button id="btn-settings" class="text-white hover:text-gray-300 transition p-2 rounded-full hover:bg-white/10" title="Configurações">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+                    <button id="btn-logout" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-4 rounded-full transition-colors text-sm shadow-md">
+                        Sair
+                    </button>
+                </div>
+                
+                <!-- Toggle Button -->
+                <button id="btn-toggle-controls" class="text-white hover:text-gray-300 transition p-2 bg-black/30 backdrop-blur-md rounded-full z-20" title="Exibir Opções">
+                    <svg id="icon-toggle-controls" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 18l-6-6 6-6"/>
                     </svg>
-                </button>
-
-                <!-- Botão de Sair -->
-                <button id="btn-logout" class="hidden px-4 py-2 text-sm rounded-full glass-panel glass-panel-hover text-red-400 hover:text-red-300 transition-colors border border-red-500/10">
-                    Sair
                 </button>
             </div>
         </header>
@@ -62,7 +69,7 @@
         </section>
 
         <!-- TELA 2: PÓS-LOGIN (PLAYER & VISUALIZADOR DE LETRAS) -->
-        <section id="screen-main" class="hidden flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full relative z-10 pt-16 overflow-hidden">
+        <section id="screen-main" class="hidden flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full relative z-10 pt-16">
             
             <!-- Detalhes da Música (Capas e Metadados) -->
             <div class="flex items-center space-x-6 mb-4 mt-2">
@@ -74,7 +81,6 @@
                     <p id="track-artists" class="text-white/60 text-base md:text-lg truncate font-medium">Spotify Player</p>
                 </div>
             </div>
-            
 
             <!-- Área das Letras Sincronizadas -->
             <div id="lyrics-container" class="lyrics-container flex-1 overflow-y-auto custom-scrollbar flex flex-col space-y-3 px-2">

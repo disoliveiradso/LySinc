@@ -28,6 +28,12 @@ class LySincApp {
         this.settingsModal = document.getElementById('settings-modal');
         this.inputClientId = document.getElementById('input-client-id');
         this.btnSaveSettings = document.getElementById('btn-save-settings');
+        
+        // Controles de UI adicionais
+        this.btnToggleControls = document.getElementById('btn-toggle-controls');
+        this.headerControlsContainer = document.getElementById('header-controls-container');
+        this.btnFullscreen = document.getElementById('btn-fullscreen');
+        this.iconToggleControls = document.getElementById('icon-toggle-controls');
 
         // Estado Interno da Música
         this.currentTrackId = null;
@@ -35,7 +41,7 @@ class LySincApp {
         this.lyricsData = null; // Guardará o objeto completo de idiomas
         this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
-        this.currentLyricsProvider = 'apple'; // Provedor de letras padrão
+        this.currentLyricsProvider = 'lrclib'; // Provedor de letras padrão: LRCLIB
         
         // Estado do Relógio Interno (Ticker)
         this.isPlaying = false;
@@ -177,6 +183,29 @@ class LySincApp {
         this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
         this.btnSaveSettings.addEventListener('click', () => this.saveSettings());
         
+        if (this.btnToggleControls) {
+            this.btnToggleControls.addEventListener('click', () => {
+                const isHidden = this.headerControlsContainer.classList.contains('translate-x-full');
+                if (isHidden) {
+                    this.headerControlsContainer.classList.remove('translate-x-full', 'opacity-0', 'pointer-events-none');
+                    this.iconToggleControls.innerHTML = '<path d="M9 18l6-6-6-6"/>';
+                } else {
+                    this.headerControlsContainer.classList.add('translate-x-full', 'opacity-0', 'pointer-events-none');
+                    this.iconToggleControls.innerHTML = '<path d="M15 18l-6-6 6-6"/>';
+                }
+            });
+        }
+
+        if (this.btnFullscreen) {
+            this.btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => console.error(err));
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            });
+        }
+        
         const btnClearSession = document.getElementById('btn-clear-session');
         if (btnClearSession) {
             btnClearSession.addEventListener('click', () => {
@@ -255,13 +284,13 @@ class LySincApp {
         };
 
         // Ouvintes físicos de interação para capturar mouse, teclado e toque imediatamente
-        this.lyricsContainer.addEventListener('wheel', handleUserInteraction, { passive: true });
-        this.lyricsContainer.addEventListener('touchmove', handleUserInteraction, { passive: true });
-        this.lyricsContainer.addEventListener('mousedown', handleUserInteraction, { passive: true });
-        this.lyricsContainer.addEventListener('keydown', handleUserInteraction, { passive: true });
+        window.addEventListener('wheel', handleUserInteraction, { passive: true });
+        window.addEventListener('touchmove', handleUserInteraction, { passive: true });
+        window.addEventListener('mousedown', handleUserInteraction, { passive: true });
+        window.addEventListener('keydown', handleUserInteraction, { passive: true });
 
-        // Ouvimos o evento 'scroll' do container de forma inteligente
-        this.lyricsContainer.addEventListener('scroll', () => {
+        // Ouvimos o evento 'scroll' global de forma inteligente
+        window.addEventListener('scroll', () => {
             // Se o scroll ocorreu dentro de 800ms de um scroll automático, ignoramos
             if (Date.now() - this.lastAutoScrollTime < 800) {
                 return;
@@ -365,6 +394,11 @@ class LySincApp {
         }
 
         this.showScreen('main');
+        
+        // Força sincronia imediata na interface
+        if (this.lyrics.length > 0) {
+            this.updateLyricsSync(this.progressMs);
+        }
     }
 
     updateTrackDetails(state) {
@@ -484,12 +518,25 @@ class LySincApp {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
             
-            // Classes de alinhamento e voz
-            let lineClass = 'lyric-line inactive py-3 my-2 transition-all duration-300';
+            let lineClass = 'lyric-line py-3 my-2 transition-all duration-300';
+            if (this.activeLineId === line.id) {
+                lineClass += ' active';
+            } else {
+                lineClass += ' inactive';
+            }
             if (line.oppositeTurn || line.alignment === 'end') {
                 lineClass += ' text-right justify-end ml-auto pl-6 pr-0 singer-right';
             } else {
                 lineClass += ' text-left justify-start mr-auto pr-6 pl-0';
+            }
+
+            if (!line.isWordSynced) {
+                lineClass += ' line-synced';
+            }
+            
+            const isInstrumental = line.text.length === 1 && line.text[0].text.trim() === '♪';
+            if (isInstrumental) {
+                lineClass += ' instrumental-line text-center w-full justify-center mx-auto pr-0 pl-0';
             }
             
             lineEl.className = lineClass;
@@ -508,14 +555,21 @@ class LySincApp {
             // Voz principal
             const mainVocal = document.createElement('div');
             mainVocal.className = 'main-vocal-container';
-            
-            line.text.forEach((syl, idx) => {
+            if (isInstrumental) {
                 const sylSpan = document.createElement('span');
-                sylSpan.className = 'lyrics-syllable';
-                sylSpan.id = `word-${line.id}-${idx}`;
-                sylSpan.textContent = syl.text;
+                sylSpan.className = 'lyrics-syllable instrumental-icon';
+                sylSpan.id = `word-${line.id}-0`;
+                sylSpan.innerHTML = '♪';
                 mainVocal.appendChild(sylSpan);
-            });
+            } else {
+                line.text.forEach((syl, idx) => {
+                    const sylSpan = document.createElement('span');
+                    sylSpan.className = 'lyrics-syllable';
+                    sylSpan.id = `word-${line.id}-${idx}`;
+                    sylSpan.textContent = syl.text;
+                    mainVocal.appendChild(sylSpan);
+                });
+            }
             lineContainer.appendChild(mainVocal);
 
             // Voz secundária (Backing Vocal)
@@ -713,19 +767,18 @@ class LySincApp {
     }
 
     scrollToLine(lineElement) {
-        const containerRect = this.lyricsContainer.getBoundingClientRect();
         const lineRect = lineElement.getBoundingClientRect();
         
-        // Distância física da linha em relação ao topo atual da viewport do container (soma o scrollTop corrente)
-        const relativeLineTop = lineRect.top - containerRect.top + this.lyricsContainer.scrollTop;
+        // Posição absoluta da linha na página
+        const absoluteLineTop = window.scrollY + lineRect.top;
         
-        // Alinhamento matemático ideal a 35% do topo da área de exibição
-        const targetScrollTop = relativeLineTop - (containerRect.height * 0.35) + (lineRect.height / 2);
+        // Alinhamento ideal a 35% do topo da janela do navegador
+        const targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (lineRect.height / 2);
         
         this.lastAutoScrollTime = Date.now();
 
-        this.lyricsContainer.scrollTo({
-            top: targetScrollTop,
+        window.scrollTo({
+            top: Math.max(0, targetScrollTop),
             behavior: 'smooth'
         });
     }
