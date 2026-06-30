@@ -28,6 +28,7 @@ class LySincApp {
         this.settingsModal = document.getElementById('settings-modal');
         this.inputClientId = document.getElementById('input-client-id');
         this.btnSaveSettings = document.getElementById('btn-save-settings');
+        this.confirmLogoutModal = document.getElementById('confirm-logout-modal');
         
         // Controles de UI adicionais
         this.btnToggleControls = document.getElementById('btn-toggle-controls');
@@ -184,11 +185,15 @@ class LySincApp {
     setupEventListeners() {
         this.btnConnect.addEventListener('click', () => SpotifyService.login());
         this.btnLogout.addEventListener('click', () => {
-            if (window.confirm("Tem certeza que deseja sair e remover seus dados de login?")) {
-                this.showToast('Limpando sessão e removendo dados locais...', 'info');
-                setTimeout(() => {
-                    SpotifyService.logout();
-                }, 800);
+            if (this.confirmLogoutModal) {
+                this.confirmLogoutModal.classList.remove('hidden');
+                this.confirmLogoutModal.classList.add('flex');
+            } else {
+                if (window.confirm("Tem certeza que deseja sair e remover seus dados de login?")) {
+                    window.localStorage.removeItem(Config.CLIENT_ID_KEY);
+                    this.btnLogout.classList.add('hidden');
+                    this.showToast('Sessão encerrada com o Spotify.', 'info');
+                }
             }
         });
         
@@ -196,6 +201,29 @@ class LySincApp {
         this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
         this.btnSaveSettings.addEventListener('click', () => this.saveSettings());
         
+        // Botão Fechar Modal Customizado de Sair
+        const btnConfirmLogout = document.getElementById('btn-confirm-logout');
+        const btnCancelLogout = document.getElementById('btn-cancel-logout');
+        
+        if (btnConfirmLogout) {
+            btnConfirmLogout.addEventListener('click', () => {
+                window.localStorage.removeItem(Config.CLIENT_ID_KEY);
+                this.confirmLogoutModal.classList.add('hidden');
+                this.confirmLogoutModal.classList.remove('flex');
+                this.btnLogout.classList.add('hidden');
+                this.showToast('Sessão encerrada com o Spotify.', 'info');
+                // Opcionalmente dar um reload na página
+                setTimeout(() => window.location.reload(), 1500);
+            });
+        }
+        
+        if (btnCancelLogout) {
+            btnCancelLogout.addEventListener('click', () => {
+                this.confirmLogoutModal.classList.add('hidden');
+                this.confirmLogoutModal.classList.remove('flex');
+            });
+        }
+
         let controlsTimeout = null;
 
         const closeControls = () => {
@@ -478,6 +506,19 @@ class LySincApp {
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
         
+        // Checagem de overflow para animar o título (efeito Marquee)
+        setTimeout(() => {
+            const containerWidth = this.trackName.parentElement.clientWidth;
+            const textWidth = this.trackName.scrollWidth;
+            if (textWidth > containerWidth) {
+                this.trackName.style.setProperty('--scroll-dist', `-${textWidth - containerWidth + 24}px`);
+                this.trackName.classList.add('marquee-text');
+            } else {
+                this.trackName.classList.remove('marquee-text');
+                this.trackName.style.removeProperty('--scroll-dist');
+            }
+        }, 50);
+        
         // Efeito de imagem e fundo desfocado dinâmico (Apple Music style)
         if (state.albumArtUrl) {
             this.albumArt.src = state.albumArtUrl;
@@ -516,7 +557,7 @@ class LySincApp {
         );
 
         // Verifica se a música não mudou enquanto buscava
-        const activeTrackId = this.trackId || (this.trackName + this.albumName);
+        const activeTrackId = this.currentTrackId;
         if (this._currentLyricsRequest !== activeTrackId) {
             return; // Outra música já começou a tocar, ignora o resultado
         }

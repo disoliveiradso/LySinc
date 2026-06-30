@@ -291,8 +291,35 @@ body, html {
     }
 }
 
-.listening-indicator {
+}
+
+.listening-indicator, .loader-pulse {
     animation: pulse-ring 2s infinite;
+}
+
+.loader-pulse {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Efeito de Título Longo Deslizante (Marquee Spotify Style) */
+.marquee-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee-scroll 10s linear infinite;
+    animation-delay: 1.5s;
+}
+
+@keyframes marquee-scroll {
+    0%, 10% { transform: translateX(0); }
+    45%, 55% { transform: translateX(var(--scroll-dist)); }
+    90%, 100% { transform: translateX(0); }
 }
 
 /* Botão Conectar Spotify Customizado */
