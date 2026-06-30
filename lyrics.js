@@ -384,16 +384,21 @@ const LyricsService = {
     const parsed = [];
 
     for (const raw of rawLines) {
-      const match = raw.match(/^\[(\d{1,3}):(\d{2})\.(\d{2,3})\]\s?(.*)$/);
+      const match = raw.match(/^\[(\d{1,3}):(\d{2})\.(\d{1,3})\]\s?(.*)$/);
       if (!match) continue;
 
       const minutes = parseInt(match[1], 10);
       const seconds = parseInt(match[2], 10);
-      let centiseconds = parseInt(match[3], 10);
-      if (match[3].length === 3) {
-        centiseconds = Math.round(centiseconds / 10);
+      const fractionStr = match[3];
+      let ms = 0;
+      if (fractionStr.length === 1) {
+        ms = parseInt(fractionStr, 10) * 100;
+      } else if (fractionStr.length === 2) {
+        ms = parseInt(fractionStr, 10) * 10;
+      } else if (fractionStr.length === 3) {
+        ms = parseInt(fractionStr, 10);
       }
-      const timestamp = (minutes * 60 + seconds) * 1000 + centiseconds * 10;
+      const timestamp = (minutes * 60 + seconds) * 1000 + ms;
       const text = match[4] || '';
       parsed.push({ timestamp, text });
     }

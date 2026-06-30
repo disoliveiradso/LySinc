@@ -253,7 +253,7 @@ class LySincApp {
                         this.scrollToLine(activeEl);
                     }
                 }
-            }, 4000); // 4 segundos de inatividade
+            }, 3000); // 3 segundos de inatividade
         };
 
         // Ouvintes físicos de interação para capturar mouse, teclado e toque imediatamente
@@ -262,23 +262,14 @@ class LySincApp {
         this.lyricsContainer.addEventListener('mousedown', handleUserInteraction, { passive: true });
         this.lyricsContainer.addEventListener('keydown', handleUserInteraction, { passive: true });
 
-        // Ouvimos o evento 'scroll' do container apenas para prolongar o timer de inatividade
-        // caso o scroll continue ocorrendo por inércia física após o usuário soltar a tela
+        // Ouvimos o evento 'scroll' do container de forma inteligente
         this.lyricsContainer.addEventListener('scroll', () => {
-            if (this.isUserInteracting) {
-                if (this.userScrollTimeout) {
-                    clearTimeout(this.userScrollTimeout);
-                }
-                this.userScrollTimeout = setTimeout(() => {
-                    this.isUserInteracting = false;
-                    if (this.activeLineId !== null) {
-                        const activeEl = document.getElementById(`line-${this.activeLineId}`);
-                        if (activeEl) {
-                            this.scrollToLine(activeEl);
-                        }
-                    }
-                }, 4000);
+            // Se o scroll ocorreu dentro de 800ms de um scroll automático, ignoramos
+            if (Date.now() - this.lastAutoScrollTime < 800) {
+                return;
             }
+            // Caso contrário, foi uma rolagem real do usuário (inclui arrastar a barra de rolagem)
+            handleUserInteraction();
         });
     }
 
@@ -359,8 +350,9 @@ class LySincApp {
             return;
         }
 
-        // Atualiza a sincronização do tempo com compensação de latência de tráfego de rede
-        const latencyCompensation = state.timestamp ? (Date.now() - state.timestamp) : 0;
+        // Atualiza a sincronização do tempo com compensação de latência de tráfego de rede corrigindo o drift de relógio
+        const adjustedTimestamp = state.timestamp - (state.clockDrift || 0);
+        const latencyCompensation = Date.now() - adjustedTimestamp;
         const safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
 
         this.isPlaying = state.isPlaying;
@@ -571,8 +563,8 @@ class LySincApp {
                 
                 this.updateProgressBar(currentProgressMs);
                 
-                // Aplica compensação temporal de 150ms (Timing Offset) contra atrasos/latência de reprodução
-                this.updateLyricsSync(currentProgressMs + 150);
+                // Aplica compensação temporal de 200ms (Timing Offset) contra atrasos/latência de reprodução
+                this.updateLyricsSync(currentProgressMs + 200);
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };
@@ -730,8 +722,8 @@ class LySincApp {
         // Distância física da linha em relação ao topo atual da viewport do container (soma o scrollTop corrente)
         const relativeLineTop = lineRect.top - containerRect.top + this.lyricsContainer.scrollTop;
         
-        // Alinhamento matemático perfeito no meio do visor
-        const targetScrollTop = relativeLineTop - (containerRect.height / 2) + (lineRect.height / 2);
+        // Alinhamento matemático ideal a 35% do topo da área de exibição
+        const targetScrollTop = relativeLineTop - (containerRect.height * 0.35) + (lineRect.height / 2);
         
         this.lastAutoScrollTime = Date.now();
 

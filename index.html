@@ -65,7 +65,7 @@
         <section id="screen-main" class="hidden flex-1 flex flex-col justify-between my-auto">
             
             <!-- Detalhes da Música (Capas e Metadados) -->
-            <div class="flex items-center space-x-6 mb-8 mt-4">
+            <div class="flex items-center space-x-6 mb-4 mt-2">
                 <div class="relative group">
                     <img id="album-art" src="" alt="Capa do Álbum" class="w-20 h-20 md:w-28 md:h-28 rounded-xl object-cover shadow-2xl border border-white/10 transition-transform duration-500 group-hover:scale-105">
                 </div>
@@ -90,8 +90,8 @@
                 <div class="flex items-center justify-center space-x-2 text-white/40 text-xs mt-2" id="lyrics-footer-source">
                     <span id="lyrics-source-text">Letras via Musixmatch API</span>
                     <button id="btn-change-source" class="p-1 rounded hover:bg-white/10 hover:text-white transition-colors" title="Alterar Provedor de Letras">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1021 12h-1.5" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3.5 w-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
                     </button>
                 </div>
@@ -128,8 +128,6 @@
                     </svg>
                     <span>Repositório</span>
                 </a>
-                <span class="text-white/10">•</span>
-                <a href="https://github.com/better-lyrics/better-lyrics" target="_blank" class="hover:text-white transition-colors" title="Referência better-lyrics">better-lyrics</a>
                 <span class="text-white/10">•</span>
                 <a href="https://github.com/binimum/am-lyrics" target="_blank" class="hover:text-white transition-colors" title="Referência am-lyrics">am-lyrics</a>
             </div>
