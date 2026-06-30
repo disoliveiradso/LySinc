@@ -463,11 +463,11 @@ class LySincApp {
             
             // Se o modo selecionado for tradução/romanização mas não estiver pré-carregado, aciona a carga assíncrona
             if (this.currentLyricsMode !== 'original' && !this.lyricsData[this.currentLyricsMode]) {
-                this.lyrics = this.lyricsData.original;
+                this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
                 this.renderLyrics();
                 this.changeLyricsMode(this.currentLyricsMode);
             } else {
-                this.lyrics = this.lyricsData[this.currentLyricsMode] || this.lyricsData.original;
+                this.lyrics = this.injectInstrumentalLines(this.lyricsData[this.currentLyricsMode] || this.lyricsData.original);
                 this.renderLyrics();
             }
             
@@ -529,7 +529,7 @@ class LySincApp {
             }
         }
 
-        this.lyrics = this.lyricsData.original;
+        this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
         
         // Re-renderiza e alinha instantaneamente
         this.renderLyrics();
@@ -540,8 +540,33 @@ class LySincApp {
         this.updateLyricsSync(currentProgressMs);
     }
 
+    injectInstrumentalLines(lines) {
+        if (!lines || lines.length === 0) return lines;
+        const result = [];
+        for (let i = 0; i < lines.length; i++) {
+            const currentLine = lines[i];
+            if (i > 0) {
+                const prevLine = lines[i - 1];
+                if (currentLine.timestamp - prevLine.endtime > 5000) {
+                    result.push({
+                        id: `inst-${i}`,
+                        text: [{ text: '♪', timestamp: prevLine.endtime + 500, endtime: currentLine.timestamp - 500 }],
+                        background: false,
+                        backgroundText: [],
+                        timestamp: prevLine.endtime + 500,
+                        endtime: currentLine.timestamp - 500,
+                        isWordSynced: true
+                    });
+                }
+            }
+            result.push(currentLine);
+        }
+        return result;
+    }
+
     renderLyrics() {
         this.lyricsContainer.innerHTML = '';
+        window.scrollTo({ top: 0, behavior: 'instant' });
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');

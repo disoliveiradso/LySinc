@@ -190,7 +190,12 @@ body {
 /* Animação e Estilos de Palavras em Karaokê Contínuo (Sílabas) */
 .lyrics-syllable {
     display: inline-block;
-    background: linear-gradient(to right, #ffffff calc(var(--word-progress, 0%) - 10%), rgba(255, 255, 255, 0.3) calc(var(--word-progress, 0%) + 10%));
+    background: linear-gradient(to right, 
+        #ffffff 0%,
+        #ffffff calc(var(--word-progress, 0%) - 15%), 
+        rgba(255, 255, 255, 0.4) var(--word-progress, 0%),
+        rgba(255, 255, 255, 0.4) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
@@ -201,6 +206,8 @@ body {
 
 .lyrics-syllable.passed {
     --word-progress: 100% !important;
+    background: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
 }
 
 /* Letras não sincronizadas por palavra (iluminação instantânea da linha toda) */
@@ -211,7 +218,12 @@ body {
 /* Ícone Instrumental (♪) que enche de baixo pra cima */
 .lyrics-syllable.instrumental-icon {
     font-size: 2.5rem;
-    background: linear-gradient(to top, #ffffff var(--word-progress, 0%), rgba(255, 255, 255, 0.3) var(--word-progress, 0%));
+    background: linear-gradient(to top, 
+        #ffffff 0%,
+        #ffffff calc(var(--word-progress, 0%) - 15%), 
+        rgba(255, 255, 255, 0.4) var(--word-progress, 0%),
+        rgba(255, 255, 255, 0.4) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     padding: 0 10px;
