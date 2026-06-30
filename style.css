@@ -75,8 +75,8 @@ body {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 8%, white 92%, transparent 100%);
     
     /* Configuração de espaçamento e rolagem para manter alinhamento ideal no centro */
-    padding-top: 8vh;
-    padding-bottom: 12vh;
+    padding-top: 35vh;
+    padding-bottom: 65vh;
     box-sizing: border-box;
 }
 

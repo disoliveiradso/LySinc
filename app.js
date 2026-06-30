@@ -35,7 +35,7 @@ class LySincApp {
         this.lyricsData = null; // Guardará o objeto completo de idiomas
         this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
-        this.currentLyricsProvider = 'betterlyrics'; // Provedor de letras padrão (Better-Lyrics style)
+        this.currentLyricsProvider = 'apple'; // Provedor de letras padrão
         
         // Estado do Relógio Interno (Ticker)
         this.isPlaying = false;
@@ -206,18 +206,16 @@ class LySincApp {
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
             btnChangeSource.addEventListener('click', async () => {
-                const providers = ['betterlyrics', 'musixmatch', 'spotify', 'lrclib', 'netease', 'genius'];
+                const providers = ['apple', 'musixmatch', 'lrclib', 'netease'];
                 const currentIndex = providers.indexOf(this.currentLyricsProvider);
                 const nextIndex = (currentIndex + 1) % providers.length;
                 this.currentLyricsProvider = providers[nextIndex];
                 
                 const providerLabels = {
-                    'betterlyrics': 'Better Lyrics',
+                    'apple': 'Apple Music',
                     'musixmatch': 'Musixmatch',
-                    'spotify': 'Spotify',
                     'lrclib': 'LrcLib',
-                    'netease': 'NetEase',
-                    'genius': 'Genius'
+                    'netease': 'NetEase'
                 };
                 
                 this.showToast(`Buscando letras via ${providerLabels[this.currentLyricsProvider]}...`, 'info');
@@ -563,8 +561,8 @@ class LySincApp {
                 
                 this.updateProgressBar(currentProgressMs);
                 
-                // Aplica compensação temporal de 200ms (Timing Offset) contra atrasos/latência de reprodução
-                this.updateLyricsSync(currentProgressMs + 200);
+                // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
+                this.updateLyricsSync(currentProgressMs);
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };

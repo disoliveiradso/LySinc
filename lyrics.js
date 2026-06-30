@@ -231,7 +231,7 @@ const KPOE_SERVERS = [
   'https://lyricsplus.prjktla.workers.dev',
   'https://lyrics-plus-backend.vercel.app',
 ];
-const DEFAULT_KPOE_SOURCE_ORDER = 'apple,lyricsplus,musixmatch,spotify,qq,deezer,musixmatch-word';
+const DEFAULT_KPOE_SOURCE_ORDER = 'apple,musixmatch,qq';
 const GENIUS_WORKER_URL = 'https://fetch-genius.samidy.workers.dev/';
 const FETCH_TIMEOUT_MS = 8000;
 
@@ -1071,39 +1071,7 @@ const LyricsService = {
     return null;
   },
 
-  async fetchLyricsFromGenius(metadata) {
-    const title = metadata.title?.trim();
-    const artist = metadata.artist?.trim();
-    if (!title || !artist) return null;
-
-    try {
-      const params = new URLSearchParams({ title, artist });
-      const response = await fetchWithTimeout(`${GENIUS_WORKER_URL}?${params.toString()}`);
-      if (!response.ok) return null;
-      const data = await response.json();
-
-      if (data.lyrics) {
-        const plainLines = data.lyrics
-          .split('\n')
-          .map(l => l.trim())
-          .filter(l => l && !l.startsWith('['));
-
-        if (plainLines.length > 0) {
-          const lines = plainLines.map((text) => ({
-            text: [{ text, part: false, timestamp: 0, endtime: 0 }],
-            background: false,
-            backgroundText: [],
-            oppositeTurn: false,
-            timestamp: 0,
-            endtime: 0,
-            isWordSynced: false,
-          }));
-          return { lines, source: 'Genius' };
-        }
-      }
-    } catch {}
-    return null;
-  },
+  // Removed fetchLyricsFromGenius
 
   // Traduz um array de lines usando GoogleService
   async translateLyrics(lines) {
@@ -1143,7 +1111,7 @@ const LyricsService = {
 
     const collectedSources = [];
 
-    if (provider === 'betterlyrics') {
+    if (provider === 'betterlyrics' || provider === 'apple') {
       const youLyResults = await this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata);
       if (youLyResults && youLyResults.length > 0) {
         collectedSources.push(...youLyResults);
@@ -1157,12 +1125,7 @@ const LyricsService = {
       }
     }
 
-    if (provider === 'genius' || collectedSources.length === 0) {
-      const geniusResult = await this.fetchLyricsFromGenius(metadata);
-      if (geniusResult && geniusResult.lines.length > 0) {
-        collectedSources.push(geniusResult);
-      }
-    }
+    // Fontes baseadas em Genius removidas a pedido do usuário
 
     if (collectedSources.length > 0) {
       const sortedSources = this.mergeAndSortSources(collectedSources);
