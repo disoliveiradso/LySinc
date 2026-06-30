@@ -409,17 +409,25 @@ const LyricsService = {
 
       if (!text.trim()) continue;
 
-      const syllable = {
-        text,
-        part: false,
-        timestamp,
-        endtime,
-        lineSynced: true,
-      };
+      const words = text.split(/(\s+)/).filter(w => w.length > 0);
+      const durationPerChar = (endtime - timestamp) / text.length;
+      let currentTime = timestamp;
+      const syllables = words.map(word => {
+          const dur = word.length * durationPerChar;
+          const syl = {
+              text: word,
+              part: false,
+              timestamp: currentTime,
+              endtime: currentTime + dur,
+              lineSynced: true
+          };
+          currentTime += dur;
+          return syl;
+      });
 
       lines.push({
         id: i,
-        text: [syllable],
+        text: syllables,
         background: false,
         backgroundText: [],
         oppositeTurn: false,
@@ -635,13 +643,21 @@ const LyricsService = {
             });
           }
         } else {
-          mainSyllables.push({
-            text: p.textContent?.trim() || '',
-            timestamp: beginMs,
-            endtime: endMs,
-            part: false,
-            lineSynced: true,
-          });
+          const textStr = p.textContent?.trim() || '';
+          const durationPerChar = (endMs - beginMs) / (textStr.length || 1);
+          let currentTime = beginMs;
+          const words = textStr.split(/(\s+)/).filter(w => w.length > 0);
+          for (const word of words) {
+            const dur = word.length * durationPerChar;
+            mainSyllables.push({
+              text: word,
+              timestamp: currentTime,
+              endtime: currentTime + dur,
+              part: false,
+              lineSynced: true,
+            });
+            currentTime += dur;
+          }
         }
 
         const alignment = alignments[i];
