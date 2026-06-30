@@ -18,14 +18,31 @@ body {
     padding: 0;
 }
 
-/* Remover visualmente a barra de rolagem mas manter a função */
-::-webkit-scrollbar {
+/* Remover visualmente a barra de rolagem APENAS da página principal */
+body::-webkit-scrollbar, html::-webkit-scrollbar {
     display: none;
     width: 0;
 }
-body {
+body, html {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+}
+
+/* Scrollbar estilizado para elementos internos (como pop-ups) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Fundo Desfocado Dinâmico (Estilo Apple Music) */
@@ -190,14 +207,16 @@ body {
 /* Animação e Estilos de Palavras em Karaokê Contínuo (Sílabas) */
 .lyrics-syllable {
     display: inline-block;
-    background: linear-gradient(to right, 
+    background-image: linear-gradient(to right, 
         #ffffff 0%,
         #ffffff calc(var(--word-progress, 0%) - 15%), 
         rgba(255, 255, 255, 0.4) var(--word-progress, 0%),
         rgba(255, 255, 255, 0.4) 100%
     );
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
                 filter 0.3s ease;
     white-space: pre-wrap;
@@ -206,8 +225,9 @@ body {
 
 .lyrics-syllable.passed {
     --word-progress: 100% !important;
-    background: #ffffff !important;
+    background-image: none !important;
     -webkit-text-fill-color: #ffffff !important;
+    color: #ffffff !important;
 }
 
 /* Letras não sincronizadas por palavra (iluminação instantânea da linha toda) */
@@ -218,14 +238,16 @@ body {
 /* Ícone Instrumental (♪) que enche de baixo pra cima */
 .lyrics-syllable.instrumental-icon {
     font-size: 2.5rem;
-    background: linear-gradient(to top, 
+    background-image: linear-gradient(to top, 
         #ffffff 0%,
         #ffffff calc(var(--word-progress, 0%) - 15%), 
         rgba(255, 255, 255, 0.4) var(--word-progress, 0%),
         rgba(255, 255, 255, 0.4) 100%
     );
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     padding: 0 10px;
 }
 
