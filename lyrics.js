@@ -1111,18 +1111,16 @@ const LyricsService = {
 
     const collectedSources = [];
 
-    if (provider === 'betterlyrics' || provider === 'apple') {
-      const youLyResults = await this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata);
-      if (youLyResults && youLyResults.length > 0) {
-        collectedSources.push(...youLyResults);
-      }
+    // 1. Sempre busca da base Apple / LyricsPlus (que tem word-sync)
+    const youLyResults = await this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata);
+    if (youLyResults && youLyResults.length > 0) {
+      collectedSources.push(...youLyResults);
     }
 
-    if (provider === 'lrclib' || collectedSources.length === 0) {
-      const lrclibResult = await this.fetchLyricsFromLrclib(metadata);
-      if (lrclibResult && lrclibResult.lines.length > 0) {
-        collectedSources.push(lrclibResult);
-      }
+    // 2. Sempre busca do LRCLIB (muito estável, mas geralmente line-sync)
+    const lrclibResult = await this.fetchLyricsFromLrclib(metadata);
+    if (lrclibResult && lrclibResult.lines.length > 0) {
+      collectedSources.push(lrclibResult);
     }
 
     // Fontes baseadas em Genius removidas a pedido do usuário

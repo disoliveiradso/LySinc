@@ -185,12 +185,12 @@ class LySincApp {
         
         if (this.btnToggleControls) {
             this.btnToggleControls.addEventListener('click', () => {
-                const isHidden = this.headerControlsContainer.classList.contains('translate-x-full');
+                const isHidden = this.headerControlsContainer.classList.contains('translate-x-10');
                 if (isHidden) {
-                    this.headerControlsContainer.classList.remove('translate-x-full', 'opacity-0', 'pointer-events-none');
+                    this.headerControlsContainer.classList.remove('translate-x-10', 'opacity-0', 'pointer-events-none');
                     this.iconToggleControls.innerHTML = '<path d="M9 18l6-6-6-6"/>';
                 } else {
-                    this.headerControlsContainer.classList.add('translate-x-full', 'opacity-0', 'pointer-events-none');
+                    this.headerControlsContainer.classList.add('translate-x-10', 'opacity-0', 'pointer-events-none');
                     this.iconToggleControls.innerHTML = '<path d="M15 18l-6-6 6-6"/>';
                 }
             });
