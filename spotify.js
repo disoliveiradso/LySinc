@@ -208,6 +208,7 @@ const SpotifyService = {
         if (!token) return null;
 
         try {
+            const requestTime = Date.now();
             const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -230,22 +231,12 @@ const SpotifyService = {
                 throw new Error('Falha na resposta do Spotify');
             }
 
-            // Captura o cabeçalho Date para compensar a diferença entre o relógio local e o do servidor do Spotify
-            const serverDateHeader = response.headers.get('Date');
-            let clockDrift = 0;
-            if (serverDateHeader) {
-                const serverTime = new Date(serverDateHeader).getTime();
-                const localTime = Date.now();
-                clockDrift = serverTime - localTime;
-            }
-
             const data = await response.json();
             return {
                 isPlaying: data.is_playing,
                 isEmpty: false,
                 progressMs: data.progress_ms,
-                timestamp: data.timestamp, // timestamp da medição do Spotify
-                clockDrift: clockDrift,
+                requestTime: requestTime,
                 trackId: data.item?.id,
                 trackName: data.item?.name,
                 artists: data.item?.artists.map(a => a.name).join(', '),

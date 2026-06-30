@@ -348,9 +348,8 @@ class LySincApp {
             return;
         }
 
-        // Atualiza a sincronização do tempo com compensação de latência de tráfego de rede corrigindo o drift de relógio
-        const adjustedTimestamp = state.timestamp - (state.clockDrift || 0);
-        const latencyCompensation = Date.now() - adjustedTimestamp;
+        // Atualiza a sincronização de tempo baseado puramente no relógio local para anular clock drift do servidor
+        const latencyCompensation = Date.now() - state.requestTime;
         const safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
 
         this.isPlaying = state.isPlaying;

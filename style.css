@@ -73,10 +73,13 @@ body {
     min-height: 0;
     mask-image: linear-gradient(to bottom, transparent 0%, white 8%, white 92%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 8%, white 92%, transparent 100%);
+    /* Configuração de rolagem local */
+    scroll-behavior: smooth;
+    overflow-y: auto;
     
     /* Configuração de espaçamento e rolagem para manter alinhamento ideal no centro */
     padding-top: 35vh;
-    padding-bottom: 65vh;
+    padding-bottom: 50vh;
     box-sizing: border-box;
 }
 
