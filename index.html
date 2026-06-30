@@ -145,7 +145,7 @@
 
     <!-- MODAL DE CONFIGURAÇÃO (CLIENT ID) -->
     <div id="settings-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl">
+        <div class="glass-panel w-full max-w-md max-h-[85vh] overflow-y-auto rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl">
             
             <!-- Fechar Modal -->
             <button id="btn-settings-close" class="absolute top-5 right-5 text-white/50 hover:text-white transition-colors">
@@ -192,9 +192,6 @@
             <div class="flex flex-col space-y-3">
                 <button id="btn-save-settings" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
                     Salvar Configurações
-                </button>
-                <button id="btn-clear-session" class="w-full bg-red-600/20 text-red-400 border border-red-500/20 font-bold py-3 rounded-xl hover:bg-red-600/30 transition-colors">
-                    Remover Login e Dados Locais
                 </button>
             </div>
         </div>

@@ -177,24 +177,63 @@ class LySincApp {
 
     setupEventListeners() {
         this.btnConnect.addEventListener('click', () => SpotifyService.login());
-        this.btnLogout.addEventListener('click', () => SpotifyService.logout());
+        this.btnLogout.addEventListener('click', () => {
+            if (window.confirm("Tem certeza que deseja sair e remover seus dados de login?")) {
+                this.showToast('Limpando sessão e removendo dados locais...', 'info');
+                setTimeout(() => {
+                    SpotifyService.logout();
+                }, 800);
+            }
+        });
         
         this.btnSettings.addEventListener('click', () => this.toggleSettingsModal(true));
         this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
         this.btnSaveSettings.addEventListener('click', () => this.saveSettings());
         
+        let controlsTimeout = null;
+
+        const closeControls = () => {
+            if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('translate-x-10')) {
+                this.headerControlsContainer.classList.add('translate-x-10', 'opacity-0', 'pointer-events-none');
+                if (this.iconToggleControls) this.iconToggleControls.innerHTML = '<path d="M15 18l-6-6 6-6"/>';
+            }
+        };
+
+        const resetControlsTimeout = () => {
+            if (controlsTimeout) clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(closeControls, 4000); // 4 segundos pra fechar
+        };
+
         if (this.btnToggleControls) {
-            this.btnToggleControls.addEventListener('click', () => {
+            this.btnToggleControls.addEventListener('click', (e) => {
+                e.stopPropagation(); // Evita que o click se propague e feche imediatamente
                 const isHidden = this.headerControlsContainer.classList.contains('translate-x-10');
                 if (isHidden) {
                     this.headerControlsContainer.classList.remove('translate-x-10', 'opacity-0', 'pointer-events-none');
                     this.iconToggleControls.innerHTML = '<path d="M9 18l6-6-6-6"/>';
+                    resetControlsTimeout();
                 } else {
-                    this.headerControlsContainer.classList.add('translate-x-10', 'opacity-0', 'pointer-events-none');
-                    this.iconToggleControls.innerHTML = '<path d="M15 18l-6-6 6-6"/>';
+                    closeControls();
                 }
             });
         }
+
+        // Clicar fora ou em qualquer botão do header fecha os controles
+        document.addEventListener('click', (e) => {
+            if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('translate-x-10')) {
+                const isClickInside = this.headerControlsContainer.contains(e.target);
+                const isClickOnToggle = this.btnToggleControls && this.btnToggleControls.contains(e.target);
+                
+                if (!isClickInside && !isClickOnToggle) {
+                    closeControls();
+                }
+                
+                // Se clicou dentro (num botão por exemplo), fecha também
+                if (isClickInside) {
+                    setTimeout(closeControls, 300); // pequeno delay visual
+                }
+            }
+        });
 
         if (this.btnFullscreen) {
             this.btnFullscreen.addEventListener('click', () => {
@@ -203,16 +242,6 @@ class LySincApp {
                 } else {
                     if (document.exitFullscreen) document.exitFullscreen();
                 }
-            });
-        }
-        
-        const btnClearSession = document.getElementById('btn-clear-session');
-        if (btnClearSession) {
-            btnClearSession.addEventListener('click', () => {
-                this.showToast('Limpando sessão e removendo dados locais...', 'info');
-                setTimeout(() => {
-                    SpotifyService.logout();
-                }, 800);
             });
         }
         

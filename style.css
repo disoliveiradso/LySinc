@@ -18,6 +18,16 @@ body {
     padding: 0;
 }
 
+/* Remover visualmente a barra de rolagem mas manter a função */
+::-webkit-scrollbar {
+    display: none;
+    width: 0;
+}
+body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
 /* Fundo Desfocado Dinâmico (Estilo Apple Music) */
 .blur-background-container {
     position: fixed;
@@ -180,7 +190,7 @@ body {
 /* Animação e Estilos de Palavras em Karaokê Contínuo (Sílabas) */
 .lyrics-syllable {
     display: inline-block;
-    background: linear-gradient(to right, #ffffff var(--word-progress, 0%), rgba(255, 255, 255, 0.3) var(--word-progress, 0%));
+    background: linear-gradient(to right, #ffffff calc(var(--word-progress, 0%) - 10%), rgba(255, 255, 255, 0.3) calc(var(--word-progress, 0%) + 10%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
