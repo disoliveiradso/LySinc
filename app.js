@@ -595,6 +595,8 @@ class LySincApp {
             </div>
         `;
         this.activeLineId = null;
+        this.currentActiveIdsKey = '';
+        this.isUserInteracting = false;
         const topMenu = document.getElementById('lyrics-top-menu');
         if (topMenu) topMenu.classList.add('hidden');
         
@@ -677,6 +679,7 @@ class LySincApp {
 
             // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
             this.activeLineId = null;
+            this.currentActiveIdsKey = '';
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
         } else {
@@ -766,7 +769,8 @@ class LySincApp {
 
     renderLyrics() {
         this.lyricsContainer.innerHTML = '';
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        this.lyricsContainer.scrollTop = 0;
+        this.lyricsContainer.scrollTo({ top: 0, behavior: 'instant' });
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
