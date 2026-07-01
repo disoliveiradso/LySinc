@@ -117,14 +117,14 @@ body, html {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.4;
-    transition: transform 0.8s cubic-bezier(0.25, 1, 0.3, 1), 
+    transition: transform 1s cubic-bezier(0.2, 0.9, 0.1, 1), 
                 opacity 0.8s ease-out, 
-                filter 0.5s ease,
-                color 0.6s ease;
+                filter 0.8s ease,
+                color 0.8s ease;
     transform-origin: left center;
     cursor: pointer;
-    animation: lyric-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    will-change: transform, opacity, font-size;
+    animation: lyric-fade-in 0.8s cubic-bezier(0.2, 0.9, 0.1, 1) forwards;
+    will-change: transform, opacity, filter;
     
     /* Configuração Flexbox para suportar quebra de backing vocals */
     display: flex;
@@ -132,13 +132,13 @@ body, html {
     align-items: flex-start;
 }
 
-/* Estado Inativo da Linha (Sem blur, mais nítido como na imagem 1 e 3) */
+/* Estado Inativo da Linha (Mais suave com blur) */
 .lyric-line.inactive {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.5);
     font-size: 2.5rem;
-    transform: scale3d(0.72, 0.72, 1) translateY(0);
-    filter: none;
-    opacity: 0.6;
+    transform: scale3d(0.85, 0.85, 1) translateY(0);
+    filter: blur(2px);
+    opacity: 0.55;
 }
 
 .lyric-line.inactive:hover {
@@ -242,12 +242,12 @@ body, html {
     color: #ffffff !important;
 }
 
-/* Ícone Instrumental (♪) que enche de baixo pra cima */
+/* Ícone Instrumental (♪) que enche de cima pra baixo */
 .lyrics-syllable.instrumental-icon {
     font-size: 2.5rem;
-    background-image: linear-gradient(to top, 
+    background-image: linear-gradient(to bottom, 
         #ffffff 0%,
-        #ffffff calc(var(--word-progress, 0%) - 15%), 
+        #ffffff calc(var(--word-progress, 0%) - 10%), 
         rgba(255, 255, 255, 0.4) var(--word-progress, 0%),
         rgba(255, 255, 255, 0.4) 100%
     );

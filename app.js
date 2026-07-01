@@ -624,6 +624,9 @@ class LySincApp {
         this.activeLineId = null;
         this.currentActiveIdsKey = '';
         this.isUserInteracting = false;
+        if (this.btnRecenter) {
+            this.btnRecenter.classList.add('hidden', 'opacity-0', 'translate-y-4');
+        }
         const topMenu = document.getElementById('lyrics-top-menu');
         if (topMenu) topMenu.classList.add('hidden');
         
@@ -778,7 +781,7 @@ class LySincApp {
         const firstLine = lines[0];
         if (firstLine.timestamp > 5000) {
             result.push({
-                id: `inst-start`,
+                id: -1, // ID numérico para funcionar no comparador isPassed
                 text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 500 }],
                 background: false,
                 backgroundText: [],
@@ -792,13 +795,16 @@ class LySincApp {
             const currentLine = lines[i];
             if (i > 0) {
                 const prevLine = lines[i - 1];
-                if (currentLine.timestamp - prevLine.endtime > 5000) {
+                // Se a música não for word-synced, prevLine.endtime é undefined. Assumimos timestamp + 3000ms.
+                const prevEndtime = prevLine.endtime || (prevLine.timestamp + 3000);
+                
+                if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
-                        id: `inst-${i}`,
-                        text: [{ text: '♪', timestamp: prevLine.endtime + 500, endtime: currentLine.timestamp - 500 }],
+                        id: i - 0.5, // ID numérico intermediário
+                        text: [{ text: '♪', timestamp: prevEndtime + 500, endtime: currentLine.timestamp - 500 }],
                         background: false,
                         backgroundText: [],
-                        timestamp: prevLine.endtime + 500,
+                        timestamp: prevEndtime + 500,
                         endtime: currentLine.timestamp - 500,
                         isWordSynced: true
                     });
