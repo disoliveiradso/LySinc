@@ -100,7 +100,7 @@ body, html {
     min-height: 0;
     /* A rolagem agora é gerida globalmente pela janela, então removemos o overflow local e padding massivo */
     box-sizing: border-box;
-    padding-bottom: 15vh; /* Pequeno respiro final apenas */
+    padding-bottom: 5vh; /* Pequeno respiro final apenas */
 }
 
 @keyframes lyric-fade-in {

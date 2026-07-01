@@ -596,10 +596,9 @@ class LySincApp {
             this.currentLyricsProvider
         );
 
-        // Verifica se a música não mudou enquanto buscava
-        const activeTrackId = this.currentTrackId;
-        if (this._currentLyricsRequest !== activeTrackId) {
-            return; // Outra música já começou a tocar, ignora o resultado
+        // Previne Race Condition: Verifica se a música não mudou ENQUANTO buscava a atual
+        if (requestTrackId !== this.currentTrackId) {
+            return; // O usuário já pulou para outra música, descarta este resultado
         }
 
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
@@ -808,36 +807,42 @@ class LySincApp {
         // Bloco de Créditos e Fonte (No final das letras)
         if (this.lyrics.length > 0) {
             const creditsBlock = document.createElement('div');
-            creditsBlock.className = 'mt-12 mb-24 pt-8 pb-4 flex flex-col items-start space-y-4 opacity-60 hover:opacity-100 transition-opacity';
+            creditsBlock.className = 'mt-10 mb-8 pt-6 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
             
-            // Intérpretes (Artistas)
+            // Intérpretes (Artistas) - Balão Pill
             const artistsInfo = document.createElement('div');
-            artistsInfo.className = 'text-white/80 text-sm font-bold';
-            artistsInfo.innerHTML = `<span class="block text-[10px] text-white/40 uppercase tracking-[0.2em] mb-1 font-normal">Intérpretes</span>${this.currentTrackArtists || 'Desconhecido'}`;
+            artistsInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80';
+            artistsInfo.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="font-medium">${this.currentTrackArtists || 'Desconhecido'}</span>
+            `;
             creditsBlock.appendChild(artistsInfo);
 
-            // Fonte e Botão de Trocar Fonte
-            const sourceInfo = document.createElement('div');
-            sourceInfo.className = 'flex items-center space-x-3 text-white/40 text-xs mt-4';
-            
-            // Lógica de provedores (exemplo)
+            // Fonte e Botão de Trocar Fonte - Balão Pill Clicável
             const providerText = this.lyricsData?.source || 'Desconhecida';
             
-            sourceInfo.innerHTML = `
-                <span id="lyrics-source-text" class="font-medium">Letras via ${providerText}</span>
-                <button id="btn-change-source-inline" class="p-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors border border-white/10" title="Alterar Provedor de Letras">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                </button>
+            const btnChangeSource = document.createElement('button');
+            btnChangeSource.id = 'btn-change-source-inline';
+            btnChangeSource.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
+            btnChangeSource.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+                <span class="font-medium">Fonte: ${providerText}</span>
+                <div class="ml-1 opacity-50 flex space-x-0.5">
+                    <div class="w-1 h-1 bg-current rounded-full"></div>
+                    <div class="w-1 h-1 bg-current rounded-full"></div>
+                    <div class="w-1 h-1 bg-current rounded-full"></div>
+                </div>
             `;
-            creditsBlock.appendChild(sourceInfo);
+            creditsBlock.appendChild(btnChangeSource);
+
             this.lyricsContainer.appendChild(creditsBlock);
 
             // Listener de troca de provedor
-            const btnChangeSource = creditsBlock.querySelector('#btn-change-source-inline');
-            if (btnChangeSource) {
-                btnChangeSource.addEventListener('click', () => {
+            btnChangeSource.addEventListener('click', () => {
                     // Providers conhecidos no backend
                     const providers = ['Musixmatch', 'LRCLIB', 'Apple Music', 'NetEase'];
                     let currentIdx = providers.indexOf(this.currentLyricsProvider || 'Musixmatch');
@@ -865,7 +870,7 @@ class LySincApp {
         const tick = () => {
             if (this.isPlaying && this.lastSyncTime > 0) {
                 const elapsedSinceSync = Date.now() - this.lastSyncTime;
-                const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync, this.durationMs);
+                const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
                 
                 this.updateProgressBar(currentProgressMs);
                 

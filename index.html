@@ -85,16 +85,16 @@
             <!-- Controles de Letras (Top Menu) -->
             <div id="lyrics-top-menu" class="hidden flex-col md:flex-row items-start md:items-center justify-between mb-4 mt-2 px-2 gap-3 transition-opacity duration-300">
                 <!-- Seletor de Idiomas -->
-                <div class="lyrics-tabs">
-                    <button class="lyric-tab-btn active" id="btn-tab-original" data-mode="original">Original</button>
-                    <button class="lyric-tab-btn" id="btn-tab-translation" data-mode="translation">Tradução</button>
-                    <button class="lyric-tab-btn" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
+                <div class="lyrics-tabs flex items-center bg-white/5 rounded-full p-1 border border-white/10" id="lyrics-tabs-container">
+                    <button class="lyric-tab-btn active px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-original" data-mode="original">Original</button>
+                    <button class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-translation" data-mode="translation">Tradução</button>
+                    <button class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
                     
                     <!-- Divisor Visual Opcional para os Controles -->
                     <div class="w-px h-4 bg-white/20 mx-2 hidden md:block"></div>
                     
                     <!-- Sync Adjust Controls acoplados aos botões de tabs -->
-                    <div class="flex items-center space-x-1 bg-white/5 rounded-full px-2 py-0.5 border border-white/10" id="sync-controls-group">
+                    <div class="flex items-center space-x-1 px-2" id="sync-controls-group">
                         <button id="btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
                         <span id="sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
                         <button id="btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
