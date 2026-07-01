@@ -644,8 +644,8 @@ class LySincApp {
             startIndex = 0; // Se automático, sempre começa do melhor
         }
 
-        let fetchedLyrics = null;
-        let successfulProvider = providers[startIndex];
+        let bestLyrics = null;
+        let successfulProvider = null;
 
         for (let i = 0; i < providers.length; i++) {
             const providerToTry = providers[(startIndex + i) % providers.length];
@@ -656,7 +656,7 @@ class LySincApp {
                 if (indicatorText) indicatorText.textContent = `Buscando no ${providerToTry}...`;
             }
 
-            fetchedLyrics = await LyricsService.getLyrics(
+            const currentFetchedLyrics = await LyricsService.getLyrics(
                 state.trackName, 
                 state.artists, 
                 state.albumName, 
@@ -667,17 +667,27 @@ class LySincApp {
             // Previne Race Condition
             if (requestTrackId !== this.currentTrackId) return;
 
-            if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
-                successfulProvider = providerToTry;
+            if (currentFetchedLyrics && currentFetchedLyrics.original && currentFetchedLyrics.original.length > 0) {
+                const isWord = currentFetchedLyrics.original.some(line => line.isWordSynced);
+                const isLine = currentFetchedLyrics.original.some(line => line.timestamp !== undefined && line.timestamp > 0);
                 
-                // Se for sincronizado (tem timestamp), achou a melhor! Para a busca.
-                const isSynced = fetchedLyrics.original.some(line => line.timestamp !== undefined && line.timestamp > 0);
-                if (isSynced || this.userForcedProvider) {
-                    break;
+                if (isWord) {
+                    bestLyrics = currentFetchedLyrics;
+                    successfulProvider = providerToTry;
+                    break; // Perfeito, tem sincronia de palavra! Para a busca.
+                } else if (isLine && !bestLyrics) {
+                    bestLyrics = currentFetchedLyrics;
+                    successfulProvider = providerToTry;
+                    if (this.userForcedProvider) break; // Salva como fallback e continua procurando
+                } else if (!bestLyrics) {
+                    bestLyrics = currentFetchedLyrics;
+                    successfulProvider = providerToTry;
+                    if (this.userForcedProvider) break;
                 }
-                // Senão, é texto estático. Salva como fallback e continua procurando outra melhor.
             }
         }
+        
+        fetchedLyrics = bestLyrics;
 
         this.currentLyricsProvider = successfulProvider;
         this.userForcedProvider = false; // Reset pro autoplay automático da próxima música
@@ -1169,11 +1179,17 @@ class LySincApp {
             const el = document.getElementById(`line-${line.id}`);
             if (el) {
                 if (activeLineIds.has(line.id)) {
-                    el.classList.remove('inactive');
+                    el.classList.remove('inactive', 'passed');
                     el.classList.add('active');
                 } else {
                     el.classList.remove('active');
                     el.classList.add('inactive');
+                    const isPassed = this.activeLineId !== null && line.id < this.activeLineId;
+                    if (isPassed) {
+                        el.classList.add('passed');
+                    } else {
+                        el.classList.remove('passed');
+                    }
                 }
             }
         });
