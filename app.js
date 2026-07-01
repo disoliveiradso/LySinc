@@ -525,9 +525,19 @@ class LySincApp {
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
             this.currentTrackId = stateTrackId;
-            this.progressMs = state.progressMs + safeCompensation;
-            this.lastSyncTime = Date.now();
             this.adjustSyncOffset(0, true);
+            
+            // Força um reset absoluto no player do Spotify se for início da música.
+            // Isso anula completamente o delay de buffer do Gapless/Crossfade no Spotify Connect
+            // e garante que as letras fiquem no tempo da música real reproduzida.
+            if (this.currentTrackId !== null && state.progressMs < 5000) {
+                SpotifyService.seekToPosition(0);
+                this.progressMs = 0;
+            } else {
+                this.progressMs = state.progressMs + safeCompensation;
+            }
+            
+            this.lastSyncTime = Date.now();
             
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
@@ -769,8 +779,7 @@ class LySincApp {
 
     renderLyrics() {
         this.lyricsContainer.innerHTML = '';
-        this.lyricsContainer.scrollTop = 0;
-        this.lyricsContainer.scrollTo({ top: 0, behavior: 'instant' });
+        window.scrollTo({ top: 0, behavior: 'instant' });
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
@@ -1028,6 +1037,11 @@ class LySincApp {
             this.activeLineId = null;
             this.currentActiveIdsKey = '';
             this.clearHighlights();
+            
+            // Se as letras foram resetadas pro vazio e o tempo está antes do primeiro verso, volta pro topo!
+            if (currentProgressMs < (this.lyrics[0]?.timestamp || 0)) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         // Sincronização interna de todas as palavras (karaoke fluido de 0% a 100%)
