@@ -22,6 +22,7 @@ class LySincApp {
         
         // Elementos DOM de Configuração / Modais
         this.btnConnect = document.getElementById('btn-connect');
+        this.btnRecenter = document.getElementById('btn-recenter');
         this.btnLogout = document.getElementById('btn-logout');
         this.btnSettings = document.getElementById('btn-settings');
         this.btnSettingsClose = document.getElementById('btn-settings-close');
@@ -373,21 +374,30 @@ class LySincApp {
 
         // Detecção Fisiológica Dinâmica de Interação Manual do Usuário
         const handleUserInteraction = () => {
-            this.isUserInteracting = true;
-            if (this.userScrollTimeout) {
-                clearTimeout(this.userScrollTimeout);
+            if (!this.isUserInteracting && this.activeLineId !== null) {
+                this.isUserInteracting = true;
+                // Mostra botão de Sincronizar
+                this.btnRecenter.classList.remove('hidden');
+                // Pequeno delay para animação de fade in (por causa do display:none do hidden)
+                requestAnimationFrame(() => {
+                    this.btnRecenter.classList.remove('opacity-0', 'translate-y-4');
+                });
             }
-            this.userScrollTimeout = setTimeout(() => {
-                this.isUserInteracting = false;
-                // Re-centraliza suavemente na linha ativa atual se ela existir
-                if (this.activeLineId !== null) {
-                    const activeEl = document.getElementById(`line-${this.activeLineId}`);
-                    if (activeEl) {
-                        this.scrollToLine(activeEl);
-                    }
-                }
-            }, 3000); // 3 segundos de inatividade
         };
+        
+        // Listener do botão de ressincronizar
+        this.btnRecenter.addEventListener('click', () => {
+            this.isUserInteracting = false;
+            this.btnRecenter.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+            
+            if (this.activeLineId !== null) {
+                const activeEl = document.getElementById(`line-${this.activeLineId}`);
+                if (activeEl) {
+                    this.scrollToLine(activeEl);
+                }
+            }
+        });
 
         // Ouvintes físicos de interação para capturar mouse, teclado e toque imediatamente
         window.addEventListener('wheel', handleUserInteraction, { passive: true });
@@ -517,6 +527,9 @@ class LySincApp {
             safeCompensation = 0;
         }
 
+        const oldProgressMs = this.progressMs;
+        const oldDurationMs = this.durationMs;
+
         this.isPlaying = state.isPlaying;
         this.progressMs = state.progressMs + safeCompensation;
         this.lastSyncTime = Date.now();
@@ -524,19 +537,20 @@ class LySincApp {
 
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
-            this.currentTrackId = stateTrackId;
-            this.adjustSyncOffset(0, true);
+            // Detecta se foi mudança automática (gapless) verificando se a música anterior estava no fim
+            const isAutoSkip = this.currentTrackId !== null && oldDurationMs > 0 && oldProgressMs >= oldDurationMs - 5000;
             
-            // Força um reset absoluto no player do Spotify se for início da música.
-            // Isso anula completamente o delay de buffer do Gapless/Crossfade no Spotify Connect
-            // e garante que as letras fiquem no tempo da música real reproduzida.
-            if (this.currentTrackId !== null && state.progressMs < 5000) {
-                this.seekToTime(0, true);
-                this.progressMs = 0;
+            this.currentTrackId = stateTrackId;
+            
+            // Aplica um atraso visual nas letras de 1.5s apenas se foi mudança automática,
+            // para compensar o buffer oculto do Spotify Connect sem causar stutters.
+            if (isAutoSkip && state.progressMs < 5000) {
+                this.adjustSyncOffset(-1500, true);
             } else {
-                this.progressMs = state.progressMs + safeCompensation;
+                this.adjustSyncOffset(0, true);
             }
             
+            this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
             
             this.updateTrackDetails(state);
@@ -759,6 +773,21 @@ class LySincApp {
     injectInstrumentalLines(lines) {
         if (!lines || lines.length === 0) return lines;
         const result = [];
+        
+        // Verifica o intervalo do início da música até a primeira letra
+        const firstLine = lines[0];
+        if (firstLine.timestamp > 5000) {
+            result.push({
+                id: `inst-start`,
+                text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 500 }],
+                background: false,
+                backgroundText: [],
+                timestamp: 0,
+                endtime: firstLine.timestamp - 500,
+                isWordSynced: true
+            });
+        }
+        
         for (let i = 0; i < lines.length; i++) {
             const currentLine = lines[i];
             if (i > 0) {
@@ -1022,18 +1051,6 @@ class LySincApp {
                 
                 // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
                 this.updateLyricsSync(currentProgressMs);
-                
-                // Preemptive skip: Pula para a próxima música ~1500ms antes de terminar.
-                // Isso resolve a desincronia de gapless playback eliminando a necessidade de resetar a música
-                // e garantindo que o áudio e a API se mantenham perfeitamente sincronizados.
-                if (this.durationMs > 0 && currentProgressMs >= this.durationMs - 1500) {
-                    if (!this.isPreemptivelySkipping) {
-                        this.isPreemptivelySkipping = true;
-                        SpotifyService.nextTrack();
-                        // Libera a trava após 3 segundos para a próxima música
-                        setTimeout(() => this.isPreemptivelySkipping = false, 3000);
-                    }
-                }
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };

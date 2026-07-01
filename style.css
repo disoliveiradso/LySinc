@@ -117,11 +117,10 @@ body, html {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.4;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
-                opacity 0.6s ease-out, 
-                font-size 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.3, 1), 
+                opacity 0.8s ease-out, 
                 filter 0.5s ease,
-                color 0.4s ease;
+                color 0.6s ease;
     transform-origin: left center;
     cursor: pointer;
     animation: lyric-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -215,8 +214,8 @@ body, html {
     background-image: linear-gradient(to right, 
         #ffffff 0%,
         #ffffff calc(var(--word-progress, 0%) - 15%), 
-        rgba(255, 255, 255, 0.4) var(--word-progress, 0%),
-        rgba(255, 255, 255, 0.4) 100%
+        rgba(255, 255, 255, 0.5) var(--word-progress, 0%),
+        rgba(255, 255, 255, 0.5) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -235,9 +234,12 @@ body, html {
     color: #ffffff !important;
 }
 
-/* Letras não sincronizadas por palavra (iluminação instantânea da linha toda) */
+/* Letras não sincronizadas por palavra (iluminação instantânea da linha toda chapada sem degradê) */
 .lyric-line.line-synced.active .lyrics-syllable {
-    --word-progress: 100% !important;
+    --word-progress: 115% !important;
+    background-image: none !important;
+    -webkit-text-fill-color: #ffffff !important;
+    color: #ffffff !important;
 }
 
 /* Ícone Instrumental (♪) que enche de baixo pra cima */
