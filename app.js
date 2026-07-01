@@ -399,11 +399,9 @@ class LySincApp {
             }
         });
 
-        // Ouvintes físicos de interação para capturar mouse, teclado e toque imediatamente
+        // Ouvintes físicos de interação para capturar rolagem de mouse e toque
         window.addEventListener('wheel', handleUserInteraction, { passive: true });
         window.addEventListener('touchmove', handleUserInteraction, { passive: true });
-        window.addEventListener('mousedown', handleUserInteraction, { passive: true });
-        window.addEventListener('keydown', handleUserInteraction, { passive: true });
 
         // Ouvimos o evento 'scroll' global de forma inteligente
         window.addEventListener('scroll', () => {
@@ -610,6 +608,10 @@ class LySincApp {
         this._currentLyricsRequest = requestTrackId;
         this.currentTrackArtists = state.artists || '';
 
+        this.activeLineId = null;
+        this.currentActiveIdsKey = '';
+        this.isUserInteracting = false;
+        this.lyrics = []; // Limpa as letras antigas para evitar bugs de UI e scroll durante o loading
         this.lyricsContainer.innerHTML = `
             <div class="flex flex-col items-center justify-center h-full pt-32">
                 <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
@@ -621,9 +623,6 @@ class LySincApp {
                 <div class="text-emerald-400/80 text-lg font-medium tracking-wide">Carregando letras sincronizadas...</div>
             </div>
         `;
-        this.activeLineId = null;
-        this.currentActiveIdsKey = '';
-        this.isUserInteracting = false;
         if (this.btnRecenter) {
             this.btnRecenter.classList.add('hidden', 'opacity-0', 'translate-y-4');
         }
@@ -812,11 +811,11 @@ class LySincApp {
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
                         id: i - 0.5, // ID numérico intermediário
-                        text: [{ text: '♪', timestamp: prevEndtime + 500, endtime: currentLine.timestamp - 500 }],
+                        text: [{ text: '♪', timestamp: prevEndtime + 500, endtime: currentLine.timestamp - 2500 }],
                         background: false,
                         backgroundText: [],
                         timestamp: prevEndtime + 500,
-                        endtime: currentLine.timestamp - 500,
+                        endtime: currentLine.timestamp - 2500,
                         isWordSynced: true
                     });
                 }
