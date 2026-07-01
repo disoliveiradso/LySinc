@@ -240,6 +240,7 @@ const SpotifyService = {
                 trackId: data.item?.id,
                 trackName: data.item?.name,
                 artists: data.item?.artists.map(a => a.name).join(', '),
+                artistsRaw: data.item?.artists.map(a => ({ id: a.id, name: a.name })) || [],
                 albumName: data.item?.album?.name,
                 albumArtUrl: data.item?.album?.images[0]?.url || '',
                 durationMs: data.item?.duration_ms
@@ -247,6 +248,39 @@ const SpotifyService = {
         } catch (error) {
             console.error('Erro ao buscar atualmente tocando:', error);
             return null;
+        }
+    },
+
+    // Busca as imagens de perfil para uma lista de IDs de artistas
+    async getArtistsImages(artistIds) {
+        if (!artistIds || artistIds.length === 0) return {};
+        const token = await this.getValidToken();
+        if (!token) return {};
+
+        try {
+            const idsStr = artistIds.join(',');
+            const response = await fetch(`https://api.spotify.com/v1/artists?ids=${idsStr}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) return {};
+            const data = await response.json();
+            
+            const imageMap = {};
+            if (data.artists) {
+                data.artists.forEach(artist => {
+                    if (artist && artist.images && artist.images.length > 0) {
+                        // Pega a menor imagem para otimizar o carregamento do balão
+                        imageMap[artist.id] = artist.images[artist.images.length - 1].url;
+                    }
+                });
+            }
+            return imageMap;
+        } catch (error) {
+            console.error('Erro ao buscar imagens dos artistas:', error);
+            return {};
         }
     }
 };

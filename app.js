@@ -519,6 +519,10 @@ class LySincApp {
         const stateTrackId = state.trackId || (state.trackName + state.albumName);
         if (stateTrackId !== this.currentTrackId) {
             this.currentTrackId = stateTrackId;
+            this.progressMs = state.progressMs + safeCompensation;
+            this.lastSyncTime = Date.now();
+            this.adjustSyncOffset(0, true);
+            
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
         }
@@ -588,13 +592,57 @@ class LySincApp {
         const topMenu = document.getElementById('lyrics-top-menu');
         if (topMenu) topMenu.classList.add('hidden');
         
-        const fetchedLyrics = await LyricsService.getLyrics(
-            state.trackName, 
-            state.artists, 
-            state.albumName, 
-            state.durationMs,
-            this.currentLyricsProvider
-        );
+        this.currentTrackArtistsRaw = state.artistsRaw || [];
+        if (this.currentTrackArtistsRaw.length > 0) {
+            const ids = this.currentTrackArtistsRaw.map(a => a.id).filter(id => id);
+            this.artistImages = await SpotifyService.getArtistsImages(ids);
+        } else {
+            this.artistImages = {};
+        }
+
+        const providers = ['Apple Music', 'Musixmatch', 'LRCLIB', 'NetEase'];
+        let startIndex = providers.indexOf(this.currentLyricsProvider);
+        if (startIndex === -1 || !this.userForcedProvider) {
+            startIndex = 0; // Se automático, sempre começa do melhor
+        }
+
+        let fetchedLyrics = null;
+        let successfulProvider = providers[startIndex];
+
+        for (let i = 0; i < providers.length; i++) {
+            const providerToTry = providers[(startIndex + i) % providers.length];
+            
+            // Só muda o texto pra avisar se não for a primeira tentativa
+            if (i > 0) {
+                const indicatorText = this.lyricsContainer.querySelector('.tracking-wide');
+                if (indicatorText) indicatorText.textContent = `Buscando no ${providerToTry}...`;
+            }
+
+            fetchedLyrics = await LyricsService.getLyrics(
+                state.trackName, 
+                state.artists, 
+                state.albumName, 
+                state.durationMs,
+                providerToTry
+            );
+
+            // Previne Race Condition
+            if (requestTrackId !== this.currentTrackId) return;
+
+            if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
+                successfulProvider = providerToTry;
+                
+                // Se for sincronizado (tem timestamp), achou a melhor! Para a busca.
+                const isSynced = fetchedLyrics.original.some(line => line.timestamp !== undefined && line.timestamp > 0);
+                if (isSynced || this.userForcedProvider) {
+                    break;
+                }
+                // Senão, é texto estático. Salva como fallback e continua procurando outra melhor.
+            }
+        }
+
+        this.currentLyricsProvider = successfulProvider;
+        this.userForcedProvider = false; // Reset pro autoplay automático da próxima música
 
         // Previne Race Condition: Verifica se a música não mudou ENQUANTO buscava a atual
         if (requestTrackId !== this.currentTrackId) {
@@ -762,12 +810,24 @@ class LySincApp {
                 sylSpan.innerHTML = '♪';
                 mainVocal.appendChild(sylSpan);
             } else {
+                let currentWordWrapper = document.createElement('span');
+                currentWordWrapper.className = 'inline-block whitespace-nowrap';
+                
                 line.text.forEach((syl, idx) => {
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable';
                     sylSpan.id = `word-${line.id}-${idx}`;
                     sylSpan.textContent = syl.text;
-                    mainVocal.appendChild(sylSpan);
+                    currentWordWrapper.appendChild(sylSpan);
+                    
+                    // Se a sílaba termina em espaço ou é a última, fechamos a palavra
+                    if (syl.text.endsWith(' ') || idx === line.text.length - 1) {
+                        mainVocal.appendChild(currentWordWrapper);
+                        if (idx < line.text.length - 1) {
+                            currentWordWrapper = document.createElement('span');
+                            currentWordWrapper.className = 'inline-block whitespace-nowrap';
+                        }
+                    }
                 });
             }
             lineContainer.appendChild(mainVocal);
@@ -777,12 +837,23 @@ class LySincApp {
                 const bgVocal = document.createElement('div');
                 bgVocal.className = 'background-vocal-container';
                 
+                let currentBgWordWrapper = document.createElement('span');
+                currentBgWordWrapper.className = 'inline-block whitespace-nowrap';
+                
                 line.backgroundText.forEach((syl, idx) => {
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable backing-vocal';
                     sylSpan.id = `bgword-${line.id}-${idx}`;
                     sylSpan.textContent = syl.text;
-                    bgVocal.appendChild(sylSpan);
+                    currentBgWordWrapper.appendChild(sylSpan);
+                    
+                    if (syl.text.endsWith(' ') || idx === line.backgroundText.length - 1) {
+                        bgVocal.appendChild(currentBgWordWrapper);
+                        if (idx < line.backgroundText.length - 1) {
+                            currentBgWordWrapper = document.createElement('span');
+                            currentBgWordWrapper.className = 'inline-block whitespace-nowrap';
+                        }
+                    }
                 });
                 lineContainer.appendChild(bgVocal);
             }
@@ -809,16 +880,43 @@ class LySincApp {
             const creditsBlock = document.createElement('div');
             creditsBlock.className = 'mt-10 mb-8 pt-6 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
             
-            // Intérpretes (Artistas) - Balão Pill
-            const artistsInfo = document.createElement('div');
-            artistsInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80';
-            artistsInfo.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span class="font-medium">${this.currentTrackArtists || 'Desconhecido'}</span>
-            `;
-            creditsBlock.appendChild(artistsInfo);
+            // Intérpretes (Artistas) - Balão Pill para cada artista
+            if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
+                this.currentTrackArtistsRaw.forEach(artist => {
+                    const artistInfo = document.createElement('div');
+                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full pl-2 pr-4 py-1.5 text-sm text-white/80';
+                    
+                    const imgUrl = this.artistImages && this.artistImages[artist.id];
+                    let iconHtml = '';
+                    if (imgUrl) {
+                        iconHtml = `<img src="${imgUrl}" class="w-6 h-6 rounded-full object-cover" alt="${artist.name}">`;
+                    } else {
+                        iconHtml = `
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                        `;
+                    }
+                    
+                    artistInfo.innerHTML = `
+                        ${iconHtml}
+                        <span class="font-medium">${artist.name}</span>
+                    `;
+                    creditsBlock.appendChild(artistInfo);
+                });
+            } else {
+                const artistInfo = document.createElement('div');
+                artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80';
+                artistInfo.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="font-medium">${this.currentTrackArtists || 'Desconhecido'}</span>
+                `;
+                creditsBlock.appendChild(artistInfo);
+            }
 
             // Fonte e Botão de Trocar Fonte - Balão Pill Clicável
             const providerText = this.lyricsData?.source || 'Desconhecida';
@@ -852,6 +950,8 @@ class LySincApp {
                     this.currentLyricsProvider = providers[nextIdx];
                     this.showToast(`Buscando letras em: ${this.currentLyricsProvider}...`, 'info');
                     
+                    this.userForcedProvider = true;
+
                     // Força carregamento
                     this.loadLyricsForTrack({
                         trackName: this.trackName.textContent,
