@@ -845,7 +845,7 @@ class LySincApp {
                     const nextIdx = (currentIdx + 1) % providers.length;
                     
                     this.currentLyricsProvider = providers[nextIdx];
-                    this.showToast(\`Buscando letras em: \${this.currentLyricsProvider}...\`, 'info');
+                    this.showToast(`Buscando letras em: ${this.currentLyricsProvider}...`, 'info');
                     
                     // Força carregamento
                     this.loadLyricsForTrack({
