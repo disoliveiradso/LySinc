@@ -531,7 +531,7 @@ class LySincApp {
             // Isso anula completamente o delay de buffer do Gapless/Crossfade no Spotify Connect
             // e garante que as letras fiquem no tempo da música real reproduzida.
             if (this.currentTrackId !== null && state.progressMs < 5000) {
-                SpotifyService.seekToPosition(0);
+                this.seekToTime(0, true);
                 this.progressMs = 0;
             } else {
                 this.progressMs = state.progressMs + safeCompensation;
@@ -1201,7 +1201,7 @@ class LySincApp {
     }
 
     // Navega para o tempo clicado usando o Spotify Connect API (Premium requerido)
-    async seekToTime(timeMs) {
+    async seekToTime(timeMs, isAutoSync = false) {
         const token = await SpotifyService.getValidToken();
         if (!token) return;
 
@@ -1214,7 +1214,9 @@ class LySincApp {
             });
 
             if (response.status === 403) {
-                this.showToast('Navegação temporal por letras requer conta Spotify Premium.', 'error');
+                if (!isAutoSync) {
+                    this.showToast('Navegação temporal por letras requer conta Spotify Premium.', 'error');
+                }
                 return;
             }
 
