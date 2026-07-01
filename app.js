@@ -508,7 +508,14 @@ class LySincApp {
 
         // Atualiza a sincronização de tempo baseado puramente no relógio local para anular clock drift do servidor
         const latencyCompensation = Date.now() - state.requestTime;
-        const safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
+        const stateTrackId = state.trackId || (state.trackName + state.albumName);
+
+        // Se a música é nova ou tá no começo, ignora a compensação de latência
+        // Isso previne o "adiantamento" (aceleração artificial) das letras enquanto o Spotify carrega o buffer de áudio real
+        let safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
+        if (stateTrackId !== this.currentTrackId || state.progressMs < 2000) {
+            safeCompensation = 0;
+        }
 
         this.isPlaying = state.isPlaying;
         this.progressMs = state.progressMs + safeCompensation;
@@ -1003,15 +1010,20 @@ class LySincApp {
             });
         }
 
-        // Se a linha ativa principal (a primeira das ativas) mudou
+        // Verifica se qualquer linha ativa entrou ou saiu
+        const activeIdsKey = Array.from(activeLineIds).sort().join(',');
+
         if (activeLines.length > 0) {
             const primaryActiveId = minActiveId;
-            if (primaryActiveId !== this.activeLineId) {
+            // Se o conjunto de linhas ativas mudou (adicionou ou removeu uma sobreposição)
+            if (activeIdsKey !== this.currentActiveIdsKey) {
+                this.currentActiveIdsKey = activeIdsKey;
                 this.activeLineId = primaryActiveId;
                 this.highlightActiveLines(activeLineIds, primaryActiveId);
             }
         } else if (this.activeLineId !== null) {
             this.activeLineId = null;
+            this.currentActiveIdsKey = '';
             this.clearHighlights();
         }
 
