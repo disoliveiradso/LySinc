@@ -555,24 +555,10 @@ class LySincApp {
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
         
-        // Checagem de overflow para animar o título (efeito Marquee)
+        // Aplica o marquee (Ping-Pong Effect) para Título e Artistas
         setTimeout(() => {
-            const containerWidth = this.trackName.parentElement.clientWidth;
-            
-            // Remove momentaneamente truncate para pegar tamanho real
-            this.trackName.classList.remove('truncate');
-            const textWidth = this.trackName.scrollWidth;
-
-            if (textWidth > containerWidth) {
-                this.trackName.style.setProperty('--scroll-dist', `-${textWidth - containerWidth + 30}px`);
-                this.trackName.classList.add('marquee-text');
-                this.trackName.parentElement.classList.add('overflow-hidden'); // Parent precisa esconder a ponta
-            } else {
-                this.trackName.classList.add('truncate');
-                this.trackName.classList.remove('marquee-text');
-                this.trackName.style.removeProperty('--scroll-dist');
-                this.trackName.parentElement.classList.remove('overflow-hidden');
-            }
+            this.setupMarquee(this.trackName);
+            this.setupMarquee(this.trackArtists);
         }, 50);
         
         // Efeito de imagem e fundo desfocado dinâmico (Apple Music style)
@@ -582,6 +568,23 @@ class LySincApp {
         } else {
             this.albumArt.src = '';
             this.albumArtBlur.style.backgroundImage = 'none';
+        }
+    }
+
+    setupMarquee(element) {
+        const containerWidth = element.parentElement.clientWidth;
+        element.classList.remove('truncate');
+        const textWidth = element.scrollWidth;
+
+        if (textWidth > containerWidth) {
+            element.style.setProperty('--scroll-dist', `-${textWidth - containerWidth + 30}px`);
+            element.classList.add('marquee-text');
+            element.parentElement.classList.add('overflow-hidden');
+        } else {
+            element.classList.add('truncate');
+            element.classList.remove('marquee-text');
+            element.style.removeProperty('--scroll-dist');
+            element.parentElement.classList.remove('overflow-hidden');
         }
     }
 
@@ -832,6 +835,13 @@ class LySincApp {
                 let currentWordWrapper = document.createElement('span');
                 currentWordWrapper.className = 'inline-block whitespace-nowrap';
                 
+                let totalWords = 0;
+                line.text.forEach((syl, idx) => {
+                    if (syl.text.endsWith(' ') || idx === line.text.length - 1) totalWords++;
+                });
+
+                let wordsProcessed = 0;
+
                 line.text.forEach((syl, idx) => {
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable';
@@ -839,12 +849,17 @@ class LySincApp {
                     sylSpan.textContent = syl.text;
                     currentWordWrapper.appendChild(sylSpan);
                     
-                    // Se a sílaba termina em espaço ou é a última, fechamos a palavra
                     if (syl.text.endsWith(' ') || idx === line.text.length - 1) {
-                        mainVocal.appendChild(currentWordWrapper);
-                        if (idx < line.text.length - 1) {
-                            currentWordWrapper = document.createElement('span');
-                            currentWordWrapper.className = 'inline-block whitespace-nowrap';
+                        wordsProcessed++;
+                        const wordsRemaining = totalWords - wordsProcessed;
+                        const shouldGroup = (totalWords >= 4 && wordsRemaining < 3);
+
+                        if (!shouldGroup || idx === line.text.length - 1) {
+                            mainVocal.appendChild(currentWordWrapper);
+                            if (idx < line.text.length - 1) {
+                                currentWordWrapper = document.createElement('span');
+                                currentWordWrapper.className = 'inline-block whitespace-nowrap';
+                            }
                         }
                     }
                 });
@@ -856,21 +871,34 @@ class LySincApp {
                 const bgVocal = document.createElement('div');
                 bgVocal.className = 'background-vocal-container';
                 
-                let currentBgWordWrapper = document.createElement('span');
-                currentBgWordWrapper.className = 'inline-block whitespace-nowrap';
+                let bgWordWrapper = document.createElement('span');
+                bgWordWrapper.className = 'inline-block whitespace-nowrap';
                 
+                let bgTotalWords = 0;
+                line.backgroundText.forEach((syl, idx) => {
+                    if (syl.text.endsWith(' ') || idx === line.backgroundText.length - 1) bgTotalWords++;
+                });
+
+                let bgWordsProcessed = 0;
+
                 line.backgroundText.forEach((syl, idx) => {
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable backing-vocal';
                     sylSpan.id = `bgword-${line.id}-${idx}`;
                     sylSpan.textContent = syl.text;
-                    currentBgWordWrapper.appendChild(sylSpan);
+                    bgWordWrapper.appendChild(sylSpan);
                     
                     if (syl.text.endsWith(' ') || idx === line.backgroundText.length - 1) {
-                        bgVocal.appendChild(currentBgWordWrapper);
-                        if (idx < line.backgroundText.length - 1) {
-                            currentBgWordWrapper = document.createElement('span');
-                            currentBgWordWrapper.className = 'inline-block whitespace-nowrap';
+                        bgWordsProcessed++;
+                        const wordsRemaining = bgTotalWords - bgWordsProcessed;
+                        const shouldGroup = (bgTotalWords >= 4 && wordsRemaining < 3);
+
+                        if (!shouldGroup || idx === line.backgroundText.length - 1) {
+                            bgVocal.appendChild(bgWordWrapper);
+                            if (idx < line.backgroundText.length - 1) {
+                                bgWordWrapper = document.createElement('span');
+                                bgWordWrapper.className = 'inline-block whitespace-nowrap';
+                            }
                         }
                     }
                 });
@@ -994,6 +1022,18 @@ class LySincApp {
                 
                 // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
                 this.updateLyricsSync(currentProgressMs);
+                
+                // Preemptive skip: Pula para a próxima música ~1500ms antes de terminar.
+                // Isso resolve a desincronia de gapless playback eliminando a necessidade de resetar a música
+                // e garantindo que o áudio e a API se mantenham perfeitamente sincronizados.
+                if (this.durationMs > 0 && currentProgressMs >= this.durationMs - 1500) {
+                    if (!this.isPreemptivelySkipping) {
+                        this.isPreemptivelySkipping = true;
+                        SpotifyService.nextTrack();
+                        // Libera a trava após 3 segundos para a próxima música
+                        setTimeout(() => this.isPreemptivelySkipping = false, 3000);
+                    }
+                }
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };

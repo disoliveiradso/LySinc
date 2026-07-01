@@ -251,6 +251,20 @@ const SpotifyService = {
         }
     },
 
+    // Pula para a próxima música manualmente
+    async nextTrack() {
+        const token = await this.getValidToken();
+        if (!token) return;
+        try {
+            await fetch('https://api.spotify.com/v1/me/player/next', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Erro ao avançar música:', error);
+        }
+    },
+
     // Busca as imagens de perfil para uma lista de IDs de artistas
     async getArtistsImages(artistIds) {
         if (!artistIds || artistIds.length === 0) return {};

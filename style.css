@@ -136,8 +136,8 @@ body, html {
 /* Estado Inativo da Linha (Sem blur, mais nítido como na imagem 1 e 3) */
 .lyric-line.inactive {
     color: rgba(255, 255, 255, 0.4);
-    font-size: 1.8rem;
-    transform: scale3d(0.95, 0.95, 0.98) translateY(0);
+    font-size: 2.5rem;
+    transform: scale3d(0.72, 0.72, 1) translateY(0);
     filter: none;
     opacity: 0.6;
 }
@@ -176,6 +176,8 @@ body, html {
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         padding 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     margin: 0;
+    /* Evitar que a escala do parent cause redimensionamento brusco */
+    transform-origin: left top;
 }
 
 .lyric-line.active .background-vocal-container {
@@ -327,8 +329,8 @@ body, html {
 
 @keyframes marquee-scroll {
     0%, 10% { transform: translateX(0); }
-    45%, 55% { transform: translateX(var(--scroll-dist)); }
-    90%, 100% { transform: translateX(0); }
+    85%, 95% { transform: translateX(var(--scroll-dist)); }
+    100% { transform: translateX(0); }
 }
 
 /* Botão Conectar Spotify Customizado */
