@@ -103,27 +103,16 @@ body, html {
     padding-bottom: 5vh; /* Pequeno respiro final apenas */
 }
 
-@keyframes lyric-fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        /* O valor final de opacidade será herdado do estado active/inactive */
-    }
-}
-
 .lyric-line {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.4;
-    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
-                opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
-                filter 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-                color 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                color 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     transform-origin: left center;
     cursor: pointer;
-    animation: lyric-fade-in 0.8s ease-in-out forwards;
     will-change: transform, opacity, filter;
     
     /* Configuração Flexbox para suportar quebra de backing vocals */
@@ -157,9 +146,10 @@ body, html {
 /* Estado visual das letras passadas quando o usuário faz scroll manual */
 .user-scrolling .lyric-line.inactive.passed {
     opacity: 0.6;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.45) !important;
+    color: rgba(255, 255, 255, 0.45) !important;
 }
 
-.user-scrolling .lyric-line.inactive.passed,
 .user-scrolling .lyric-line.inactive.passed .lyrics-syllable,
 .user-scrolling .lyric-line.inactive.passed .lyrics-translation-container,
 .user-scrolling .lyric-line.inactive.passed .lyrics-romanization-container {
@@ -172,6 +162,16 @@ body, html {
         rgba(255, 255, 255, 0.5) var(--word-progress, 0%),
         rgba(255, 255, 255, 0.5) 100%
     ) !important;
+}
+
+/* Linha finalizador de encerramento da música (Fim) */
+.lyric-line.end-line {
+    text-align: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    font-style: italic;
+    opacity: 0.5;
 }
 
 .lyric-line.inactive:hover {

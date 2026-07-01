@@ -18,6 +18,8 @@ class LySincApp {
         this.trackName = document.getElementById('track-name');
         this.trackArtists = document.getElementById('track-artists');
         this.lyricsContainer = document.getElementById('lyrics-container');
+        this.lyricsLines = document.getElementById('lyrics-lines');
+        this.lyricsCredits = document.getElementById('lyrics-credits');
         this.progressBar = document.getElementById('progress-bar');
         
         // Elementos DOM de Configuração / Modais
@@ -537,14 +539,28 @@ class LySincApp {
 
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
+            // Compensação para transição automática de faixa (gapless)
+            if (this.currentTrackId !== null && oldDurationMs > 0) {
+                const expectedEndTime = this.lastSyncTime + (oldDurationMs - oldProgressMs);
+                const now = Date.now();
+                if (now >= expectedEndTime && (now - expectedEndTime) < 8000) {
+                    const elapsedSinceTransition = now - expectedEndTime;
+                    state.progressMs = Math.max(state.progressMs, elapsedSinceTransition);
+                    console.log(`[LySinc] Compensação de transição automática gapless aplicada: +${elapsedSinceTransition}ms`);
+                }
+            }
+
             this.currentTrackId = stateTrackId;
             this.adjustSyncOffset(0, true);
             
-            this.progressMs = state.progressMs + safeCompensation;
+            this.progressMs = state.progressMs;
             this.lastSyncTime = Date.now();
             
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
+        } else {
+            this.progressMs = state.progressMs + safeCompensation;
+            this.lastSyncTime = Date.now();
         }
 
         this.showScreen('main');
@@ -604,17 +620,20 @@ class LySincApp {
         this.currentActiveIdsKey = '';
         this.isUserInteracting = false;
         this.lyrics = []; // Limpa as letras antigas para evitar bugs de UI e scroll durante o loading
-        this.lyricsContainer.innerHTML = `
-            <div class="flex flex-col items-center justify-center h-full pt-32">
-                <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+        if (this.lyricsLines) {
+            this.lyricsLines.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full pt-32">
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="text-emerald-400/80 text-lg font-medium tracking-wide">Carregando letras sincronizadas...</div>
                 </div>
-                <div class="text-emerald-400/80 text-lg font-medium tracking-wide">Carregando letras sincronizadas...</div>
-            </div>
-        `;
+            `;
+        }
+        if (this.lyricsCredits) this.lyricsCredits.innerHTML = '';
         if (this.btnRecenter) {
             this.btnRecenter.classList.add('hidden', 'opacity-0', 'translate-y-4');
         }
@@ -717,11 +736,14 @@ class LySincApp {
         } else {
             this.lyricsData = null;
             this.lyrics = [];
-            this.lyricsContainer.innerHTML = `
-                <div class="text-center text-white/40 text-xl py-20">
-                    Letras não disponíveis para esta música.<br>
-                    <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
-                </div>`;
+            if (this.lyricsLines) {
+                this.lyricsLines.innerHTML = `
+                    <div class="text-center text-white/40 text-xl py-20">
+                        Letras não disponíveis para esta música.<br>
+                        <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
+                    </div>`;
+            }
+            if (this.lyricsCredits) this.lyricsCredits.innerHTML = '';
             if (topMenu) {
                 topMenu.classList.add('hidden');
                 topMenu.classList.remove('flex');
@@ -750,13 +772,13 @@ class LySincApp {
 
         if (needsTranslation || needsRomanization) {
             if (mode === 'translation') {
-                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
+                if (this.lyricsLines) this.lyricsLines.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
                 this.showToast('Traduzindo letras para o português...', 'info');
                 
                 const translated = await LyricsService.translateLyrics(this.lyricsData.original);
                 this.lyricsData.original = translated;
             } else if (mode === 'romanized') {
-                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
+                if (this.lyricsLines) this.lyricsLines.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
                 this.showToast('Convertendo escrita para caracteres latinos...', 'info');
                 
                 const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
@@ -841,7 +863,7 @@ class LySincApp {
             if (this.durationMs - lastEndtime > 5000) {
                 result.push({
                     id: lines.length + 0.5,
-                    text: [{ text: '♪', timestamp: lastEndtime + 500, endtime: this.durationMs - 500 }],
+                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs - 500 }],
                     background: false,
                     backgroundText: [],
                     timestamp: lastEndtime + 500,
@@ -855,7 +877,8 @@ class LySincApp {
     }
 
     renderLyrics() {
-        this.lyricsContainer.innerHTML = '';
+        if (this.lyricsLines) this.lyricsLines.innerHTML = '';
+        if (this.lyricsCredits) this.lyricsCredits.innerHTML = '';
         window.scrollTo({ top: 0, behavior: 'instant' });
 
         this.lyrics.forEach((line) => {
@@ -879,8 +902,11 @@ class LySincApp {
             }
             
             const isInstrumental = line.isInstrumental || (line.text.length === 1 && line.text[0].text.trim() === '♪');
+            const isEndLine = line.text.length === 1 && line.text[0].text.trim() === 'Fim';
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
+            } else if (isEndLine) {
+                lineClass += ' end-line';
             }
             
             lineEl.className = lineClass;
@@ -993,11 +1019,11 @@ class LySincApp {
             }
 
             lineEl.appendChild(lineContainer);
-            this.lyricsContainer.appendChild(lineEl);
+            if (this.lyricsLines) this.lyricsLines.appendChild(lineEl);
         });
 
         // Bloco de Créditos e Fonte (No final das letras)
-        if (this.lyrics.length > 0) {
+        if (this.lyrics.length > 0 && this.lyricsCredits) {
             const creditsBlock = document.createElement('div');
             creditsBlock.className = 'mt-10 mb-8 pt-6 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
             
@@ -1058,7 +1084,7 @@ class LySincApp {
             `;
             creditsBlock.appendChild(btnChangeSource);
 
-            this.lyricsContainer.appendChild(creditsBlock);
+            this.lyricsCredits.appendChild(creditsBlock);
 
             // Listener de troca de provedor
             btnChangeSource.addEventListener('click', () => {
@@ -1093,13 +1119,6 @@ class LySincApp {
                 const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
                 
                 this.updateProgressBar(currentProgressMs);
-                
-                // Pula de música automaticamente 800ms antes de acabar para evitar dessincronia gapless
-                if (this.durationMs > 0 && this.durationMs - currentProgressMs <= 800 && !this.isSkipping) {
-                    this.isSkipping = true;
-                    SpotifyService.nextTrack().catch(() => {});
-                    setTimeout(() => { this.isSkipping = false; }, 3000);
-                }
                 
                 // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
                 this.updateLyricsSync(currentProgressMs);

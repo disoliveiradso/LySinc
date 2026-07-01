@@ -980,30 +980,32 @@ const LyricsService = {
 
     const shuffledServers = [...KPOE_SERVERS].sort(() => Math.random() - 0.5).slice(0, 3);
 
-    for (const base of shuffledServers) {
+    // Busca paralela com timeout reduzido de 3000ms para acelerar o carregamento
+    const fetchPromises = shuffledServers.map(async (base) => {
       const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
       const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
-
-      let payload = null;
       try {
-        const response = await fetchWithTimeout(url);
+        const response = await fetchWithTimeout(url, {}, 3000);
         if (response.ok) {
-          payload = await response.json();
+          const payload = await response.json();
+          if (payload) {
+            const lines = this.convertKPoeLyrics(payload);
+            if (lines && lines.length > 0) {
+              const sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
+              return { lines, source: sourceLabel };
+            }
+          }
         }
-      } catch {
-        payload = null;
-      }
+      } catch (err) {}
+      return null;
+    });
 
-      if (payload) {
-        const lines = this.convertKPoeLyrics(payload);
-        if (lines && lines.length > 0) {
-          const sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
-          const rank = this.getRankForCollected(sourceLabel, lines);
-          allResults.push({ lines, source: sourceLabel });
-          if (rank === 1) break;
-        }
+    const results = await Promise.all(fetchPromises);
+    results.forEach(res => {
+      if (res) {
+        allResults.push(res);
       }
-    }
+    });
 
     const hasHighRankResult = allResults.some(r => this.getRankForCollected(r.source, r.lines) <= 2);
     if (!hasHighRankResult) {
@@ -1117,10 +1119,17 @@ const LyricsService = {
       collectedSources.push(...youLyResults);
     }
 
-    // 2. Sempre busca do LRCLIB (muito estável, mas geralmente line-sync)
-    const lrclibResult = await this.fetchLyricsFromLrclib(metadata);
-    if (lrclibResult && lrclibResult.lines.length > 0) {
-      collectedSources.push(lrclibResult);
+    // Prioriza busca palavra-por-palavra (ignora LRCLIB se já tivermos letras sincronizadas por palavra)
+    const hasWordSync = collectedSources.some(src => 
+      src.lines && src.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
+    );
+
+    if (!hasWordSync) {
+      // 2. Só busca do LRCLIB (geralmente line-sync) se não tivermos encontrado palavra-por-palavra
+      const lrclibResult = await this.fetchLyricsFromLrclib(metadata);
+      if (lrclibResult && lrclibResult.lines.length > 0) {
+        collectedSources.push(lrclibResult);
+      }
     }
 
     // Fontes baseadas em Genius removidas a pedido do usuário
