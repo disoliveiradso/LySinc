@@ -278,6 +278,34 @@ class LySincApp {
                 }
             });
         }
+
+        // Lógica de ocultar cursor em Tela Cheia após 3s inativo
+        let mouseHideTimeout = null;
+        
+        const hideMousePointer = () => {
+            if (document.fullscreenElement) {
+                document.body.style.cursor = 'none';
+            }
+        };
+
+        const resetMousePointer = () => {
+            document.body.style.cursor = 'default';
+            if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
+            
+            if (document.fullscreenElement) {
+                mouseHideTimeout = setTimeout(hideMousePointer, 3000);
+            }
+        };
+
+        document.addEventListener('mousemove', resetMousePointer);
+        
+        document.addEventListener('fullscreenchange', () => {
+            resetMousePointer(); // Reseta imediatamente se entrou ou saiu do fullscreen
+            if (!document.fullscreenElement) {
+                if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
+                document.body.style.cursor = 'default';
+            }
+        });
         
         // Clica fora do modal para fechar
         this.settingsModal.addEventListener('click', (e) => {
@@ -543,6 +571,7 @@ class LySincApp {
         
         const requestTrackId = state.trackId || (state.trackName + state.albumName);
         this._currentLyricsRequest = requestTrackId;
+        this.currentTrackArtists = state.artists || '';
 
         this.lyricsContainer.innerHTML = `
             <div class="flex flex-col items-center justify-center h-full pt-32">
@@ -556,8 +585,8 @@ class LySincApp {
             </div>
         `;
         this.activeLineId = null;
-        const footer = document.getElementById('lyrics-footer');
-        if (footer) footer.classList.add('hidden');
+        const topMenu = document.getElementById('lyrics-top-menu');
+        if (topMenu) topMenu.classList.add('hidden');
         
         const fetchedLyrics = await LyricsService.getLyrics(
             state.trackName, 
@@ -587,10 +616,10 @@ class LySincApp {
             }
             
             // Exibe a fonte das letras e o seletor de abas
-            if (footer) {
-                const sourceText = document.getElementById('lyrics-source-text');
-                if (sourceText) sourceText.textContent = `Letras via ${fetchedLyrics.source}`;
-                footer.classList.remove('hidden');
+            if (topMenu) {
+                topMenu.classList.remove('hidden');
+                // Adicionar um pouco de display flex com fadeIn
+                topMenu.classList.add('flex');
             }
 
             // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
@@ -605,7 +634,10 @@ class LySincApp {
                     Letras não disponíveis para esta música.<br>
                     <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
                 </div>`;
-            if (footer) footer.classList.add('hidden');
+            if (topMenu) {
+                topMenu.classList.add('hidden');
+                topMenu.classList.remove('flex');
+            }
         }
     }
 
@@ -772,6 +804,60 @@ class LySincApp {
             lineEl.appendChild(lineContainer);
             this.lyricsContainer.appendChild(lineEl);
         });
+
+        // Bloco de Créditos e Fonte (No final das letras)
+        if (this.lyrics.length > 0) {
+            const creditsBlock = document.createElement('div');
+            creditsBlock.className = 'mt-12 mb-24 pt-8 pb-4 flex flex-col items-start space-y-4 opacity-60 hover:opacity-100 transition-opacity';
+            
+            // Intérpretes (Artistas)
+            const artistsInfo = document.createElement('div');
+            artistsInfo.className = 'text-white/80 text-sm font-bold';
+            artistsInfo.innerHTML = `<span class="block text-[10px] text-white/40 uppercase tracking-[0.2em] mb-1 font-normal">Intérpretes</span>${this.currentTrackArtists || 'Desconhecido'}`;
+            creditsBlock.appendChild(artistsInfo);
+
+            // Fonte e Botão de Trocar Fonte
+            const sourceInfo = document.createElement('div');
+            sourceInfo.className = 'flex items-center space-x-3 text-white/40 text-xs mt-4';
+            
+            // Lógica de provedores (exemplo)
+            const providerText = this.lyricsData?.source || 'Desconhecida';
+            
+            sourceInfo.innerHTML = `
+                <span id="lyrics-source-text" class="font-medium">Letras via ${providerText}</span>
+                <button id="btn-change-source-inline" class="p-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors border border-white/10" title="Alterar Provedor de Letras">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                </button>
+            `;
+            creditsBlock.appendChild(sourceInfo);
+            this.lyricsContainer.appendChild(creditsBlock);
+
+            // Listener de troca de provedor
+            const btnChangeSource = creditsBlock.querySelector('#btn-change-source-inline');
+            if (btnChangeSource) {
+                btnChangeSource.addEventListener('click', () => {
+                    // Providers conhecidos no backend
+                    const providers = ['Musixmatch', 'LRCLIB', 'Apple Music', 'NetEase'];
+                    let currentIdx = providers.indexOf(this.currentLyricsProvider || 'Musixmatch');
+                    if (currentIdx === -1) currentIdx = 0;
+                    const nextIdx = (currentIdx + 1) % providers.length;
+                    
+                    this.currentLyricsProvider = providers[nextIdx];
+                    this.showToast(\`Buscando letras em: \${this.currentLyricsProvider}...\`, 'info');
+                    
+                    // Força carregamento
+                    this.loadLyricsForTrack({
+                        trackName: this.trackName.textContent,
+                        artists: this.trackArtists.textContent,
+                        albumName: '', 
+                        durationMs: this.durationMs,
+                        trackId: this.currentTrackId
+                    });
+                });
+            }
+        }
     }
 
     // Calcula o progresso em milissegundos localmente a cada frame
