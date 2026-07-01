@@ -146,12 +146,32 @@ body, html {
 .lyric-line.inactive.passed .lyrics-syllable,
 .lyric-line.inactive.passed .lyrics-translation-container,
 .lyric-line.inactive.passed .lyrics-romanization-container {
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.2) !important;
-    color: rgba(255, 255, 255, 0.2) !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.35) !important;
+    color: rgba(255, 255, 255, 0.35) !important;
 }
 
 .lyric-line.inactive.passed {
-    opacity: 0.3;
+    opacity: 0.45;
+}
+
+/* Estado visual das letras passadas quando o usuário faz scroll manual */
+.user-scrolling .lyric-line.inactive.passed {
+    opacity: 0.6;
+}
+
+.user-scrolling .lyric-line.inactive.passed,
+.user-scrolling .lyric-line.inactive.passed .lyrics-syllable,
+.user-scrolling .lyric-line.inactive.passed .lyrics-translation-container,
+.user-scrolling .lyric-line.inactive.passed .lyrics-romanization-container {
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    --word-progress: 0% !important;
+    background-image: linear-gradient(to right, 
+        #ffffff 0%,
+        #ffffff calc(var(--word-progress, 0%) - 15%), 
+        rgba(255, 255, 255, 0.5) var(--word-progress, 0%),
+        rgba(255, 255, 255, 0.5) 100%
+    ) !important;
 }
 
 .lyric-line.inactive:hover {
@@ -274,7 +294,6 @@ body, html {
 /* Palavra ativa atual (Efeito glow) */
 .lyrics-syllable.current {
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75));
-    transform: scale(1.02) translateY(-1%);
 }
 
 /* Palavras do Dueto (Segunda Voz) - Destaque Mentolado */
@@ -535,5 +554,4 @@ input:focus {
 
 .word.backing-vocal.current {
     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
-    transform: scale(0.97) translateY(-0.5%);
 }

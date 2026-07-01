@@ -376,6 +376,7 @@ class LySincApp {
         const handleUserInteraction = () => {
             if (!this.isUserInteracting && this.activeLineId !== null) {
                 this.isUserInteracting = true;
+                if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                 // Mostra botão de Sincronizar
                 this.btnRecenter.classList.remove('hidden');
                 // Pequeno delay para animação de fade in (por causa do display:none do hidden)
@@ -388,6 +389,7 @@ class LySincApp {
         // Listener do botão de ressincronizar
         this.btnRecenter.addEventListener('click', () => {
             this.isUserInteracting = false;
+            if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
             this.btnRecenter.classList.add('opacity-0', 'translate-y-4');
             setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
             
@@ -1091,6 +1093,13 @@ class LySincApp {
                 const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
                 
                 this.updateProgressBar(currentProgressMs);
+                
+                // Pula de música automaticamente 800ms antes de acabar para evitar dessincronia gapless
+                if (this.durationMs > 0 && this.durationMs - currentProgressMs <= 800 && !this.isSkipping) {
+                    this.isSkipping = true;
+                    SpotifyService.nextTrack().catch(() => {});
+                    setTimeout(() => { this.isSkipping = false; }, 3000);
+                }
                 
                 // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
                 this.updateLyricsSync(currentProgressMs);
