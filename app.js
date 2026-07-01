@@ -523,7 +523,6 @@ class LySincApp {
         this.durationMs = state.durationMs;
 
         // Se mudou de música ou ainda não carregou as letras
-        const stateTrackId = state.trackId || (state.trackName + state.albumName);
         if (stateTrackId !== this.currentTrackId) {
             this.currentTrackId = stateTrackId;
             this.progressMs = state.progressMs + safeCompensation;
