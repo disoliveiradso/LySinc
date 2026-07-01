@@ -811,17 +811,35 @@ class LySincApp {
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
                         id: i - 0.5, // ID numérico intermediário
-                        text: [{ text: '♪', timestamp: prevEndtime + 500, endtime: currentLine.timestamp - 2500 }],
+                        text: [{ text: '♪', timestamp: prevEndtime + 500, endtime: currentLine.timestamp - 500 }],
                         background: false,
                         backgroundText: [],
                         timestamp: prevEndtime + 500,
-                        endtime: currentLine.timestamp - 2500,
+                        endtime: currentLine.timestamp - 500,
                         isWordSynced: true
                     });
                 }
             }
             result.push(currentLine);
         }
+        
+        // Instrumental no final da música
+        if (lines.length > 0 && this.durationMs) {
+            const lastLine = lines[lines.length - 1];
+            const lastEndtime = lastLine.endtime || (lastLine.timestamp + 3000);
+            if (this.durationMs - lastEndtime > 5000) {
+                result.push({
+                    id: lines.length + 0.5,
+                    text: [{ text: '♪', timestamp: lastEndtime + 500, endtime: this.durationMs - 500 }],
+                    background: false,
+                    backgroundText: [],
+                    timestamp: lastEndtime + 500,
+                    endtime: this.durationMs - 500,
+                    isWordSynced: true
+                });
+            }
+        }
+        
         return result;
     }
 
