@@ -861,7 +861,6 @@ class LySincApp {
                         trackId: this.currentTrackId
                     });
                 });
-            }
         }
     }
 
