@@ -646,6 +646,7 @@ class LySincApp {
 
         let bestLyrics = null;
         let successfulProvider = null;
+        let fetchedLyrics = null;
 
         for (let i = 0; i < providers.length; i++) {
             const providerToTry = providers[(startIndex + i) % providers.length];
