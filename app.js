@@ -946,10 +946,39 @@ class LySincApp {
         
         this.lastAutoScrollTime = Date.now();
 
-        window.scrollTo({
-            top: Math.max(0, targetScrollTop),
-            behavior: 'smooth'
-        });
+        this.smoothScrollTo(Math.max(0, targetScrollTop));
+    }
+
+    // Scroll fluido interpolado personalizado (muito superior ao behavior: 'smooth' nativo)
+    smoothScrollTo(target) {
+        const startPosition = window.scrollY;
+        const distance = target - startPosition;
+        let startTime = null;
+        const duration = 650; // milissegundos para a transição
+        
+        // Cancela qualquer rolagem em andamento para evitar tremedeira (jittering)
+        if (this.scrollAnimationId) {
+            cancelAnimationFrame(this.scrollAnimationId);
+        }
+        
+        // Easing function super fluida (Quart Ease Out) parecida com o iOS/Apple Music
+        const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+        
+        const animation = (currentTime) => {
+            if (startTime === null) startTime = currentTime;
+            const timeElapsed = currentTime - startTime;
+            const progress = Math.min(timeElapsed / duration, 1);
+            
+            window.scrollTo(0, startPosition + distance * easeOutQuart(progress));
+            
+            if (timeElapsed < duration) {
+                this.scrollAnimationId = requestAnimationFrame(animation);
+            } else {
+                this.scrollAnimationId = null;
+            }
+        };
+        
+        this.scrollAnimationId = requestAnimationFrame(animation);
     }
 
     // Navega para o tempo clicado usando o Spotify Connect API (Premium requerido)
