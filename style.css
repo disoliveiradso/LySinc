@@ -117,10 +117,10 @@ body, html {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.4;
-    transition: transform 0.8s ease-in-out, 
-                opacity 0.8s ease-in-out, 
-                filter 0.8s ease-in-out,
-                color 0.8s ease-in-out;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                filter 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+                color 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     transform-origin: left center;
     cursor: pointer;
     animation: lyric-fade-in 0.8s ease-in-out forwards;
@@ -142,9 +142,16 @@ body, html {
 }
 
 /* Estado Inativo da Linha que já PASSOU */
+.lyric-line.inactive.passed,
+.lyric-line.inactive.passed .lyrics-syllable,
+.lyric-line.inactive.passed .lyrics-translation-container,
+.lyric-line.inactive.passed .lyrics-romanization-container {
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.2) !important;
+}
+
 .lyric-line.inactive.passed {
-    color: rgba(255, 255, 255, 0.15);
-    opacity: 0.25;
+    opacity: 0.3;
 }
 
 .lyric-line.inactive:hover {

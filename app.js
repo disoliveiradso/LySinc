@@ -535,18 +535,8 @@ class LySincApp {
 
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
-            // Detecta se foi mudança automática (gapless) verificando se a música anterior estava no fim
-            const isAutoSkip = this.currentTrackId !== null && oldDurationMs > 0 && oldProgressMs >= oldDurationMs - 5000;
-            
             this.currentTrackId = stateTrackId;
-            
-            // Aplica um atraso visual nas letras de 1.5s apenas se foi mudança automática,
-            // para compensar o buffer oculto do Spotify Connect sem causar stutters.
-            if (isAutoSkip && state.progressMs < 5000) {
-                this.adjustSyncOffset(-1500, true);
-            } else {
-                this.adjustSyncOffset(0, true);
-            }
+            this.adjustSyncOffset(0, true);
             
             this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
@@ -785,6 +775,25 @@ class LySincApp {
 
     injectInstrumentalLines(lines) {
         if (!lines || lines.length === 0) return lines;
+        
+        // Corrige o endtime de cada linha para incluir os backing vocals
+        lines.forEach(line => {
+            let maxEnd = line.endtime || 0;
+            if (line.backgroundText) {
+                line.backgroundText.forEach(syl => {
+                    if (syl.endtime > maxEnd) maxEnd = syl.endtime;
+                });
+            }
+            if (line.text) {
+                line.text.forEach(syl => {
+                    if (syl.endtime > maxEnd) maxEnd = syl.endtime;
+                });
+            }
+            if (maxEnd > 0) {
+                line.endtime = maxEnd;
+            }
+        });
+
         const result = [];
         
         // Verifica o intervalo do início da música até a primeira letra
@@ -792,7 +801,7 @@ class LySincApp {
         if (firstLine.timestamp > 5000) {
             result.push({
                 id: -1, // ID numérico para funcionar no comparador isPassed
-                text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 500 }],
+                text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
                 background: false,
                 backgroundText: [],
                 timestamp: 0,
@@ -811,11 +820,11 @@ class LySincApp {
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
                         id: i - 0.5, // ID numérico intermediário
-                        text: [{ text: '♪', timestamp: prevEndtime + 500, endtime: currentLine.timestamp - 500 }],
+                        text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
                         background: false,
                         backgroundText: [],
-                        timestamp: prevEndtime + 500,
-                        endtime: currentLine.timestamp - 500,
+                        timestamp: prevEndtime + 1000,
+                        endtime: currentLine.timestamp - 1500,
                         isWordSynced: true
                     });
                 }
