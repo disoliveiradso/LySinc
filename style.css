@@ -150,9 +150,7 @@ body, html {
     color: rgba(255, 255, 255, 0.45) !important;
 }
 
-.user-scrolling .lyric-line.inactive.passed .lyrics-syllable,
-.user-scrolling .lyric-line.inactive.passed .lyrics-translation-container,
-.user-scrolling .lyric-line.inactive.passed .lyrics-romanization-container {
+.user-scrolling .lyric-line.inactive.passed .lyrics-syllable {
     -webkit-text-fill-color: transparent !important;
     color: transparent !important;
     --word-progress: 0% !important;

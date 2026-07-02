@@ -560,20 +560,22 @@ class LySincApp {
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
         } else {
-            // Monotonic progress protection:
-            // Só aceita o progresso do Spotify se for um seek manual (>5s) ou se for maior que o nosso progresso estimado localmente.
-            // Isso previne que o delay inicial da API do Spotify atrase a letra após a transição automática.
+            // Monotonic progress protection & Realignment:
+            // Só ignora pequenas variações de lag menores que 1.2 segundos para evitar oscilações.
+            // Se o Spotify estiver mais de 1.2s à frente ou atrás (ex: devido a buffering ou busca atrasada), realinha o tempo local imediatamente.
             const elapsed = Date.now() - this.lastSyncTime;
             const currentLocalProgress = this.progressMs + elapsed;
-            const isSeek = Math.abs(state.progressMs - currentLocalProgress) > 5000;
-            const isProgressForward = state.progressMs > currentLocalProgress;
+            const diff = Math.abs(state.progressMs - currentLocalProgress);
+            const isSeek = diff > 5000;
+            const isOutOfSync = diff > 1200;
 
-            if (isSeek || isProgressForward) {
+            if (isSeek || isOutOfSync) {
                 this.progressMs = state.progressMs + safeCompensation;
                 this.lastSyncTime = Date.now();
+                console.log(`[LySinc] Sincronização alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
             } else {
                 // Mantém o ticker local rodando
-                console.log(`[LySinc] Ignorado lag do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
+                console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
             }
         }
 
@@ -1054,6 +1056,44 @@ class LySincApp {
             `;
             creditsBlock.appendChild(btnChangeSource);
 
+            // Botão de Voltar ao Início
+            const btnScrollTop = document.createElement('button');
+            btnScrollTop.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
+            btnScrollTop.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+                <span class="font-medium">Voltar ao Início</span>
+            `;
+            btnScrollTop.addEventListener('click', () => {
+                this.isUserInteracting = false;
+                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                if (this.btnRecenter) {
+                    this.btnRecenter.classList.add('opacity-0', 'hidden');
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            creditsBlock.appendChild(btnScrollTop);
+
+            // Botão de Reiniciar Música
+            const btnRestartTrack = document.createElement('button');
+            btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
+            btnRestartTrack.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" />
+                </svg>
+                <span class="font-medium">Reiniciar Música</span>
+            `;
+            btnRestartTrack.addEventListener('click', () => {
+                this.seekTo(0);
+                this.isUserInteracting = false;
+                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                if (this.btnRecenter) {
+                    this.btnRecenter.classList.add('opacity-0', 'hidden');
+                }
+            });
+            creditsBlock.appendChild(btnRestartTrack);
+
             this.lyricsContainer.appendChild(creditsBlock);
 
             // Listener de troca de provedor
@@ -1258,14 +1298,21 @@ class LySincApp {
         });
     }
 
+    getAbsoluteOffsetTop(el) {
+        let top = 0;
+        while (el) {
+            top += el.offsetTop;
+            el = el.offsetParent;
+        }
+        return top;
+    }
+
     scrollToLine(lineElement) {
-        const lineRect = lineElement.getBoundingClientRect();
-        
-        // Posição absoluta da linha na página
-        const absoluteLineTop = window.scrollY + lineRect.top;
+        const absoluteLineTop = this.getAbsoluteOffsetTop(lineElement);
+        const height = lineElement.offsetHeight;
         
         // Alinhamento ideal a 35% do topo da janela do navegador
-        const targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (lineRect.height / 2);
+        const targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (height / 2);
         
         this.lastAutoScrollTime = Date.now();
 
