@@ -659,25 +659,6 @@ class LySincApp {
             this.artistImages = {};
         }
 
-        const providers = ['Apple Music', 'Musixmatch', 'LRCLIB', 'NetEase'];
-        let startIndex = providers.indexOf(this.currentLyricsProvider);
-        if (startIndex === -1 || !this.userForcedProvider) {
-            startIndex = 0; // Se automático, sempre começa do melhor
-        }
-
-        let bestLyrics = null;
-        let successfulProvider = null;
-        let fetchedLyrics = null;
-
-        for (let i = 0; i < providers.length; i++) {
-            const providerToTry = providers[(startIndex + i) % providers.length];
-            
-            // Só muda o texto pra avisar se não for a primeira tentativa
-            if (i > 0) {
-                const indicatorText = this.lyricsContainer.querySelector('.tracking-wide');
-                if (indicatorText) indicatorText.textContent = `Buscando no ${providerToTry}...`;
-            }
-
         const fetchedLyrics = await LyricsService.getLyrics(
             state.trackName, 
             state.artists, 
