@@ -35,6 +35,7 @@ class LySincApp {
         this.btnToggleControls = document.getElementById('btn-toggle-controls');
         this.headerControlsContainer = document.getElementById('header-controls-container');
         this.btnFullscreen = document.getElementById('btn-fullscreen');
+        this.btnFullscreenTop = document.getElementById('btn-fullscreen-top');
         this.iconToggleControls = document.getElementById('icon-toggle-controls');
 
         // Elementos do Menu Flutuante
@@ -282,6 +283,16 @@ class LySincApp {
 
         if (this.btnFullscreen) {
             this.btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => console.error(err));
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            });
+        }
+
+        if (this.btnFullscreenTop) {
+            this.btnFullscreenTop.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(err => console.error(err));
                 } else {
@@ -805,15 +816,24 @@ class LySincApp {
 
         this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
         
-        // Re-renderiza e alinha mantendo a posição de scroll
+        // Re-renderiza as letras
         this.renderLyrics(true);
         
         const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
         const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
         this.activeLineId = null; // Força re-realce da linha
-        this.tempDisableScroll = true;
+
+        // Ativa o auto-scroll: desativa a interação manual e esconde o botão de sincronizar
+        this.isUserInteracting = false;
+        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+        if (this.btnRecenter) {
+            this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+            this.btnRecenter.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+        }
+
+        // Sincroniza e rola para a linha atual
         this.updateLyricsSync(currentProgressMs);
-        this.tempDisableScroll = false;
     }
 
     injectInstrumentalLines(lines) {
@@ -1472,12 +1492,14 @@ class LySincApp {
     toggleFloatingMenu(show) {
         if (!this.floatingMenuContent || !this.floatingToggleIcon) return;
 
+        // Troca o path do SVG da seta diretamente (sem rotação CSS), igual ao btn-toggle-controls do header
+        const iconPath = this.floatingToggleIcon.querySelector('path');
         if (show) {
             this.floatingMenuContent.classList.add('open');
-            this.floatingToggleIcon.style.transform = 'rotate(180deg)';
+            if (iconPath) iconPath.setAttribute('d', 'M15 19l-7-7 7-7'); // seta esquerda <
         } else {
             this.floatingMenuContent.classList.remove('open');
-            this.floatingToggleIcon.style.transform = 'rotate(0deg)';
+            if (iconPath) iconPath.setAttribute('d', 'M9 5l7 7-7 7'); // seta direita >
         }
     }
 
