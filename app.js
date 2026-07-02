@@ -453,12 +453,14 @@ class LySincApp {
 
         if (this.btnFloatingScrollTop) {
             this.btnFloatingScrollTop.addEventListener('click', () => {
-                this.isUserInteracting = false;
-                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-                if (this.btnRecenter) {
-                    this.btnRecenter.classList.remove('opacity-100', 'scale-100');
-                    this.btnRecenter.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+                this.isUserInteracting = true;
+                if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
+                if (this.btnRecenter && this.activeLineId !== null) {
+                    this.btnRecenter.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        this.btnRecenter.classList.remove('opacity-0', 'scale-95');
+                        this.btnRecenter.classList.add('opacity-100', 'scale-100');
+                    });
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 this.toggleFloatingMenu(false);
@@ -1137,10 +1139,14 @@ class LySincApp {
                 <span class="font-medium">Voltar ao Início</span>
             `;
             btnScrollTop.addEventListener('click', () => {
-                this.isUserInteracting = false;
-                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-                if (this.btnRecenter) {
-                    this.btnRecenter.classList.add('opacity-0', 'hidden');
+                this.isUserInteracting = true;
+                if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
+                if (this.btnRecenter && this.activeLineId !== null) {
+                    this.btnRecenter.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        this.btnRecenter.classList.remove('opacity-0', 'scale-95');
+                        this.btnRecenter.classList.add('opacity-100', 'scale-100');
+                    });
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
