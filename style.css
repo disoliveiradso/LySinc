@@ -565,8 +565,15 @@ input:focus {
 
 /* Garante que btn-recenter use flex quando visível */
 #btn-recenter:not(.hidden) {
-    display: inline-flex;
+    display: flex;
     align-items: center;
+}
+
+/* Alinhamento vertical dos controles flutuantes */
+#floating-controls-wrapper > * {
+    align-self: center;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 @media (min-width: 896px) {
