@@ -11,7 +11,7 @@ Inspirado no visual imersivo e fluido do **Apple Music**, o aplicativo desfoca a
 - **Autenticação Segura (Spotify OAuth PKCE)**: Fluxo completo de autorização sem expor segredos de cliente (Client Secret), seguro para aplicações estáticas Single Page.
 - **Sincronização Palavra por Palavra (Word-by-Word)**: Destaque progressivo de palavras individuais dentro da linha ativa conforme o progresso da música.
 - **Design Imersivo (Glassmorphism e Blur)**: Fundo animado que extrai e borra a arte do álbum da música ativa, alterando dinamicamente a atmosfera de cores do site.
-- **Integração com Lrclib API**: Busca automática de letras sincronizadas reais.
+- **Provedores de Letras**: Integração redundante de busca em tempo real entre Apple Music, Musixmatch, LRCLIB e NetEase.
 - **Fallback Estético**: Mensagem interativa de espera se nenhuma música estiver tocando no momento.
 
 ---
