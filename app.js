@@ -1482,6 +1482,14 @@ class LySincApp {
         wrapper.classList.add('opacity-100');
 
         const rect = topMenu.getBoundingClientRect();
+        
+        // Limita o botão de Sincronizar para NUNCA sobrepor o topMenu.
+        // O valor padrão fixo é 5.5rem (aprox 88px).
+        // Se o topMenu estiver na tela, garantimos que o wrapper fique abaixo dele (rect.bottom + 16px de margem).
+        const minTop = 88;
+        const dynamicTop = Math.max(minTop, rect.bottom + 16);
+        wrapper.style.top = `${dynamicTop}px`;
+
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
             floatingMenu.classList.remove('collapsed');
