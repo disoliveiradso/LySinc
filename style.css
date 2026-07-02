@@ -606,3 +606,21 @@ input:focus {
     padding-right: 0.75rem;
     border-color: rgba(255, 255, 255, 0.15);
 }
+
+/* Transição do Menu Flutuante (Botão Seta) para animar o colapso e empurrar o Sincronizar */
+#floating-lyrics-menu {
+    transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease;
+    max-width: 500px;
+    opacity: 1;
+    transform: scale(1);
+    transform-origin: left center;
+}
+
+#floating-lyrics-menu.collapsed {
+    max-width: 0;
+    opacity: 0;
+    transform: scale(0.95);
+    margin-right: -0.75rem; /* Remove o gap do wrapper visualmente */
+    pointer-events: none;
+    overflow: hidden;
+}

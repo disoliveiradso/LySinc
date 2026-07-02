@@ -1472,26 +1472,22 @@ class LySincApp {
 
     updateFloatingMenuVisibility() {
         const topMenu = document.getElementById('lyrics-top-menu');
+        const floatingMenu = document.getElementById('floating-lyrics-menu');
         const wrapper = document.getElementById('floating-controls-wrapper');
-        if (!topMenu || !wrapper) return;
+        
+        if (!topMenu || !floatingMenu || !wrapper) return;
+
+        // Garante que o wrapper principal está sempre visível
+        wrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+        wrapper.classList.add('opacity-100');
 
         const rect = topMenu.getBoundingClientRect();
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
-            wrapper.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                wrapper.classList.remove('opacity-0', 'pointer-events-none');
-                wrapper.classList.add('opacity-100');
-            });
+            floatingMenu.classList.remove('collapsed');
         } else {
-            wrapper.classList.add('opacity-0', 'pointer-events-none');
-            wrapper.classList.remove('opacity-100');
+            floatingMenu.classList.add('collapsed');
             this.toggleFloatingMenu(false);
-            setTimeout(() => {
-                if (wrapper.classList.contains('opacity-0')) {
-                    wrapper.classList.add('hidden');
-                }
-            }, 300);
         }
     }
 
