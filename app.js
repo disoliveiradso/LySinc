@@ -54,6 +54,7 @@ class LySincApp {
         this.lyricsData = null; // Guardará o objeto completo de idiomas
         this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
+        this.tempDisableScroll = false;
         this.currentLyricsProvider = 'lrclib'; // Provedor de letras padrão: LRCLIB
         
         // Estado do Relógio Interno (Ticker)
@@ -810,7 +811,9 @@ class LySincApp {
         const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
         const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
         this.activeLineId = null; // Força re-realce da linha
+        this.tempDisableScroll = true;
         this.updateLyricsSync(currentProgressMs);
+        this.tempDisableScroll = false;
     }
 
     injectInstrumentalLines(lines) {
@@ -1361,6 +1364,7 @@ class LySincApp {
     }
 
     scrollToLine(lineElement) {
+        if (this.tempDisableScroll) return;
         const absoluteLineTop = this.getAbsoluteOffsetTop(lineElement);
         const height = lineElement.offsetHeight;
         

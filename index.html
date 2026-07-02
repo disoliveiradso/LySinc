@@ -32,18 +32,18 @@
             </div>
             
             <div class="flex items-center relative" style="justify-content: flex-end;">
-                <!-- Controls Container -->
-                <div id="header-controls-container" class="flex items-center space-x-2 transition-all duration-300 translate-x-10 opacity-0 absolute right-12 pointer-events-none">
-                    <button id="btn-settings" class="bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl" title="Configurações">
+                <!-- Controls Container (Gaveta) -->
+                <div id="header-controls-container" class="flex items-center space-x-2 transition-all duration-300 translate-x-10 opacity-0 absolute right-12 pointer-events-none bg-[#1e1e1e] border border-white/10 rounded-full py-1 px-3 shadow-2xl">
+                    <button id="btn-settings" class="bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl" title="Configurações">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     </button>
-                    <button id="btn-logout" class="bg-red-600/20 backdrop-blur-md border border-red-500/30 hover:bg-red-600/30 hover:border-red-500/50 text-red-200 hover:text-white px-4 py-1.5 rounded-full transition-all duration-300 hover:scale-105 shadow-2xl text-sm font-semibold">
+                    <button id="btn-logout" class="bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-600 text-white px-4 py-1.5 rounded-full transition-all duration-300 hover:scale-105 shadow-2xl text-sm font-semibold">
                         Sair
                     </button>
                 </div>
                 
                 <!-- Toggle Button -->
-                <button id="btn-toggle-controls" class="bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl z-20" title="Exibir Opções">
+                <button id="btn-toggle-controls" class="bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl z-20" title="Exibir Opções">
                     <svg id="icon-toggle-controls" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M15 18l-6-6 6-6"/>
                     </svg>
@@ -110,24 +110,22 @@
             <!-- Wrapper de Controles Flutuantes (Menu de Opções + Botão de Sincronizar) -->
             <div id="floating-controls-wrapper" class="hidden fixed z-40 flex items-center space-x-3 pointer-events-none opacity-0 transition-opacity duration-300">
                 <!-- Menu Flutuante de Opções das Letras (Aparece ao scrollar) -->
-                <div id="floating-lyrics-menu" class="bg-white/5 backdrop-blur-md border border-white/10 rounded-full shadow-2xl flex items-center transition-all duration-300 p-1 pointer-events-auto">
+                <div id="floating-lyrics-menu" class="flex items-center relative pointer-events-auto">
                     <!-- Botão de Gatilho (Seta) -->
-                    <button id="btn-floating-toggle" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white/80 hover:text-white transition-colors" title="Opções das Letras">
-                        <svg id="floating-toggle-icon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <button id="btn-floating-toggle" class="w-10 h-10 rounded-full flex items-center justify-center bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white transition-all duration-300 hover:scale-105 shadow-2xl z-20" title="Opções das Letras">
+                        <svg id="floating-toggle-icon" class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
                     
-                    <!-- Itens do Menu (Expandíveis) -->
-                    <div id="floating-menu-content" class="flex items-center space-x-1 max-w-0 overflow-hidden transition-all duration-500 ease-in-out opacity-0 pr-0">
-                        <div class="h-4 w-px bg-white/20 mx-1"></div>
-                        
+                    <!-- Itens do Menu (Expandíveis/Gaveta) -->
+                    <div id="floating-menu-content" class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-full shadow-2xl transition-all duration-300 pointer-events-auto h-10 space-x-2">
                         <!-- Tabs Flutuantes -->
                         <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
                         <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
                         <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
                         
-                        <div class="h-4 w-px bg-white/20 mx-1"></div>
+                        <div class="h-4 w-px bg-white/20"></div>
                         
                         <!-- Voltar ao Início -->
                         <button id="btn-floating-scrollTop" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Voltar ao Início">
@@ -146,7 +144,7 @@
                 </div>
 
                 <!-- Botão Flutuante de Sincronizar (Auto-Scroll) -->
-                <button id="btn-recenter" class="hidden bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 text-white/80 hover:text-white px-5 py-2 rounded-full transition-all duration-300 shadow-2xl flex items-center space-x-2 pointer-events-auto opacity-0 scale-95">
+                <button id="btn-recenter" class="hidden bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white px-5 h-10 rounded-full transition-all duration-300 shadow-2xl flex items-center space-x-2 pointer-events-auto opacity-0 scale-95">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
