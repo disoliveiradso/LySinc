@@ -60,3 +60,4 @@ Como o projeto utiliza módulos ES6 (instruções `import` e `export`), você pr
 ## 📝 Licença
 
 Este projeto é de código aberto e livre para modificações.
+
