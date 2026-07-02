@@ -1,6 +1,6 @@
 # LySinc - Visualizador de Letras Sincronizadas do Spotify
 
-O **LySinc** é um visualizador de letras sincronizadas em tempo real para o Spotify. Ele roda 100% no lado do cliente (Client-Side), sem a necessidade de servidores backend ou bancos de dados adicionais, tornando-o ideal para ser hospedado gratuitamente no **GitHub Pages**.
+O **LySinc** é um visualizador de letras sincronizadas em tempo real para o Spotify. Ele roda 100% no lado do cliente (Client-Side), sem a necessidade de servidores backend ou bancos de dados adicionais, sendo perfeito para hospedagem gratuita no **GitHub Pages**.
 
 Inspirado no visual imersivo e fluido do **Apple Music**, o aplicativo desfoca a arte do álbum tocado atualmente no plano de fundo, fazendo a rolagem suave das linhas de letras e o realce palavra por palavra de forma precisa.
 
