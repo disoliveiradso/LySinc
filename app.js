@@ -38,6 +38,7 @@ class LySincApp {
         this.iconToggleControls = document.getElementById('icon-toggle-controls');
 
         // Elementos do Menu Flutuante
+        this.floatingControlsWrapper = document.getElementById('floating-controls-wrapper');
         this.floatingMenu = document.getElementById('floating-lyrics-menu');
         this.btnFloatingToggle = document.getElementById('btn-floating-toggle');
         this.floatingMenuContent = document.getElementById('floating-menu-content');
@@ -387,10 +388,9 @@ class LySincApp {
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                 // Mostra botão de Sincronizar
                 this.btnRecenter.classList.remove('hidden');
-                // Pequeno delay para animação de fade in (por causa do display:none do hidden)
                 requestAnimationFrame(() => {
-                    this.btnRecenter.classList.remove('opacity-0');
-                    this.updateRecenterButtonPosition();
+                    this.btnRecenter.classList.remove('opacity-0', 'scale-95');
+                    this.btnRecenter.classList.add('opacity-100', 'scale-100');
                 });
             }
         };
@@ -399,10 +399,10 @@ class LySincApp {
         this.btnRecenter.addEventListener('click', () => {
             this.isUserInteracting = false;
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-            this.btnRecenter.classList.add('opacity-0');
+            this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+            this.btnRecenter.classList.add('opacity-0', 'scale-95');
             setTimeout(() => {
                 this.btnRecenter.classList.add('hidden');
-                this.btnRecenter.style.transform = 'translate(-50%, 0)';
             }, 300);
             
             if (this.activeLineId !== null) {
@@ -428,12 +428,12 @@ class LySincApp {
             }
             // Caso contrário, foi uma rolagem real do usuário (inclui arrastar a barra de rolagem)
             handleUserInteraction();
-            this.updateRecenterButtonPosition();
         });
 
         // Listeners do Menu Flutuante
         if (this.btnFloatingToggle) {
-            this.btnFloatingToggle.addEventListener('click', () => {
+            this.btnFloatingToggle.addEventListener('click', (e) => {
+                e.stopPropagation(); // Previne fechar no clique do document
                 const isOpen = this.floatingMenuContent.classList.contains('open');
                 this.toggleFloatingMenu(!isOpen);
             });
@@ -444,17 +444,32 @@ class LySincApp {
                 this.isUserInteracting = false;
                 if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
                 if (this.btnRecenter) {
-                    this.btnRecenter.classList.add('opacity-0', 'hidden');
+                    this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+                    this.btnRecenter.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 this.toggleFloatingMenu(false);
             });
         }
 
-        document.querySelectorAll('#floating-lyrics-menu .lyric-tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.toggleFloatingMenu(false);
-            });
+        // Fecha o menu flutuante ao clicar em qualquer botão de opção dentro dele
+        document.querySelectorAll('#floating-lyrics-menu button').forEach(btn => {
+            if (btn.id !== 'btn-floating-toggle') {
+                btn.addEventListener('click', () => {
+                    this.toggleFloatingMenu(false);
+                });
+            }
+        });
+
+        // Fecha o menu flutuante ao clicar fora dele
+        document.addEventListener('click', (e) => {
+            if (this.floatingMenu && !this.floatingMenu.classList.contains('hidden')) {
+                const isClickInside = this.floatingMenu.contains(e.target);
+                if (!isClickInside) {
+                    this.toggleFloatingMenu(false);
+                }
+            }
         });
     }
 
@@ -789,8 +804,8 @@ class LySincApp {
 
         this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
         
-        // Re-renderiza e alinha instantaneamente
-        this.renderLyrics();
+        // Re-renderiza e alinha mantendo a posição de scroll
+        this.renderLyrics(true);
         
         const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
         const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
@@ -880,10 +895,13 @@ class LySincApp {
         return result;
     }
 
-    renderLyrics() {
+    renderLyrics(keepScroll = false) {
+        const currentScrollY = window.scrollY;
         this.lyricsContainer.innerHTML = '';
         this.lastAutoScrollTime = Date.now(); // Marca scroll inicial para evitar que o reset de tela dispare o manual
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        if (!keepScroll) {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
@@ -1148,6 +1166,11 @@ class LySincApp {
                         trackId: this.currentTrackId
                     });
                 });
+        }
+        
+        if (keepScroll) {
+            window.scrollTo(0, currentScrollY);
+            this.lastAutoScrollTime = Date.now(); // Previne auto-scroll imediato
         }
     }
 
@@ -1417,53 +1440,26 @@ class LySincApp {
         }
     }
 
-    // Calcula e ajusta dinamicamente a posição do botão Recenter flutuante para evitar sobrepor o rodapé/créditos
-    updateRecenterButtonPosition() {
-        const button = this.btnRecenter;
-        const credits = document.getElementById('lyrics-credits-block');
-        if (!button || button.classList.contains('hidden')) return;
-
-        if (credits) {
-            const creditsRect = credits.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const buttonHeight = button.offsetHeight;
-            
-            // O botão está posicionado fixo a bottom-24 (96px do rodapé da janela)
-            const defaultButtonBottom = 96; 
-            
-            // Se o topo dos créditos/footer subir acima do limite inferior do botão + margem de segurança (16px)
-            if (creditsRect.top < viewportHeight - 16) {
-                // Calcula o overlap e empurra o botão para cima via transform
-                const overlap = (viewportHeight - 16) - creditsRect.top;
-                button.style.transform = `translate(-50%, -${overlap}px)`;
-            } else {
-                button.style.transform = 'translate(-50%, 0)';
-            }
-        } else {
-            button.style.transform = 'translate(-50%, 0)';
-        }
-    }
-
     updateFloatingMenuVisibility() {
         const topMenu = document.getElementById('lyrics-top-menu');
-        const floatingMenu = document.getElementById('floating-lyrics-menu');
-        if (!topMenu || !floatingMenu) return;
+        const wrapper = document.getElementById('floating-controls-wrapper');
+        if (!topMenu || !wrapper) return;
 
         const rect = topMenu.getBoundingClientRect();
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
-            floatingMenu.classList.remove('hidden');
+            wrapper.classList.remove('hidden');
             requestAnimationFrame(() => {
-                floatingMenu.classList.remove('opacity-0', 'pointer-events-none');
-                floatingMenu.classList.add('opacity-100');
+                wrapper.classList.remove('opacity-0', 'pointer-events-none');
+                wrapper.classList.add('opacity-100');
             });
         } else {
-            floatingMenu.classList.add('opacity-0', 'pointer-events-none');
-            floatingMenu.classList.remove('opacity-100');
+            wrapper.classList.add('opacity-0', 'pointer-events-none');
+            wrapper.classList.remove('opacity-100');
             this.toggleFloatingMenu(false);
             setTimeout(() => {
-                if (floatingMenu.classList.contains('opacity-0')) {
-                    floatingMenu.classList.add('hidden');
+                if (wrapper.classList.contains('opacity-0')) {
+                    wrapper.classList.add('hidden');
                 }
             }, 300);
         }
