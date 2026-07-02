@@ -899,6 +899,7 @@ const LyricsService = {
     }
 
     const allResults = [];
+    let fallbackBiniResult = null;
 
     // Tenta BiniLyrics cache API primeiro
     try {
@@ -933,42 +934,20 @@ const LyricsService = {
 
       if (cacheData && cacheData.results && cacheData.results.length > 0) {
         const result = cacheData.results[0];
-        if (result.timing_type === 'word' && result.lyricsUrl) {
+        if (result.lyricsUrl) {
           const ttmlRes = await fetchWithTimeout(result.lyricsUrl);
           if (ttmlRes.ok) {
             const ttmlText = await ttmlRes.text();
             const lines = this.parseTTML(ttmlText);
             if (lines && lines.length > 0) {
-              allResults.push({ lines, source: 'BiniLyrics' });
-              return allResults;
-            }
-          }
-        } else {
-          // Fallback lyricsplus
-          const fallbackParams = new URLSearchParams(params);
-          const fallbackUrl = `https://lyricsplus.binimum.org/v2/lyrics/get?${fallbackParams.toString()}`;
-          try {
-            const fallbackRes = await fetchWithTimeout(fallbackUrl);
-            if (fallbackRes.ok) {
-              const payload = await fallbackRes.json();
-              const lines = this.convertKPoeLyrics(payload);
-              const hasWordSync = lines?.some(line => line.text && Array.isArray(line.text) && line.text.length > 1);
-              if (lines && lines.length > 0 && hasWordSync) {
-                const sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
-                allResults.push({ lines, source: sourceLabel });
-                return allResults;
-              }
-            }
-          } catch (fallbackError) {}
-
-          if (result.lyricsUrl) {
-            const ttmlRes = await fetchWithTimeout(result.lyricsUrl);
-            if (ttmlRes.ok) {
-              const ttmlText = await ttmlRes.text();
-              const lines = this.parseTTML(ttmlText);
-              if (lines && lines.length > 0) {
+              const hasWordSync = lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1);
+              if (hasWordSync) {
+                // Se o cache já tiver letras em palavra por palavra (sílaba), retorna imediatamente
                 allResults.push({ lines, source: 'BiniLyrics' });
                 return allResults;
+              } else {
+                // Senão, guardamos como fallback e prosseguimos com a busca paralela nas outras fontes
+                fallbackBiniResult = { lines, source: 'BiniLyrics' };
               }
             }
           }
@@ -1007,24 +986,18 @@ const LyricsService = {
       }
     });
 
-    const hasHighRankResult = allResults.some(r => this.getRankForCollected(r.source, r.lines) <= 2);
-    if (!hasHighRankResult) {
-      try {
-        const fallbackParams = new URLSearchParams(params);
-        const url = `https://lyricsplus.binimum.org/v2/lyrics/get?${fallbackParams.toString()}`;
-        const response = await fetchWithTimeout(url);
-        if (response.ok) {
-          const payload = await response.json();
-          if (payload) {
-            const lines = this.convertKPoeLyrics(payload);
-            const sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
-            const hasWordSync = lines?.some(line => line.text && Array.isArray(line.text) && line.text.length > 1);
-            if (lines && lines.length > 0 && hasWordSync) {
-              allResults.push({ lines, source: sourceLabel });
-            }
-          }
-        }
-      } catch (error) {}
+    // Se encontramos letras palavra por palavra nas outras fontes, priorizamos e retornamos elas
+    const hasWordSync = allResults.some(r => 
+      r.lines && r.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
+    );
+
+    if (hasWordSync) {
+      return allResults;
+    }
+
+    // Se nenhuma fonte retornou palavra por palavra mas temos o fallback linha-por-linha do Bini, usamos ele
+    if (fallbackBiniResult) {
+      allResults.unshift(fallbackBiniResult);
     }
 
     return allResults;
@@ -1136,13 +1109,21 @@ const LyricsService = {
 
     if (collectedSources.length > 0) {
       const sortedSources = this.mergeAndSortSources(collectedSources);
-      const bestSource = sortedSources[0];
+      
+      // Se um provedor específico for forçado, seleciona ele prioritariamente
+      let selectedSource = sortedSources[0];
+      if (provider && provider !== 'betterlyrics') {
+        const forced = sortedSources.find(src => src.source.toLowerCase() === provider.toLowerCase());
+        if (forced) {
+          selectedSource = forced;
+        }
+      }
 
       return {
-        original: bestSource.lines,
+        original: selectedSource.lines,
         translation: null,
         romanized: null,
-        source: bestSource.source,
+        source: selectedSource.source,
         availableSources: sortedSources
       };
     }

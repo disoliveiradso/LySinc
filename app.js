@@ -381,7 +381,8 @@ class LySincApp {
                 this.btnRecenter.classList.remove('hidden');
                 // Pequeno delay para animação de fade in (por causa do display:none do hidden)
                 requestAnimationFrame(() => {
-                    this.btnRecenter.classList.remove('opacity-0', 'translate-y-4');
+                    this.btnRecenter.classList.remove('opacity-0');
+                    this.updateRecenterButtonPosition();
                 });
             }
         };
@@ -390,8 +391,11 @@ class LySincApp {
         this.btnRecenter.addEventListener('click', () => {
             this.isUserInteracting = false;
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-            this.btnRecenter.classList.add('opacity-0', 'translate-y-4');
-            setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+            this.btnRecenter.classList.add('opacity-0');
+            setTimeout(() => {
+                this.btnRecenter.classList.add('hidden');
+                this.btnRecenter.style.transform = 'translate(-50%, 0)';
+            }, 300);
             
             if (this.activeLineId !== null) {
                 const activeEl = document.getElementById(`line-${this.activeLineId}`);
@@ -532,8 +536,6 @@ class LySincApp {
         const oldDurationMs = this.durationMs;
 
         this.isPlaying = state.isPlaying;
-        this.progressMs = state.progressMs + safeCompensation;
-        this.lastSyncTime = Date.now();
         this.durationMs = state.durationMs;
 
         // Se mudou de música ou ainda não carregou as letras
@@ -552,7 +554,7 @@ class LySincApp {
             this.currentTrackId = stateTrackId;
             this.adjustSyncOffset(0, true);
             
-            this.progressMs = state.progressMs;
+            this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
             
             this.updateTrackDetails(state);
@@ -676,40 +678,20 @@ class LySincApp {
                 if (indicatorText) indicatorText.textContent = `Buscando no ${providerToTry}...`;
             }
 
-            const currentFetchedLyrics = await LyricsService.getLyrics(
-                state.trackName, 
-                state.artists, 
-                state.albumName, 
-                state.durationMs,
-                providerToTry
-            );
+        const fetchedLyrics = await LyricsService.getLyrics(
+            state.trackName, 
+            state.artists, 
+            state.albumName, 
+            state.durationMs,
+            this.userForcedProvider ? this.currentLyricsProvider : null
+        );
 
-            // Previne Race Condition
-            if (requestTrackId !== this.currentTrackId) return;
+        // Previne Race Condition
+        if (requestTrackId !== this.currentTrackId) return;
 
-            if (currentFetchedLyrics && currentFetchedLyrics.original && currentFetchedLyrics.original.length > 0) {
-                const isWord = currentFetchedLyrics.original.some(line => line.isWordSynced);
-                const isLine = currentFetchedLyrics.original.some(line => line.timestamp !== undefined && line.timestamp > 0);
-                
-                if (isWord) {
-                    bestLyrics = currentFetchedLyrics;
-                    successfulProvider = providerToTry;
-                    break; // Perfeito, tem sincronia de palavra! Para a busca.
-                } else if (isLine && !bestLyrics) {
-                    bestLyrics = currentFetchedLyrics;
-                    successfulProvider = providerToTry;
-                    if (this.userForcedProvider) break; // Salva como fallback e continua procurando
-                } else if (!bestLyrics) {
-                    bestLyrics = currentFetchedLyrics;
-                    successfulProvider = providerToTry;
-                    if (this.userForcedProvider) break;
-                }
-            }
+        if (fetchedLyrics) {
+            this.currentLyricsProvider = fetchedLyrics.source;
         }
-        
-        fetchedLyrics = bestLyrics;
-
-        this.currentLyricsProvider = successfulProvider;
         this.userForcedProvider = false; // Reset pro autoplay automático da próxima música
 
         // Previne Race Condition: Verifica se a música não mudou ENQUANTO buscava a atual
