@@ -398,9 +398,7 @@ class LySincApp {
             if (!this.isUserInteracting && this.activeLineId !== null) {
                 this.isUserInteracting = true;
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                // Mostra botão de Sincronizar usando flex para alinhar corretamente
-                this.btnRecenter.style.display = 'flex';
-                this.btnRecenter.style.alignItems = 'center';
+                // Mostra botão de Sincronizar usando classes Tailwind
                 this.btnRecenter.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     this.btnRecenter.classList.remove('opacity-0', 'scale-95');
@@ -1474,8 +1472,7 @@ class LySincApp {
         const rect = topMenu.getBoundingClientRect();
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
-            wrapper.style.display = 'flex';
-            wrapper.style.alignItems = 'center';
+            wrapper.classList.remove('hidden');
             requestAnimationFrame(() => {
                 wrapper.classList.remove('opacity-0', 'pointer-events-none');
                 wrapper.classList.add('opacity-100');
@@ -1486,7 +1483,7 @@ class LySincApp {
             this.toggleFloatingMenu(false);
             setTimeout(() => {
                 if (wrapper.classList.contains('opacity-0')) {
-                    wrapper.style.display = 'none';
+                    wrapper.classList.add('hidden');
                 }
             }, 300);
         }
