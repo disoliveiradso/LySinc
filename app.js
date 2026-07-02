@@ -705,7 +705,7 @@ class LySincApp {
             </div>
         `;
         if (this.btnRecenter) {
-            this.btnRecenter.classList.add('hidden', 'opacity-0', 'translate-y-4');
+            this.btnRecenter.classList.add('hidden', 'opacity-0');
         }
         const topMenu = document.getElementById('lyrics-top-menu');
         if (topMenu) topMenu.classList.add('hidden');
