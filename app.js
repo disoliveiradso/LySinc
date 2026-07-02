@@ -37,6 +37,13 @@ class LySincApp {
         this.btnFullscreen = document.getElementById('btn-fullscreen');
         this.iconToggleControls = document.getElementById('icon-toggle-controls');
 
+        // Elementos do Menu Flutuante
+        this.floatingMenu = document.getElementById('floating-lyrics-menu');
+        this.btnFloatingToggle = document.getElementById('btn-floating-toggle');
+        this.floatingMenuContent = document.getElementById('floating-menu-content');
+        this.floatingToggleIcon = document.getElementById('floating-toggle-icon');
+        this.btnFloatingScrollTop = document.getElementById('btn-floating-scrollTop');
+
         // Offset Global
         this.syncOffset = 0;
 
@@ -54,6 +61,7 @@ class LySincApp {
         this.lastSyncTime = 0; // Timestamp local do momento em que sincronizamos com a API
         this.durationMs = 0;
         this.animationFrameId = null;
+        this.lastUserSeekTime = 0;
 
         // Intervalo de Polling
         this.pollingIntervalId = null;
@@ -411,13 +419,42 @@ class LySincApp {
 
         // Ouvimos o evento 'scroll' global de forma inteligente
         window.addEventListener('scroll', () => {
-            // Se o scroll ocorreu dentro de 800ms de um scroll automático, ignoramos
+            // Sempre atualiza a visibilidade do menu flutuante em qualquer scroll
+            this.updateFloatingMenuVisibility();
+
+            // Se o scroll ocorreu dentro de 800ms de um scroll automático, ignoramos para detecção de manual
             if (Date.now() - this.lastAutoScrollTime < 800) {
                 return;
             }
             // Caso contrário, foi uma rolagem real do usuário (inclui arrastar a barra de rolagem)
             handleUserInteraction();
             this.updateRecenterButtonPosition();
+        });
+
+        // Listeners do Menu Flutuante
+        if (this.btnFloatingToggle) {
+            this.btnFloatingToggle.addEventListener('click', () => {
+                const isOpen = this.floatingMenuContent.classList.contains('open');
+                this.toggleFloatingMenu(!isOpen);
+            });
+        }
+
+        if (this.btnFloatingScrollTop) {
+            this.btnFloatingScrollTop.addEventListener('click', () => {
+                this.isUserInteracting = false;
+                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                if (this.btnRecenter) {
+                    this.btnRecenter.classList.add('opacity-0', 'hidden');
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.toggleFloatingMenu(false);
+            });
+        }
+
+        document.querySelectorAll('#floating-lyrics-menu .lyric-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.toggleFloatingMenu(false);
+            });
         });
     }
 
@@ -499,6 +536,12 @@ class LySincApp {
     }
 
     async pollPlayerState() {
+        // Ignora atualizações do Spotify se o usuário acabou de fazer seek/clique nas letras
+        if (Date.now() - this.lastUserSeekTime < 3000) {
+            console.log('[LySinc] Ignorando pollPlayerState devido a clique/seek recente do usuário.');
+            return;
+        }
+
         const state = await SpotifyService.getCurrentlyPlaying();
         
         // Se a chamada falhou ou não há token
@@ -532,25 +575,11 @@ class LySincApp {
             safeCompensation = 0;
         }
 
-        const oldProgressMs = this.progressMs;
-        const oldDurationMs = this.durationMs;
-
         this.isPlaying = state.isPlaying;
         this.durationMs = state.durationMs;
 
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
-            // Compensação para transição automática de faixa (gapless)
-            if (this.currentTrackId !== null && oldDurationMs > 0) {
-                const expectedEndTime = this.lastSyncTime + (oldDurationMs - oldProgressMs);
-                const now = Date.now();
-                if (now >= expectedEndTime && (now - expectedEndTime) < 8000) {
-                    const elapsedSinceTransition = now - expectedEndTime;
-                    state.progressMs = Math.max(state.progressMs, elapsedSinceTransition);
-                    console.log(`[LySinc] Compensação de transição automática gapless aplicada: +${elapsedSinceTransition}ms`);
-                }
-            }
-
             this.currentTrackId = stateTrackId;
             this.adjustSyncOffset(0, true);
             
@@ -581,9 +610,10 @@ class LySincApp {
 
         this.showScreen('main');
         
-        // Força sincronia imediata na interface
+        // Força sincronia imediata na interface usando o progresso real compensado
         if (this.lyrics.length > 0) {
-            this.updateLyricsSync(this.progressMs);
+            const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+            this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
         }
     }
 
@@ -1085,7 +1115,7 @@ class LySincApp {
                 <span class="font-medium">Reiniciar Música</span>
             `;
             btnRestartTrack.addEventListener('click', () => {
-                this.seekTo(0);
+                this.seekToTime(0);
                 this.isUserInteracting = false;
                 if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
                 if (this.btnRecenter) {
@@ -1379,6 +1409,7 @@ class LySincApp {
             // Atualiza localmente para resposta rápida imediata
             this.progressMs = timeMs;
             this.lastSyncTime = Date.now();
+            this.lastUserSeekTime = Date.now();
             this.updateLyricsSync(timeMs);
         } catch (error) {
             console.error('Erro ao pular reprodução:', error);
@@ -1410,6 +1441,43 @@ class LySincApp {
             }
         } else {
             button.style.transform = 'translate(-50%, 0)';
+        }
+    }
+
+    updateFloatingMenuVisibility() {
+        const topMenu = document.getElementById('lyrics-top-menu');
+        const floatingMenu = document.getElementById('floating-lyrics-menu');
+        if (!topMenu || !floatingMenu) return;
+
+        const rect = topMenu.getBoundingClientRect();
+        // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
+        if (rect.bottom < 0) {
+            floatingMenu.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                floatingMenu.classList.remove('opacity-0', 'pointer-events-none');
+                floatingMenu.classList.add('opacity-100');
+            });
+        } else {
+            floatingMenu.classList.add('opacity-0', 'pointer-events-none');
+            floatingMenu.classList.remove('opacity-100');
+            this.toggleFloatingMenu(false);
+            setTimeout(() => {
+                if (floatingMenu.classList.contains('opacity-0')) {
+                    floatingMenu.classList.add('hidden');
+                }
+            }, 300);
+        }
+    }
+
+    toggleFloatingMenu(show) {
+        if (!this.floatingMenuContent || !this.floatingToggleIcon) return;
+
+        if (show) {
+            this.floatingMenuContent.classList.add('open');
+            this.floatingToggleIcon.style.transform = 'rotate(180deg)';
+        } else {
+            this.floatingMenuContent.classList.remove('open');
+            this.floatingToggleIcon.style.transform = 'rotate(0deg)';
         }
     }
 

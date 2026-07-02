@@ -34,9 +34,6 @@
             <div class="flex items-center relative" style="justify-content: flex-end;">
                 <!-- Controls Container -->
                 <div id="header-controls-container" class="flex items-center space-x-2 transition-all duration-300 translate-x-10 opacity-0 absolute right-12 pointer-events-none">
-                    <button id="btn-fullscreen" class="text-white hover:text-gray-300 transition p-2 rounded-full hover:bg-white/10" title="Tela Cheia">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                    </button>
                     <button id="btn-settings" class="text-white hover:text-gray-300 transition p-2 rounded-full hover:bg-white/10" title="Configurações">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     </button>
@@ -117,6 +114,42 @@
                 </svg>
                 <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
             </button>
+
+            <!-- Menu Flutuante de Opções das Letras (Aparece ao scrollar) -->
+            <div id="floating-lyrics-menu" class="hidden fixed z-40 bg-white/5 backdrop-blur-md border border-white/10 rounded-full shadow-2xl flex items-center transition-all duration-300 p-1 opacity-0 pointer-events-none">
+                <!-- Botão de Gatilho (Seta) -->
+                <button id="btn-floating-toggle" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 text-white/80 hover:text-white transition-colors" title="Opções das Letras">
+                    <svg id="floating-toggle-icon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                
+                <!-- Itens do Menu (Expandíveis) -->
+                <div id="floating-menu-content" class="flex items-center space-x-1 max-w-0 overflow-hidden transition-all duration-500 ease-in-out opacity-0 pr-0">
+                    <div class="h-4 w-px bg-white/20 mx-1"></div>
+                    
+                    <!-- Tabs Flutuantes -->
+                    <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
+                    <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
+                    <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
+                    
+                    <div class="h-4 w-px bg-white/20 mx-1"></div>
+                    
+                    <!-- Voltar ao Início -->
+                    <button id="btn-floating-scrollTop" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Voltar ao Início">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                    </button>
+                    
+                    <!-- Tela Cheia (Reposicionado) -->
+                    <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
             <!-- Player Progress Bar Minimalista -->
             <div class="w-full bg-white/10 h-[3px] rounded-full overflow-hidden mt-6 mb-2">
