@@ -607,24 +607,7 @@ input:focus {
     border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Transição do Menu Flutuante (Botão Seta) usando EXCLUSIVAMENTE propriedades aceleradas por GPU para evitar drop do blur */
-#floating-lyrics-menu {
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    opacity: 1;
-    transform: scale(1) translateX(0);
-    transform-origin: left center;
-}
 
-#floating-lyrics-menu.collapsed {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0.9) translateX(-10px);
-}
-
-/* Translação de todo o wrapper para puxar o Sincronizar para a esquerda suavemente SEM causar reflow de layout */
-#floating-controls-wrapper.shifted {
-    transform: translateX(-3.25rem);
-}
 
 /* Hack para evitar que o navegador perca o backdrop-filter (blur) durante as transições de max-width dos pais */
 #btn-floating-toggle, #floating-menu-content, #btn-recenter {

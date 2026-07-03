@@ -615,7 +615,6 @@ class LySincApp {
             
             this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
-            
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
         } else {
@@ -626,7 +625,9 @@ class LySincApp {
             const currentLocalProgress = this.progressMs + elapsed;
             const diff = Math.abs(state.progressMs - currentLocalProgress);
             const isSeek = diff > 5000;
-            const isOutOfSync = diff > 1200;
+            // Sensibilidade de sincronia muito maior (150ms) nos primeiros 10s para corrigir desync de buffering
+            const syncThreshold = (state.progressMs < 10000) ? 150 : 800;
+            const isOutOfSync = diff > syncThreshold;
 
             if (isSeek || isOutOfSync) {
                 this.progressMs = state.progressMs + safeCompensation;
@@ -645,17 +646,6 @@ class LySincApp {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             const currentEstimatedTime = this.progressMs + elapsed + this.syncOffset;
             this.updateLyricsSync(currentEstimatedTime);
-            
-            // Forçar ressincronização da API do Spotify simulando um clique na letra
-            // Executado apenas uma vez ao carregar a nova música, busca a próxima linha da letra
-            // a partir do momento atual (ex: 0:08) e pula para ela, resolvendo o bug de desync.
-            if (this.isPlaying && !this.hasAutoSeekedToFirstLine) {
-                this.hasAutoSeekedToFirstLine = true;
-                const nextLine = this.lyrics.find(line => line.timestamp >= currentEstimatedTime);
-                const timestampToSeek = nextLine ? nextLine.timestamp : currentEstimatedTime;
-                console.log(`[LySinc] Forçando seek invisível para a próxima linha (${timestampToSeek}ms) para corrigir desync do Spotify na nova faixa`);
-                this.seekToTime(timestampToSeek);
-            }
         }
     }
 
@@ -1505,12 +1495,25 @@ class LySincApp {
 
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
-            floatingMenu.classList.remove('collapsed');
-            wrapper.classList.remove('shifted');
+            if (floatingMenu.classList.contains('hidden')) {
+                floatingMenu.classList.remove('hidden');
+                void floatingMenu.offsetWidth; // Força reflow para transição Tailwind rodar
+                floatingMenu.classList.remove('opacity-0', 'scale-95');
+                floatingMenu.classList.add('opacity-100', 'scale-100');
+            }
         } else {
-            floatingMenu.classList.add('collapsed');
-            wrapper.classList.add('shifted');
-            this.toggleFloatingMenu(false);
+            if (!floatingMenu.classList.contains('hidden')) {
+                floatingMenu.classList.remove('opacity-100', 'scale-100');
+                floatingMenu.classList.add('opacity-0', 'scale-95');
+                this.toggleFloatingMenu(false);
+                setTimeout(() => {
+                    // Confirma se ainda está oculto após a animação de 300ms antes de ocultar do DOM
+                    const currentRect = topMenu.getBoundingClientRect();
+                    if (currentRect.bottom >= 0) {
+                        floatingMenu.classList.add('hidden');
+                    }
+                }, 300);
+            }
         }
     }
 
