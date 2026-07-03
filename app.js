@@ -415,7 +415,7 @@ class LySincApp {
             this.btnRecenter.classList.add('opacity-0', 'scale-95');
             setTimeout(() => {
                 this.btnRecenter.classList.add('hidden');
-            }, 300);
+            }, 500);
             
             if (this.activeLineId !== null) {
                 const activeEl = document.getElementById(`line-${this.activeLineId}`);
@@ -1515,10 +1515,20 @@ class LySincApp {
         if (rect.bottom < 0) {
             if (btnFloatingToggle && btnFloatingToggle.classList.contains('hidden')) {
                 btnFloatingToggle.classList.remove('hidden');
-                void btnFloatingToggle.offsetWidth; // Força reflow para transição Tailwind rodar
+                
+                // Técnica FLIP para animar a entrada do botão de Seta empurrando o de Sincronizar
+                if (this.btnRecenter) {
+                    this.btnRecenter.style.transition = 'none';
+                    this.btnRecenter.classList.add('-translate-x-[52px]');
+                }
+                
+                void btnFloatingToggle.offsetWidth; // Força reflow
+                
                 btnFloatingToggle.classList.remove('opacity-0', 'scale-95');
                 btnFloatingToggle.classList.add('opacity-100', 'scale-100');
+                
                 if (this.btnRecenter) {
+                    this.btnRecenter.style.transition = '';
                     this.btnRecenter.classList.remove('-translate-x-[52px]');
                     this.btnRecenter.classList.add('translate-x-0');
                 }
@@ -1533,12 +1543,20 @@ class LySincApp {
                     this.btnRecenter.classList.add('-translate-x-[52px]');
                 }
                 setTimeout(() => {
-                    // Confirma se ainda está oculto após a animação de 300ms antes de ocultar do DOM
+                    // Confirma se ainda está oculto após a animação de 500ms antes de ocultar do DOM
                     const currentRect = topMenu.getBoundingClientRect();
                     if (currentRect.bottom >= 0) {
                         btnFloatingToggle.classList.add('hidden');
+                        
+                        // Reseta a posição do btnRecenter perfeitamente para evitar pulos
+                        if (this.btnRecenter) {
+                            this.btnRecenter.style.transition = 'none';
+                            this.btnRecenter.classList.remove('-translate-x-[52px]');
+                            void this.btnRecenter.offsetWidth;
+                            this.btnRecenter.style.transition = '';
+                        }
                     }
-                }, 300);
+                }, 500);
             }
         }
     }
