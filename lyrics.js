@@ -1199,8 +1199,8 @@ const LyricsService = {
     }
   },
 
-  async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics') {
-    const resolved = await this.resolveSongMetadata(trackName, artistName, albumName, durationMs, null, null, `${artistName} - ${trackName}`);
+  async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics', isrc = null) {
+    const resolved = await this.resolveSongMetadata(trackName, artistName, albumName, durationMs, null, isrc, `${artistName} - ${trackName}`);
     const metadata = resolved.metadata || { title: trackName, artist: artistName, album: albumName, durationMs };
 
     const collectedSources = [];

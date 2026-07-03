@@ -423,10 +423,36 @@ class LySincApp {
                 this.btnRecenter.classList.add('hidden');
             }, 500);
             
-            if (this.activeLineId !== null) {
-                const activeEl = document.getElementById(`line-${this.activeLineId}`);
+            let targetLineId = this.activeLineId;
+
+            // Se não houver uma linha ativa (ex: introdução, pausa instrumental ou fim da música),
+            // procura a linha cujo timestamp seja o mais próximo do progresso atual.
+            if (targetLineId === null && this.lyrics.length > 0) {
+                let closestLine = null;
+                let minDiff = Infinity;
+                
+                const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
+
+                this.lyrics.forEach(line => {
+                    const diff = Math.abs(currentProgressMs - line.timestamp);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestLine = line;
+                    }
+                });
+                
+                if (closestLine) {
+                    targetLineId = closestLine.id;
+                }
+            }
+            
+            if (targetLineId !== null) {
+                const activeEl = document.getElementById(`line-${targetLineId}`);
                 if (activeEl) {
                     this.scrollToLine(activeEl);
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             } else {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -745,7 +771,8 @@ class LySincApp {
             state.artists, 
             state.albumName, 
             state.durationMs,
-            this.userForcedProvider ? this.currentLyricsProvider : null
+            this.userForcedProvider ? this.currentLyricsProvider : null,
+            state.isrc
         );
 
         // Previne Race Condition
@@ -1206,13 +1233,17 @@ class LySincApp {
                     
                     this.userForcedProvider = true;
 
+                    this.durationMs = this.durationMs;
+                    this.currentIsrc = this.currentIsrc;
+
                     // Força carregamento
                     this.loadLyricsForTrack({
                         trackName: this.trackName.textContent,
                         artists: this.trackArtists.textContent,
                         albumName: '', 
                         durationMs: this.durationMs,
-                        trackId: this.currentTrackId
+                        trackId: this.currentTrackId,
+                        isrc: this.currentIsrc
                     });
                 });
         }
