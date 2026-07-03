@@ -675,6 +675,7 @@ class LySincApp {
                         width: 400,
                         height: 600,
                     });
+                    this.pipWindow = pipWindow;
                     
                     // Copia folhas de estilo para a janela PiP
                     [...document.styleSheets].forEach((styleSheet) => {
@@ -694,10 +695,19 @@ class LySincApp {
                     });
                     
                     // Ajusta o corpo da janela PiP
-                    pipWindow.document.body.className = 'bg-black text-white h-screen flex flex-col overflow-hidden custom-scrollbar';
+                    pipWindow.document.body.className = 'bg-[#050505] text-white flex flex-col min-h-screen relative';
+                    
+                    // Clona o background dinâmico (com a imagem atual e sobreposições)
+                    const bgClone = document.querySelector('.blur-background-container').cloneNode(true);
+                    pipWindow.document.body.appendChild(bgClone);
                     
                     // Movemos o container de letras para a janela PiP
                     const originalContainer = document.getElementById('lyrics-container');
+                    
+                    // Wrapper para simular o main e alinhar as letras centralizadas
+                    const pipMain = document.createElement('main');
+                    pipMain.className = 'flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full px-4 py-8 relative z-10 h-screen overflow-hidden';
+                    
                     const placeholder = document.createElement('div');
                     placeholder.id = 'pip-placeholder';
                     placeholder.className = 'flex-1 flex flex-col justify-center items-center text-white/50 text-center px-4';
@@ -711,7 +721,8 @@ class LySincApp {
                     `;
                     
                     originalContainer.parentNode.insertBefore(placeholder, originalContainer);
-                    pipWindow.document.body.appendChild(originalContainer);
+                    pipMain.appendChild(originalContainer);
+                    pipWindow.document.body.appendChild(pipMain);
                     
                     // Lógica para o botão de voltar na aba original
                     placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
@@ -722,6 +733,7 @@ class LySincApp {
                     pipWindow.addEventListener("pagehide", (event) => {
                         placeholder.parentNode.insertBefore(originalContainer, placeholder);
                         placeholder.remove();
+                        this.pipWindow = null;
                     });
                     
                 } catch (error) {
@@ -934,9 +946,17 @@ class LySincApp {
         if (state.albumArtUrl) {
             this.albumArt.src = state.albumArtUrl;
             this.albumArtBlur.style.backgroundImage = `url('${state.albumArtUrl}')`;
+            if (this.pipWindow) {
+                const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
+                if (pipBlur) pipBlur.style.backgroundImage = `url('${state.albumArtUrl}')`;
+            }
         } else {
             this.albumArt.src = '';
             this.albumArtBlur.style.backgroundImage = 'none';
+            if (this.pipWindow) {
+                const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
+                if (pipBlur) pipBlur.style.backgroundImage = 'none';
+            }
         }
     }
 
