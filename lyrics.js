@@ -915,32 +915,37 @@ const LyricsService = {
     
     // Identifiers based on user table priorities
     const isApple = lower.includes('apple') || lower.includes('qq') || lower.includes('lyricsplus') || lower.includes('better lyrics') || lower.includes('betterlyrics');
+    const isLrcLib = lower.includes('lrclib');
+    const isMusixmatch = lower.includes('musixmatch');
     const isUnison = lower.includes('unison');
     const isBini = lower.includes('bini');
-    const isMusixmatch = lower.includes('musixmatch');
-    const isLrcLib = lower.includes('lrclib');
 
+    // Apple Music e LRCLIB so prioridade máxima para sincronizao
     if (hasWordSync) {
       if (isApple) return 1;
-      if (isUnison) return 2;
-      if (isBini) return 3;
-      if (isMusixmatch) return 5;
+      if (isLrcLib) return 2;
+      if (isMusixmatch) return 3;
+      if (isUnison) return 4;
+      if (isBini) return 5;
       return 6;
     }
 
     if (isLineSync) {
-      if (isApple) return 6;
-      if (isUnison) return 7;
-      if (isBini) return 9;
-      if (isLrcLib) return 10;
-      if (isMusixmatch) return 12;
-      return 13;
+      if (isApple) return 7;
+      if (isLrcLib) return 8;
+      if (isMusixmatch) return 9;
+      if (isUnison) return 10;
+      if (isBini) return 11;
+      return 12;
     }
 
     if (isUnsynced) {
-      if (isUnison) return 14;
-      if (isLrcLib) return 15;
-      return 16;
+      if (isApple) return 13;
+      if (isLrcLib) return 14;
+      if (isMusixmatch) return 15;
+      if (isUnison) return 16;
+      if (isBini) return 17;
+      return 18;
     }
 
     return 20;

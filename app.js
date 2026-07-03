@@ -820,6 +820,16 @@ class LySincApp {
                             topMenu.style.opacity = '';
                             topMenu.style.pointerEvents = '';
                         }
+                        
+                        // Retoma auto-sincronização ao voltar para tela principal
+                        this.isUserInteracting = false;
+                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                        if (this.btnRecenter) {
+                            this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+                            this.btnRecenter.classList.add('opacity-0', 'scale-95');
+                            setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+                        }
+                        this.updateLyricsSync(this.progressMs);
                     });
                     
                 } catch (error) {
@@ -1716,7 +1726,8 @@ class LySincApp {
             if (targetEl) {
                 // Calcula a posição de scroll levando em conta janelas PiP vs Main
                 const viewportHeight = this.pipWindow ? this.pipWindow.innerHeight : window.innerHeight;
-                const targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight / 2 + targetEl.offsetHeight / 2;
+                // Ancoragem um pouco mais acima do meio (40% do topo) para melhor leitura
+                const targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight * 0.4 + targetEl.offsetHeight / 2;
                 this.smoothScrollTo(targetY);
             }
         }
