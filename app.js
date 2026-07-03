@@ -748,15 +748,14 @@ class LySincApp {
                     const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
                     btnRecenterClone.id = 'btn-recenter-pip';
                     btnRecenterClone.classList.add('fixed', 'bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50');
+                    btnRecenterClone.style.display = 'flex';
+                    btnRecenterClone.style.alignItems = 'center';
+                    btnRecenterClone.style.justifyContent = 'center';
+                    btnRecenterClone.style.whiteSpace = 'nowrap';
                     pipWindow.document.body.appendChild(btnRecenterClone);
 
                     let pipScrollTimeout;
-                    pipWindow.addEventListener('scroll', () => {
-                        // Ignora evento se for scroll automático
-                        if (Date.now() - this.lastAutoScrollTime < 800) {
-                            return;
-                        }
-
+                    const handlePipUserInteraction = () => {
                         this.isUserInteracting = true;
                         if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                         btnRecenterClone.classList.remove('hidden');
@@ -773,6 +772,16 @@ class LySincApp {
                                 setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
                             }
                         }, 3000);
+                    };
+
+                    pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
+                    pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
+                    pipWindow.addEventListener('scroll', () => {
+                        // Ignora evento se for scroll automático
+                        if (Date.now() - this.lastAutoScrollTime < 800) {
+                            return;
+                        }
+                        handlePipUserInteraction();
                     });
 
                     btnRecenterClone.addEventListener('click', () => {
@@ -784,8 +793,13 @@ class LySincApp {
                         this.updateLyricsSync(this.progressMs);
                     });
                     
-                    // Esconde botões do rodapé da tela original enquanto no PiP
+                    // Esconde botões do rodapé e topo da tela original enquanto no PiP
                     if (this.btnFloatingRestart) this.btnFloatingRestart.classList.add('hidden');
+                    const topMenu = document.getElementById('lyrics-top-menu');
+                    if (topMenu) {
+                        topMenu.style.opacity = '0';
+                        topMenu.style.pointerEvents = 'none';
+                    }
                     
                     // Lógica para o botão de voltar na aba original
                     placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
@@ -798,6 +812,10 @@ class LySincApp {
                         placeholder.remove();
                         this.pipWindow = null;
                         if (this.btnFloatingRestart) this.btnFloatingRestart.classList.remove('hidden');
+                        if (topMenu) {
+                            topMenu.style.opacity = '';
+                            topMenu.style.pointerEvents = '';
+                        }
                     });
                     
                 } catch (error) {
