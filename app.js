@@ -375,6 +375,7 @@ class LySincApp {
         document.body.appendChild(customTooltip);
 
         let tooltipTarget = null;
+        let tooltipTimeout = null;
 
         document.addEventListener('mouseover', (e) => {
             const target = e.target.closest('[title], [data-tooltip]');
@@ -385,32 +386,42 @@ class LySincApp {
                 }
                 const text = target.getAttribute('data-tooltip');
                 if (text) {
+                    if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     tooltipTarget = target;
-                    customTooltip.textContent = text;
-                    customTooltip.style.opacity = '1';
                     
-                    const rect = target.getBoundingClientRect();
-                    const tooltipRect = customTooltip.getBoundingClientRect();
-                    let top = rect.top - tooltipRect.height - 8;
-                    let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-                    
-                    if (top < 0) top = rect.bottom + 8;
-                    if (left < 0) left = 8;
-                    if (left + tooltipRect.width > window.innerWidth) left = window.innerWidth - tooltipRect.width - 8;
-                    
-                    customTooltip.style.top = `${top}px`;
-                    customTooltip.style.left = `${left}px`;
+                    tooltipTimeout = setTimeout(() => {
+                        if (tooltipTarget === target) {
+                            customTooltip.textContent = text;
+                            
+                            // Primeiro remove opacity-0 para que getBoundingClientRect traga o tamanho real antes da animação
+                            customTooltip.style.opacity = '0'; 
+                            // Renderiza escondido para pegar as dimensões corretas e posicionar
+                            setTimeout(() => {
+                                const rect = target.getBoundingClientRect();
+                                const tooltipRect = customTooltip.getBoundingClientRect();
+                                let top = rect.top - tooltipRect.height - 8;
+                                let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                                
+                                if (top < 0) top = rect.bottom + 8;
+                                if (left < 0) left = 8;
+                                if (left + tooltipRect.width > window.innerWidth) left = window.innerWidth - tooltipRect.width - 8;
+                                
+                                customTooltip.style.top = `${top}px`;
+                                customTooltip.style.left = `${left}px`;
+                                customTooltip.style.opacity = '1';
+                            }, 10);
+                        }
+                    }, 800);
                 }
             }
         });
 
         document.addEventListener('mouseout', (e) => {
-            if (tooltipTarget) {
-                const target = e.target.closest('[data-tooltip]');
-                if (target === tooltipTarget) {
-                    customTooltip.style.opacity = '0';
-                    tooltipTarget = null;
-                }
+            const target = e.target.closest('[data-tooltip]');
+            if (target && target === tooltipTarget) {
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                customTooltip.style.opacity = '0';
+                tooltipTarget = null;
             }
         });
         
