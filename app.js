@@ -102,6 +102,35 @@ class LySincApp {
         this.init();
     }
 
+    getDocument() {
+        return this.pipWindow ? this.pipWindow.document : document;
+    }
+
+    getRaf() {
+        return (this.pipWindow || window).requestAnimationFrame.bind(this.pipWindow || window);
+    }
+
+    cancelRaf(id) {
+        return (this.pipWindow || window).cancelAnimationFrame(id);
+    }
+
+    getScrollY() {
+        if (this.pipWindow) {
+            const pipMain = this.pipWindow.document.querySelector('main');
+            return pipMain ? pipMain.scrollTop : 0;
+        }
+        return window.scrollY;
+    }
+
+    scrollToPosition(y) {
+        if (this.pipWindow) {
+            const pipMain = this.pipWindow.document.querySelector('main');
+            if (pipMain) pipMain.scrollTo(0, y);
+        } else {
+            window.scrollTo(0, y);
+        }
+    }
+
     async init() {
         try {
             console.log("%c LySinc v1.0.1 - Melhorias de Karaoke e Scroll Ativas ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
@@ -649,7 +678,7 @@ class LySincApp {
         if (this.btnFloatingRestart) {
             this.btnFloatingRestart.addEventListener('click', async () => {
                 if (this.isPlaying || this.progressMs > 0) {
-                    await SpotifyService.seekToPosition(0);
+                    this.seekToTime(0);
                     // Força polling imediato para refletir estado
                     setTimeout(() => this.pollPlayerState(), 200);
                 }
@@ -695,7 +724,7 @@ class LySincApp {
                     });
                     
                     // Ajusta o corpo da janela PiP
-                    pipWindow.document.body.className = 'bg-[#050505] text-white flex flex-col min-h-screen relative';
+                    pipWindow.document.body.className = 'pip-mode bg-[#050505] text-white flex flex-col min-h-screen relative';
                     
                     // Clona o background dinâmico (com a imagem atual e sobreposições)
                     const bgClone = document.querySelector('.blur-background-container').cloneNode(true);
@@ -706,7 +735,7 @@ class LySincApp {
                     
                     // Wrapper para simular o main e alinhar as letras centralizadas
                     const pipMain = document.createElement('main');
-                    pipMain.className = 'flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full px-4 py-8 relative z-10 h-screen overflow-hidden';
+                    pipMain.className = 'flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full px-4 py-8 relative z-10 h-screen overflow-y-auto custom-scrollbar';
                     
                     const placeholder = document.createElement('div');
                     placeholder.id = 'pip-placeholder';
@@ -724,6 +753,44 @@ class LySincApp {
                     pipMain.appendChild(originalContainer);
                     pipWindow.document.body.appendChild(pipMain);
                     
+                    // Clona e configura o botão Sincronizar (recenter) no PiP
+                    const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
+                    btnRecenterClone.id = 'btn-recenter-pip';
+                    btnRecenterClone.classList.add('fixed', 'bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50');
+                    pipWindow.document.body.appendChild(btnRecenterClone);
+
+                    let pipScrollTimeout;
+                    pipMain.addEventListener('scroll', () => {
+                        this.isUserInteracting = true;
+                        if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
+                        btnRecenterClone.classList.remove('hidden');
+                        pipWindow.requestAnimationFrame(() => {
+                            btnRecenterClone.classList.remove('opacity-0', 'scale-95');
+                            btnRecenterClone.classList.add('opacity-100', 'scale-100');
+                        });
+                        
+                        clearTimeout(pipScrollTimeout);
+                        pipScrollTimeout = setTimeout(() => {
+                            if (!this.isUserInteracting) {
+                                btnRecenterClone.classList.remove('opacity-100', 'scale-100');
+                                btnRecenterClone.classList.add('opacity-0', 'scale-95');
+                                setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
+                            }
+                        }, 3000);
+                    });
+
+                    btnRecenterClone.addEventListener('click', () => {
+                        this.isUserInteracting = false;
+                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                        btnRecenterClone.classList.remove('opacity-100', 'scale-100');
+                        btnRecenterClone.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
+                        this.updateLyricsSync(this.progressMs);
+                    });
+                    
+                    // Esconde botões do rodapé da tela original enquanto no PiP
+                    if (this.btnFloatingRestart) this.btnFloatingRestart.classList.add('hidden');
+                    
                     // Lógica para o botão de voltar na aba original
                     placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
                         pipWindow.close();
@@ -734,6 +801,7 @@ class LySincApp {
                         placeholder.parentNode.insertBefore(originalContainer, placeholder);
                         placeholder.remove();
                         this.pipWindow = null;
+                        if (this.btnFloatingRestart) this.btnFloatingRestart.classList.remove('hidden');
                     });
                     
                 } catch (error) {
@@ -1221,7 +1289,7 @@ class LySincApp {
         this.lyricsContainer.innerHTML = '';
         this.lastAutoScrollTime = Date.now(); // Marca scroll inicial para evitar que o reset de tela dispare o manual
         if (!keepScroll) {
-            window.scrollTo({ top: 0, behavior: 'instant' });
+            this.scrollToPosition(0);
         }
 
         this.lyrics.forEach((line) => {
@@ -1578,7 +1646,7 @@ class LySincApp {
 
             // Sincroniza sílabas da voz principal
             line.text.forEach((syl, idx) => {
-                const wordEl = document.getElementById(`word-${line.id}-${idx}`);
+                const wordEl = this.getDocument().getElementById(`word-${line.id}-${idx}`);
                 if (wordEl) {
                     if (isPassed || currentProgressMs >= syl.endtime) {
                         wordEl.style.setProperty('--word-progress', '100%');
@@ -1602,7 +1670,7 @@ class LySincApp {
             // Sincroniza sílabas da voz secundária (backing vocal)
             if (line.backgroundText && line.backgroundText.length > 0) {
                 line.backgroundText.forEach((syl, idx) => {
-                    const wordEl = document.getElementById(`bgword-${line.id}-${idx}`);
+                    const wordEl = this.getDocument().getElementById(`bgword-${line.id}-${idx}`);
                     if (wordEl) {
                         if (isPassed || currentProgressMs >= syl.endtime) {
                             wordEl.style.setProperty('--word-progress', '100%');
@@ -1628,7 +1696,7 @@ class LySincApp {
     highlightActiveLines(activeLineIds, scrollTargetId) {
         // Atualiza classes de todas as linhas
         this.lyrics.forEach((line) => {
-            const el = document.getElementById(`line-${line.id}`);
+            const el = this.getDocument().getElementById(`line-${line.id}`);
             if (el) {
                 if (activeLineIds.has(line.id)) {
                     el.classList.remove('inactive', 'passed');
@@ -1648,9 +1716,12 @@ class LySincApp {
 
         // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
         if (!this.isUserInteracting) {
-            const targetEl = document.getElementById(`line-${scrollTargetId}`);
+            const targetEl = this.getDocument().getElementById(`line-${scrollTargetId}`);
             if (targetEl) {
-                this.scrollToLine(targetEl);
+                // Calcula a posição de scroll levando em conta janelas PiP vs Main
+                const viewportHeight = this.pipWindow ? this.pipWindow.innerHeight : window.innerHeight;
+                const targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight / 2 + targetEl.offsetHeight / 2;
+                this.smoothScrollTo(targetY);
             }
         }
     }
@@ -1709,14 +1780,14 @@ class LySincApp {
 
     // Scroll fluido interpolado personalizado (muito superior ao behavior: 'smooth' nativo)
     smoothScrollTo(target) {
-        const startPosition = window.scrollY;
+        const startPosition = this.getScrollY();
         const distance = target - startPosition;
         let startTime = null;
         const duration = 650; // milissegundos para a transição
         
         // Cancela qualquer rolagem em andamento para evitar tremedeira (jittering)
         if (this.scrollAnimationId) {
-            cancelAnimationFrame(this.scrollAnimationId);
+            this.cancelRaf(this.scrollAnimationId);
         }
         
         // Easing function super fluida (Quart Ease Out) parecida com o iOS/Apple Music
@@ -1727,17 +1798,17 @@ class LySincApp {
             const timeElapsed = currentTime - startTime;
             const progress = Math.min(timeElapsed / duration, 1);
             
-            window.scrollTo(0, startPosition + distance * easeOutQuart(progress));
+            this.scrollToPosition(startPosition + distance * easeOutQuart(progress));
             this.lastAutoScrollTime = Date.now(); // Mantém atualizado para evitar que o evento de scroll programático dispare o modo manual
             
             if (timeElapsed < duration) {
-                this.scrollAnimationId = requestAnimationFrame(animation);
+                this.scrollAnimationId = this.getRaf()(animation);
             } else {
                 this.scrollAnimationId = null;
             }
         };
         
-        this.scrollAnimationId = requestAnimationFrame(animation);
+        this.scrollAnimationId = this.getRaf()(animation);
     }
 
     // Navega para o tempo clicado usando o Spotify Connect API (Premium requerido)

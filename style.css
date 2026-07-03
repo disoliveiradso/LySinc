@@ -622,3 +622,22 @@ input:focus {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
 }
+/* Estilos específicos para Picture-in-Picture */
+.pip-mode .lyric-line {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.pip-mode .lyric-line.active {
+    font-size: clamp(1.8rem, 5.5vw, 4rem) !important;
+}
+
+.pip-mode .lyric-line.inactive {
+    font-size: clamp(1.3rem, 4.5vw, 3rem) !important;
+}
+
+.pip-mode .lyrics-syllable.instrumental-icon {
+    font-size: clamp(1.8rem, 5.5vw, 4rem) !important;
+}
