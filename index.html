@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=1.0.1">
 </head>
+
 <body class="bg-[#050505] text-white flex flex-col min-h-screen">
 
     <!-- Fundo Desfocado Dinâmico (Apple Music Effect) -->
@@ -22,30 +24,45 @@
 
     <!-- Layout Container Principal -->
     <main class="flex-1 flex flex-col justify-between max-w-4xl mx-auto w-full px-6 py-8 relative z-10">
-        
+
         <!-- Header Geral (Botão Configurações e Desconectar) -->
         <header class="flex justify-between items-center h-16 relative">
             <div class="flex items-center space-x-3">
                 <img src="assets/icons/lysinc-logo.svg" alt="LySinc Icon" class="h-8 w-8" id="lysinc-icon">
-                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">LySinc</span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/60">v1.0</span>
+                <span
+                    class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">LySinc</span>
+                <span
+                    class="text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/60">v1.0</span>
             </div>
-            
+
             <div class="flex items-center relative" style="justify-content: flex-end;">
                 <!-- Controls Container (Gaveta) -->
-                <div id="header-controls-container" class="flex items-center space-x-2 transition-all duration-300 translate-x-10 opacity-0 absolute right-12 pointer-events-none bg-[#1e1e1e] border border-white/10 rounded-full py-1 px-3 shadow-2xl">
-                    <button id="btn-settings" class="bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl" title="Configurações">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <div id="header-controls-container"
+                    class="flex items-center space-x-2 transition-all duration-300 translate-x-10 opacity-0 absolute right-12 pointer-events-none bg-[#1e1e1e] border border-white/10 rounded-full py-1 px-3 shadow-2xl">
+                    <button id="btn-settings"
+                        class="bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl"
+                        title="Configurações">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                     </button>
-                    <button id="btn-logout" class="bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-600 text-white px-4 py-1.5 rounded-full transition-all duration-300 hover:scale-105 shadow-2xl text-sm font-semibold">
+                    <button id="btn-logout"
+                        class="bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-600 text-white px-4 py-1.5 rounded-full transition-all duration-300 hover:scale-105 shadow-2xl text-sm font-semibold">
                         Sair
                     </button>
                 </div>
-                
+
                 <!-- Toggle Button -->
-                <button id="btn-toggle-controls" class="bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl z-20" title="Exibir Opções">
-                    <svg id="icon-toggle-controls" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 18l-6-6 6-6"/>
+                <button id="btn-toggle-controls"
+                    class="bg-[#262626] border border-white/10 hover:bg-[#333333] hover:border-white/20 text-white/80 hover:text-white w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 shadow-2xl z-20"
+                    title="Exibir Opções">
+                    <svg id="icon-toggle-controls" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 18l-6-6 6-6" />
                     </svg>
                 </button>
             </div>
@@ -53,151 +70,241 @@
 
         <!-- TELA 1: PRÉ-LOGIN (MIMIMALISTA / IMERSIVA) -->
         <section id="screen-pre-login" class="flex-1 flex flex-col justify-center items-center text-center my-auto">
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 font-sans bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
+            <h1
+                class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 font-sans bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
                 Suas letras.<br>Em perfeita sintonia.
             </h1>
             <p class="text-neutral-400 text-lg md:text-xl max-w-md mb-8 font-light">
-                Veja as letras das músicas do Spotify sincronizadas palavra por palavra em tempo real, com o estilo visual fluido do Apple Music.
+                Veja as letras das músicas do Spotify sincronizadas palavra por palavra em tempo real, com o estilo
+                visual fluido do Apple Music.
             </p>
-            <button id="btn-connect" class="btn-spotify text-black font-bold py-4 px-8 rounded-full text-lg shadow-lg flex items-center space-x-3">
+            <button id="btn-connect"
+                class="btn-spotify text-black font-bold py-4 px-8 rounded-full text-lg shadow-lg flex items-center space-x-3">
                 <img src="assets/icons/spotify-brand.svg" alt="Spotify" class="h-6 w-6">
                 <span>Conectar com o Spotify</span>
             </button>
         </section>
 
         <!-- TELA 2: PÓS-LOGIN (PLAYER & VISUALIZADOR DE LETRAS) -->
-        <section id="screen-main" class="hidden flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full relative z-10 pt-16">
-            
+        <section id="screen-main"
+            class="hidden flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full relative z-10 pt-16">
+
             <!-- Detalhes da Música (Capas e Metadados) -->
             <div class="flex items-center space-x-6 mb-4 mt-2">
                 <div class="relative group">
-                    <img id="album-art" src="" alt="Capa do Álbum" class="w-20 h-20 md:w-28 md:h-28 rounded-xl object-cover shadow-2xl border border-white/10 transition-transform duration-500 group-hover:scale-105">
+                    <img id="album-art" src="" alt="Capa do Álbum"
+                        class="w-20 h-20 md:w-28 md:h-28 rounded-xl object-cover shadow-2xl border border-white/10 transition-transform duration-500 group-hover:scale-105">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 id="track-name" class="text-2xl md:text-3xl font-bold tracking-tight truncate text-white">Carregando...</h2>
-                    <p id="track-artists" class="text-white/60 text-base md:text-lg truncate font-medium">Spotify Player</p>
+                    <h2 id="track-name" class="text-2xl md:text-3xl font-bold tracking-tight truncate text-white">
+                        Carregando...</h2>
+                    <p id="track-artists" class="text-white/60 text-base md:text-lg truncate font-medium">Spotify Player
+                    </p>
                 </div>
             </div>
 
             <!-- Controles de Letras (Top Menu) -->
-            <div id="lyrics-top-menu" class="hidden flex-col md:flex-row items-start md:items-center justify-between mb-4 mt-2 px-2 gap-3 transition-opacity duration-300">
+            <div id="lyrics-top-menu"
+                class="hidden flex-col md:flex-row items-start md:items-center justify-between mb-4 mt-2 px-2 gap-3 transition-opacity duration-300">
                 <!-- Seletor de Idiomas -->
-                <div class="lyrics-tabs flex items-center bg-white/5 rounded-full p-1 border border-white/10" id="lyrics-tabs-container">
+                <div class="lyrics-tabs flex items-center bg-white/5 rounded-full p-1 border border-white/10"
+                    id="lyrics-tabs-container">
                     <!-- Media Controls (Top Menu) -->
                     <div class="flex items-center space-x-1 pl-2 pr-1" id="top-media-controls">
-                        <button id="btn-top-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z"/></svg>
+                        <button id="btn-top-prev"
+                            class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                            title="Anterior">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" />
+                            </svg>
                         </button>
-                        <button id="btn-top-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
-                            <svg id="icon-top-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            <svg id="icon-top-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        <button id="btn-top-playpause"
+                            class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                            title="Play/Pause">
+                            <svg id="icon-top-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                            <svg id="icon-top-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                            </svg>
                         </button>
-                        <button id="btn-top-next" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Próxima">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z"/></svg>
+                        <button id="btn-top-next"
+                            class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                            title="Próxima">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z" />
+                            </svg>
                         </button>
                     </div>
-                    
+
                     <div class="w-px h-4 bg-white/20 mx-1"></div>
 
-                    <button class="lyric-tab-btn active px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-original" data-mode="original">Original</button>
-                    <button class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-translation" data-mode="translation">Tradução</button>
-                    <button class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
-                    
+                    <button
+                        class="lyric-tab-btn active px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
+                        id="btn-tab-original" data-mode="original">Original</button>
+                    <button
+                        class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
+                        id="btn-tab-translation" data-mode="translation">Tradução</button>
+                    <button
+                        class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
+                        id="btn-tab-romanized" data-mode="romanized">Romanização</button>
+
                     <!-- Divisor Visual Opcional para os Controles -->
                     <div class="w-px h-4 bg-white/20 mx-2 hidden md:block"></div>
-                    
+
                     <!-- Sync Adjust Controls acoplados aos botões de tabs -->
                     <div class="flex items-center space-x-1 px-2" id="sync-controls-group">
-                        <button id="btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
-                        <span id="sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
-                        <button id="btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
-                        <button id="btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center ml-0.5" title="Resetar sincronização">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <button id="btn-sync-down"
+                            class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold"
+                            title="Atrasar letras">-</button>
+                        <span id="sync-offset-display"
+                            class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
+                        <button id="btn-sync-up"
+                            class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold"
+                            title="Adiantar letras">+</button>
+                        <button id="btn-sync-reset"
+                            class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center ml-0.5"
+                            title="Resetar sincronização">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                </path>
+                            </svg>
                         </button>
                         <!-- Divisor -->
                         <div class="w-px h-4 bg-white/20 mx-1"></div>
-                        <div class="flex items-center space-x-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                        <!-- Botão Picture-in-Picture -->
-                        <button id="btn-pip-top" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
-                            </svg>
-                        </button>
-                        <button id="btn-fullscreen-top" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center" title="Tela Cheia">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
-                        </button>
+                        <div
+                            class="flex items-center space-x-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <!-- Botão Picture-in-Picture -->
+                            <button id="btn-pip-top"
+                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden flex items-center justify-center"
+                                title="Picture-in-Picture">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
+                                </svg>
+                            </button>
+                            <button id="btn-fullscreen-top"
+                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center"
+                                title="Tela Cheia">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Área das Letras Sincronizadas -->
-            <div id="lyrics-container" class="lyrics-container flex-1 overflow-y-auto custom-scrollbar flex flex-col space-y-3 px-2">
+            <div id="lyrics-container"
+                class="lyrics-container flex-1 flex flex-col space-y-3 px-2">
                 <!-- Injetado dinamicamente via app.js -->
             </div>
 
             <!-- Wrapper de Controles Flutuantes (Menu de Opções + Botão de Sincronizar) -->
-            <div id="floating-controls-wrapper" class="hidden fixed z-40 pointer-events-none opacity-0 transition-opacity duration-300">
+            <div id="floating-controls-wrapper"
+                class="hidden fixed z-40 pointer-events-none opacity-0 transition-opacity duration-300">
                 <div id="floating-lyrics-menu" class="flex items-center relative pointer-events-auto h-10">
                     <!-- Botão de Gatilho (Seta) -->
-                    <button id="btn-floating-toggle" class="hidden opacity-0 scale-95 w-10 h-10 overflow-hidden rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20" title="Opções das Letras">
-                        <svg id="floating-toggle-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <button id="btn-floating-toggle"
+                        class="hidden opacity-0 scale-95 w-10 h-10 overflow-hidden rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20"
+                        title="Opções das Letras">
+                        <svg id="floating-toggle-icon" class="w-5 h-5" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
-                    
+
                     <!-- Itens do Menu (Expandíveis/Gaveta) -->
-                    <div id="floating-menu-content" class="flex items-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full shadow-2xl transition-all duration-300 pointer-events-auto h-10 space-x-2">
+                    <div id="floating-menu-content"
+                        class="flex items-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full shadow-2xl transition-all duration-300 pointer-events-auto h-10 space-x-2">
                         <!-- Media Controls Flutuante -->
                         <div class="flex items-center space-x-1 pl-2">
-                            <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z"/></svg>
+                            <button id="btn-floating-prev"
+                                class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                                title="Anterior">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" />
+                                </svg>
                             </button>
-                            <button id="btn-floating-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
-                                <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                <svg id="icon-floating-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            <button id="btn-floating-playpause"
+                                class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                                title="Play/Pause">
+                                <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                                <svg id="icon-floating-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                </svg>
                             </button>
-                            <button id="btn-floating-next" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Próxima">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z"/></svg>
+                            <button id="btn-floating-next"
+                                class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                                title="Próxima">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z" />
+                                </svg>
                             </button>
                         </div>
-                        
+
                         <div class="h-4 w-px bg-white/20"></div>
 
                         <!-- Tabs Flutuantes -->
-                        <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
-                        <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
-                        <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
-                        
+                        <button
+                            class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active"
+                            id="btn-floating-tab-original" data-mode="original">Original</button>
+                        <button
+                            class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap"
+                            id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
+                        <button
+                            class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap"
+                            id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
+
                         <div class="h-4 w-px bg-white/20"></div>
-                        
+
                         <!-- Reiniciar Música -->
-                        <button id="btn-floating-restart" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Reiniciar Música">
+                        <button id="btn-floating-restart"
+                            class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                            title="Reiniciar Música">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                             </svg>
                         </button>
-                        
+
                         <!-- Picture-in-Picture Flutuante -->
-                        <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture">
+                        <button id="btn-floating-pip"
+                            class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center"
+                            title="Picture-in-Picture">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
                             </svg>
                         </button>
 
                         <!-- Tela Cheia (Reposicionado) -->
-                        <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
+                        <button id="btn-fullscreen"
+                            class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center"
+                            title="Tela Cheia">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
                             </svg>
                         </button>
                     </div>
                 </div>
 
                 <!-- Botão Flutuante de Sincronizar (Auto-Scroll) -->
-                <button id="btn-recenter" class="hidden bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white px-5 h-10 rounded-full transition-all duration-300 ease-out shadow-2xl space-x-2 pointer-events-auto opacity-0 scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <button id="btn-recenter"
+                    class="hidden bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white px-5 h-10 rounded-full transition-all duration-300 ease-out shadow-2xl space-x-2 pointer-events-auto opacity-0 scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
                 </button>
@@ -205,32 +312,41 @@
 
             <!-- Player Progress Bar Minimalista -->
             <div class="w-full bg-white/10 h-[3px] rounded-full overflow-hidden mt-6 mb-2">
-                <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-emerald-500 h-full w-0 transition-all duration-300 ease-out"></div>
+                <div id="progress-bar"
+                    class="bg-gradient-to-r from-green-400 to-emerald-500 h-full w-0 transition-all duration-300 ease-out">
+                </div>
             </div>
         </section>
 
         <!-- TELA 3: ESTADO OCIOOSO / FALLBACK (ESPERANDO PLAY) -->
         <section id="screen-idle" class="hidden flex-1 flex flex-col justify-center items-center text-center my-auto">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div
+                class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            
+
             <h2 class="text-2xl font-bold tracking-tight mb-3">Aguardando reprodução...</h2>
             <p class="text-white/50 text-base max-w-md font-light leading-relaxed">
-                Nenhuma música está tocando no Spotify no momento. 
-                Dê o play no aplicativo do Spotify (celular, computador ou TV) para que as letras apareçam automaticamente aqui.
+                Nenhuma música está tocando no Spotify no momento.
+                Dê o play no aplicativo do Spotify (celular, computador ou TV) para que as letras apareçam
+                automaticamente aqui.
             </p>
         </section>
 
         <!-- Footer -->
         <footer class="text-center text-white/30 text-xs py-6 flex flex-col items-center justify-center space-y-3">
             <div class="flex items-center space-x-3">
-                <a href="https://github.com/disoliveiradso/LySinc" target="_blank" class="hover:text-white transition-colors flex items-center space-x-1.5" title="Repositório LySinc">
+                <a href="https://github.com/disoliveiradso/LySinc" target="_blank"
+                    class="hover:text-white transition-colors flex items-center space-x-1.5" title="Repositório LySinc">
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z" />
                     </svg>
                     <span>Repositório</span>
                 </a>
@@ -241,81 +357,108 @@
     </main>
 
     <!-- MODAL DE CONFIGURAÇÃO (CLIENT ID) -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden py-4">
-            
+    <div id="settings-modal"
+        class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div
+            class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden py-4">
+
             <!-- Fechar Modal -->
-            <button id="btn-settings-close" class="absolute top-5 right-5 z-10 text-white/50 hover:text-white transition-colors bg-black/20 rounded-full p-1 backdrop-blur-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button id="btn-settings-close"
+                class="absolute top-5 right-5 z-10 text-white/50 hover:text-white transition-colors bg-black/20 rounded-full p-1 backdrop-blur-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
 
             <div class="flex-1 min-h-0 w-full overflow-y-auto custom-scrollbar px-6 md:px-8">
                 <h3 class="text-2xl font-bold tracking-tight mb-2 mt-2">Configurar Spotify API</h3>
-            <p class="text-white/60 text-sm mb-6">Para conectar ao Spotify, você precisa fornecer o seu próprio <strong>Client ID</strong> de desenvolvedor.</p>
+                <p class="text-white/60 text-sm mb-6">Para conectar ao Spotify, você precisa fornecer o seu próprio
+                    <strong>Client ID</strong> de desenvolvedor.</p>
 
-            <!-- Campo Client ID -->
-            <div class="space-y-2 mb-6">
-                <label for="input-client-id" class="text-sm font-semibold text-white/80">Spotify Client ID</label>
-                <input id="input-client-id" type="text" placeholder="Cole o seu Client ID aqui" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors">
-            </div>
+                <!-- Campo Client ID -->
+                <div class="space-y-2 mb-6">
+                    <label for="input-client-id" class="text-sm font-semibold text-white/80">Spotify Client ID</label>
+                    <input id="input-client-id" type="text" placeholder="Cole o seu Client ID aqui"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors">
+                </div>
 
-            <!-- Tutorial de Configuração -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2.5 mb-4 text-white/70">
-                <p class="font-semibold text-white">Como obter e configurar seu Client ID:</p>
-                <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
-                    <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-emerald-400 hover:underline">Spotify Developer Dashboard</a> e faça login.</li>
-                    <li>Clique em <strong>Create app</strong>.</li>
-                    <li>Defina um nome e descrição de sua escolha.</li>
-                    <li>No campo <strong>Redirect URIs</strong>, adicione exatamente o seguinte endereço:
-                        <code class="block bg-black/50 p-1.5 rounded mt-1 select-all text-emerald-300 font-mono text-[10px]" id="current-uri-label">Carregando endereço...</code>
-                    </li>
-                    <li>Marque as caixas de termos e clique em <strong>Save</strong>.</li>
-                    <li>Vá em <strong>Settings</strong> do seu aplicativo no Spotify, copie o <strong>Client ID</strong> e cole no campo acima.</li>
-                </ol>
-            </div>
+                <!-- Tutorial de Configuração -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2.5 mb-4 text-white/70">
+                    <p class="font-semibold text-white">Como obter e configurar seu Client ID:</p>
+                    <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
+                        <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank"
+                                class="text-emerald-400 hover:underline">Spotify Developer Dashboard</a> e faça login.
+                        </li>
+                        <li>Clique em <strong>Create app</strong>.</li>
+                        <li>Defina um nome e descrição de sua escolha.</li>
+                        <li>No campo <strong>Redirect URIs</strong>, adicione exatamente o seguinte endereço:
+                            <code
+                                class="block bg-black/50 p-1.5 rounded mt-1 select-all text-emerald-300 font-mono text-[10px]"
+                                id="current-uri-label">Carregando endereço...</code>
+                        </li>
+                        <li>Marque as caixas de termos e clique em <strong>Save</strong>.</li>
+                        <li>Vá em <strong>Settings</strong> do seu aplicativo no Spotify, copie o <strong>Client
+                                ID</strong> e cole no campo acima.</li>
+                    </ol>
+                </div>
 
-            <!-- Como remover permissões do Spotify -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6 text-white/70">
-                <p class="font-semibold text-white">Como desassociar este site da sua conta Spotify:</p>
-                <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
-                    <li>Acesse a página de aplicativos da sua conta do Spotify: <a href="https://www.spotify.com/account/apps/" target="_blank" class="text-emerald-400 hover:underline">Spotify Apps</a>.</li>
-                    <li>Localize o aplicativo que você criou (ou o padrão "LySinc") e clique em <strong>Remover acesso</strong>.</li>
-                </ol>
-                <p class="text-[10px] text-white/40 mt-2">Isso revoga a autorização do site de acessar seu player em tempo real.</p>
-            </div>
+                <!-- Como remover permissões do Spotify -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6 text-white/70">
+                    <p class="font-semibold text-white">Como desassociar este site da sua conta Spotify:</p>
+                    <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
+                        <li>Acesse a página de aplicativos da sua conta do Spotify: <a
+                                href="https://www.spotify.com/account/apps/" target="_blank"
+                                class="text-emerald-400 hover:underline">Spotify Apps</a>.</li>
+                        <li>Localize o aplicativo que você criou (ou o padrão "LySinc") e clique em <strong>Remover
+                                acesso</strong>.</li>
+                    </ol>
+                    <p class="text-[10px] text-white/40 mt-2">Isso revoga a autorização do site de acessar seu player em
+                        tempo real.</p>
+                </div>
 
-            <!-- Informação sobre Engasgo -->
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6 text-white/70">
-                <p class="font-semibold text-white">Sobre o "engasgo" no início das músicas:</p>
-                <p class="leading-relaxed">Você pode notar uma breve pausa ou engasgo de áudio assim que uma música começa a tocar. Esse comportamento <strong>é intencional e essencial</strong> para o funcionamento do LySinc. Ele força a sincronização exata do player no Spotify para garantir que as letras fiquem perfeitamente alinhadas com a música, impedindo qualquer atraso ou dessincronização ao longo da reprodução.</p>
-            </div>
+                <!-- Informação sobre Engasgo -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6 text-white/70">
+                    <p class="font-semibold text-white">Sobre o "engasgo" no início das músicas:</p>
+                    <p class="leading-relaxed">Você pode notar uma breve pausa ou engasgo de áudio assim que uma música
+                        começa a tocar. Esse comportamento <strong>é intencional e essencial</strong> para o
+                        funcionamento do LySinc. Ele força a sincronização exata do player no Spotify para garantir que
+                        as letras fiquem perfeitamente alinhadas com a música, impedindo qualquer atraso ou
+                        dessincronização ao longo da reprodução.</p>
+                </div>
 
-            <!-- Botões de Ação -->
-            <div class="flex flex-col space-y-3">
-                <button id="btn-save-settings" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
-                    Salvar Configurações
-                </button>
-            </div>
+                <!-- Botões de Ação -->
+                <div class="flex flex-col space-y-3">
+                    <button id="btn-save-settings"
+                        class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
+                        Salvar Configurações
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Container de Notificações Pop-up (Toasts) -->
-    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col space-y-3 pointer-events-none max-w-sm w-full px-4 md:px-0"></div>
+    <div id="toast-container"
+        class="fixed top-6 right-6 z-[100] flex flex-col space-y-3 pointer-events-none max-w-sm w-full px-4 md:px-0">
+    </div>
 
     <!-- MODAL DE CONFIRMAÇÃO DE LOGOUT -->
-    <div id="confirm-logout-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl text-center">
+    <div id="confirm-logout-modal"
+        class="fixed inset-0 bg-black/85 backdrop-blur-md z-[60] hidden items-center justify-center p-4">
+        <div
+            class="glass-panel w-full max-w-sm rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl text-center">
             <h3 class="text-xl font-bold tracking-tight mb-3">Sair da Sessão</h3>
-            <p class="text-white/60 text-sm mb-8 leading-relaxed">Tem certeza que deseja sair e remover seus dados locais de login do Spotify?</p>
-            
+            <p class="text-white/60 text-sm mb-8 leading-relaxed">Tem certeza que deseja sair e remover seus dados
+                locais de login do Spotify?</p>
+
             <div class="flex space-x-3 w-full">
-                <button id="btn-cancel-logout" class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 hover:text-white transition-all">
+                <button id="btn-cancel-logout"
+                    class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 hover:text-white transition-all">
                     Cancelar
                 </button>
-                <button id="btn-confirm-logout" class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all">
+                <button id="btn-confirm-logout"
+                    class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all">
                     Sim, Sair
                 </button>
             </div>
@@ -333,4 +476,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -115,20 +115,11 @@ class LySincApp {
     }
 
     getScrollY() {
-        if (this.pipWindow) {
-            const pipMain = this.pipWindow.document.querySelector('main');
-            return pipMain ? pipMain.scrollTop : 0;
-        }
-        return window.scrollY;
+        return (this.pipWindow || window).scrollY;
     }
 
     scrollToPosition(y) {
-        if (this.pipWindow) {
-            const pipMain = this.pipWindow.document.querySelector('main');
-            if (pipMain) pipMain.scrollTo(0, y);
-        } else {
-            window.scrollTo(0, y);
-        }
+        (this.pipWindow || window).scrollTo(0, y);
     }
 
     async init() {
@@ -735,7 +726,7 @@ class LySincApp {
                     
                     // Wrapper para simular o main e alinhar as letras centralizadas
                     const pipMain = document.createElement('main');
-                    pipMain.className = 'flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-8 relative z-10 h-screen overflow-y-auto custom-scrollbar';
+                    pipMain.className = 'flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-8 relative z-10';
                     
                     const placeholder = document.createElement('div');
                     placeholder.id = 'pip-placeholder';
@@ -760,7 +751,12 @@ class LySincApp {
                     pipWindow.document.body.appendChild(btnRecenterClone);
 
                     let pipScrollTimeout;
-                    pipMain.addEventListener('scroll', () => {
+                    pipWindow.addEventListener('scroll', () => {
+                        // Ignora evento se for scroll automático
+                        if (Date.now() - this.lastAutoScrollTime < 800) {
+                            return;
+                        }
+
                         this.isUserInteracting = true;
                         if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                         btnRecenterClone.classList.remove('hidden');
