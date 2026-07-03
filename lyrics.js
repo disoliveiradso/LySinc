@@ -905,8 +905,8 @@ const LyricsService = {
   getRankForCollected(sourceLabel, parsedLines) {
     const lower = sourceLabel.toLowerCase();
     
-    // Check if Syllable/Word sync (more than 1 word per line)
-    const hasWordSync = parsedLines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1);
+    // Check if Syllable/Word sync (alguma linha confirmada como word-sync)
+    const hasWordSync = parsedLines.some(line => line.isWordSynced);
     
     // Check if totally unsynced (all timestamps are 0)
     const isUnsynced = parsedLines.length > 0 && parsedLines.every(line => line.timestamp === 0 && line.endtime === 0);
@@ -952,11 +952,18 @@ const LyricsService = {
   },
 
   mergeAndSortSources(collectedSources) {
+    // 1) Ordena por qualidade (Word-Sync primeiro) ANTES de deduplicar,
+    // para garantir que a melhor versão do provedor não seja descartada.
+    const sortedAll = collectedSources.sort(
+      (a, b) => this.getRankForCollected(a.source, a.lines) - this.getRankForCollected(b.source, b.lines)
+    );
+
     const uniqueSourcesMap = new Map();
 
-    for (const source of collectedSources) {
+    for (const source of sortedAll) {
       const normalizedSource = source.source.toLowerCase().includes('lyricsplus') ? 'QQ' : source.source;
 
+      // Como já está ordenado, o primeiro que bater aqui é o melhor daquele provedor
       if (!uniqueSourcesMap.has(normalizedSource)) {
         uniqueSourcesMap.set(normalizedSource, {
           ...source,
@@ -965,9 +972,7 @@ const LyricsService = {
       }
     }
 
-    return Array.from(uniqueSourcesMap.values()).sort(
-      (a, b) => this.getRankForCollected(a.source, a.lines) - this.getRankForCollected(b.source, b.lines)
-    );
+    return Array.from(uniqueSourcesMap.values());
   },
 
   async fetchLyricsFromYouLyPlus(title, artist, isrc, metadata = {}) {
