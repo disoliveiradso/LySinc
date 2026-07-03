@@ -83,6 +83,22 @@
             <div id="lyrics-top-menu" class="hidden flex-col md:flex-row items-start md:items-center justify-between mb-4 mt-2 px-2 gap-3 transition-opacity duration-300">
                 <!-- Seletor de Idiomas -->
                 <div class="lyrics-tabs flex items-center bg-white/5 rounded-full p-1 border border-white/10" id="lyrics-tabs-container">
+                    <!-- Media Controls (Top Menu) -->
+                    <div class="flex items-center space-x-1 pl-2 pr-1" id="top-media-controls">
+                        <button id="btn-top-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z"/></svg>
+                        </button>
+                        <button id="btn-top-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
+                            <svg id="icon-top-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="icon-top-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <button id="btn-top-next" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Próxima">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z"/></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="w-px h-4 bg-white/20 mx-1"></div>
+
                     <button class="lyric-tab-btn active px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-original" data-mode="original">Original</button>
                     <button class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-translation" data-mode="translation">Tradução</button>
                     <button class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium" id="btn-tab-romanized" data-mode="romanized">Romanização</button>
@@ -125,6 +141,22 @@
                     
                     <!-- Itens do Menu (Expandíveis/Gaveta) -->
                     <div id="floating-menu-content" class="flex items-center bg-white/10 backdrop-blur-md border border-white/15 rounded-full shadow-2xl transition-all duration-300 pointer-events-auto h-10 space-x-2">
+                        <!-- Media Controls Flutuante -->
+                        <div class="flex items-center space-x-1 pl-2">
+                            <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z"/></svg>
+                            </button>
+                            <button id="btn-floating-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
+                                <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <svg id="icon-floating-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </button>
+                            <button id="btn-floating-next" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Próxima">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z"/></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="h-4 w-px bg-white/20"></div>
+
                         <!-- Tabs Flutuantes -->
                         <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
                         <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>

@@ -21,6 +21,24 @@ class LySincApp {
         this.progressBar = document.getElementById('progress-bar');
         
         // Elementos DOM de Configuração / Modais
+        this.btnDemoMode = document.getElementById('btn-demo-mode');
+        this.demoContainer = document.getElementById('demo-container');
+
+        // Controles de Mídia
+        this.btnTopPrev = document.getElementById('btn-top-prev');
+        this.btnTopPlayPause = document.getElementById('btn-top-playpause');
+        this.btnTopNext = document.getElementById('btn-top-next');
+        
+        this.btnFloatingPrev = document.getElementById('btn-floating-prev');
+        this.btnFloatingPlayPause = document.getElementById('btn-floating-playpause');
+        this.btnFloatingNext = document.getElementById('btn-floating-next');
+
+        // Icons
+        this.iconTopPlay = document.getElementById('icon-top-play');
+        this.iconTopPause = document.getElementById('icon-top-pause');
+        this.iconFloatingPlay = document.getElementById('icon-floating-play');
+        this.iconFloatingPause = document.getElementById('icon-floating-pause');
+
         this.btnConnect = document.getElementById('btn-connect');
         this.btnRecenter = document.getElementById('btn-recenter');
         this.btnLogout = document.getElementById('btn-logout');
@@ -521,6 +539,33 @@ class LySincApp {
                 }
             }
         });
+
+        // Eventos de Mídia (Spotify)
+        const setupMediaEvent = (btn, action) => {
+            if (btn) {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (action === 'prev') await SpotifyService.previousTrack();
+                    if (action === 'next') await SpotifyService.nextTrack();
+                    if (action === 'playpause') {
+                        if (this.isPlaying) {
+                            await SpotifyService.pauseTrack();
+                        } else {
+                            await SpotifyService.playTrack();
+                        }
+                    }
+                    // Força polling imediato para refletir estado
+                    setTimeout(() => this.pollPlayerState(), 200);
+                });
+            }
+        };
+
+        setupMediaEvent(this.btnTopPrev, 'prev');
+        setupMediaEvent(this.btnFloatingPrev, 'prev');
+        setupMediaEvent(this.btnTopNext, 'next');
+        setupMediaEvent(this.btnFloatingNext, 'next');
+        setupMediaEvent(this.btnTopPlayPause, 'playpause');
+        setupMediaEvent(this.btnFloatingPlayPause, 'playpause');
     }
 
     adjustSyncOffset(ms, reset = false) {
@@ -641,6 +686,19 @@ class LySincApp {
 
         this.isPlaying = state.isPlaying;
         this.durationMs = state.durationMs;
+
+        // Atualiza os ícones de Play/Pause
+        if (this.isPlaying) {
+            if (this.iconTopPlay) this.iconTopPlay.classList.add('hidden');
+            if (this.iconTopPause) this.iconTopPause.classList.remove('hidden');
+            if (this.iconFloatingPlay) this.iconFloatingPlay.classList.add('hidden');
+            if (this.iconFloatingPause) this.iconFloatingPause.classList.remove('hidden');
+        } else {
+            if (this.iconTopPlay) this.iconTopPlay.classList.remove('hidden');
+            if (this.iconTopPause) this.iconTopPause.classList.add('hidden');
+            if (this.iconFloatingPlay) this.iconFloatingPlay.classList.remove('hidden');
+            if (this.iconFloatingPause) this.iconFloatingPause.classList.add('hidden');
+        }
 
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {

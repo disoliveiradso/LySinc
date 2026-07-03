@@ -266,6 +266,48 @@ const SpotifyService = {
         }
     },
 
+    // Volta para a música anterior manualmente
+    async previousTrack() {
+        const token = await this.getValidToken();
+        if (!token) return;
+        try {
+            await fetch('https://api.spotify.com/v1/me/player/previous', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Erro ao voltar música:', error);
+        }
+    },
+
+    // Inicia a reprodução
+    async playTrack() {
+        const token = await this.getValidToken();
+        if (!token) return;
+        try {
+            await fetch('https://api.spotify.com/v1/me/player/play', {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Erro ao dar play:', error);
+        }
+    },
+
+    // Pausa a reprodução
+    async pauseTrack() {
+        const token = await this.getValidToken();
+        if (!token) return;
+        try {
+            await fetch('https://api.spotify.com/v1/me/player/pause', {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Erro ao pausar:', error);
+        }
+    },
+
     // Busca as imagens de perfil para uma lista de IDs de artistas
     async getArtistsImages(artistIds) {
         if (!artistIds || artistIds.length === 0) return {};
