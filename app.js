@@ -932,6 +932,7 @@ class LySincApp {
 
         // Ativa o auto-scroll: desativa a interação manual e esconde o botão de sincronizar
         this.isUserInteracting = false;
+        this.lastAutoScrollTime = Date.now(); // Impede que o re-render ative o user-scrolling indevidamente
         if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
         if (this.btnRecenter) {
             this.btnRecenter.classList.remove('opacity-100', 'scale-100');
@@ -1280,30 +1281,29 @@ class LySincApp {
 
             // Listener de troca de provedor
             btnChangeSource.addEventListener('click', () => {
-                    // Providers conhecidos no backend
-                    const providers = ['Musixmatch', 'LRCLIB', 'Apple Music', 'NetEase'];
-                    let currentIdx = providers.indexOf(this.currentLyricsProvider || 'Musixmatch');
-                    if (currentIdx === -1) currentIdx = 0;
-                    const nextIdx = (currentIdx + 1) % providers.length;
-                    
-                    this.currentLyricsProvider = providers[nextIdx];
-                    this.showToast(`Buscando letras em: ${this.currentLyricsProvider}...`, 'info');
-                    
-                    this.userForcedProvider = true;
+                if (!this.lyricsData || !this.lyricsData.availableSources || this.lyricsData.availableSources.length <= 1) {
+                    this.showToast('Nenhuma outra fonte disponível para esta música.', 'info');
+                    return;
+                }
 
-                    this.durationMs = this.durationMs;
-                    this.currentIsrc = this.currentIsrc;
-
-                    // Força carregamento
-                    this.loadLyricsForTrack({
-                        trackName: this.trackName.textContent,
-                        artists: this.trackArtists.textContent,
-                        albumName: '', 
-                        durationMs: this.durationMs,
-                        trackId: this.currentTrackId,
-                        isrc: this.currentIsrc
-                    });
-                });
+                const available = this.lyricsData.availableSources.map(s => s.source);
+                let currentIdx = available.indexOf(this.lyricsData.source);
+                if (currentIdx === -1) currentIdx = 0;
+                
+                const nextIdx = (currentIdx + 1) % available.length;
+                const nextSource = this.lyricsData.availableSources[nextIdx];
+                
+                // Em vez de buscar na API novamente, apenas troca para a alternativa já salva na memória
+                this.lyricsData.original = nextSource.lines;
+                this.lyricsData.source = nextSource.source;
+                this.currentLyricsProvider = nextSource.source;
+                this.userForcedProvider = true;
+                
+                this.showToast(`Fonte alterada para: ${nextSource.source}`, 'success');
+                
+                // Re-aplica o modo e renderiza
+                this.applyLyricsMode(this.currentLyricsMode);
+            });
         }
         
         if (keepScroll) {
