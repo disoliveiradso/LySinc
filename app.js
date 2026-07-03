@@ -397,6 +397,10 @@ class LySincApp {
         const handleUserInteraction = () => {
             if (!this.isUserInteracting && this.lyrics.length > 0) {
                 this.isUserInteracting = true;
+                
+                // Cancela qualquer timeout pendente que iria esconder o botão indevidamente
+                if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
+                
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                 // Mostra botão de Sincronizar usando classes Tailwind
                 this.btnRecenter.classList.remove('hidden');
@@ -413,7 +417,9 @@ class LySincApp {
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
             this.btnRecenter.classList.remove('opacity-100', 'scale-100');
             this.btnRecenter.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => {
+            
+            if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
+            this.btnRecenterTimeoutId = setTimeout(() => {
                 this.btnRecenter.classList.add('hidden');
             }, 500);
             
@@ -1513,6 +1519,9 @@ class LySincApp {
 
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
+            // Previne que o botão seja escondido se estivermos no processo de exibi-lo
+            if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
+
             if (btnFloatingToggle && btnFloatingToggle.classList.contains('hidden')) {
                 btnFloatingToggle.classList.remove('hidden');
                 
@@ -1542,7 +1551,9 @@ class LySincApp {
                     this.btnRecenter.classList.remove('translate-x-0');
                     this.btnRecenter.classList.add('-translate-x-[52px]');
                 }
-                setTimeout(() => {
+                
+                if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
+                this.floatingMenuTimeoutId = setTimeout(() => {
                     // Confirma se ainda está oculto após a animação de 500ms antes de ocultar do DOM
                     const currentRect = topMenu.getBoundingClientRect();
                     if (currentRect.bottom >= 0) {
