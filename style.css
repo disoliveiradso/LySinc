@@ -121,12 +121,14 @@ body, html {
     align-items: flex-start;
     word-break: keep-all;
     overflow-wrap: break-word;
+    
+    /* Tamanho de fonte base unificado para garantir que a quebra de linha seja idêntica entre estados */
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
 }
 
 /* Estado Inativo da Linha (Letras futuras) */
 .lyric-line.inactive {
     color: rgba(255, 255, 255, 0.45);
-    font-size: clamp(1.4rem, 3.5vw, 2.5rem);
     transform: scale3d(0.72, 0.72, 1) translateY(0);
     filter: none;
     opacity: 0.6;
@@ -180,7 +182,6 @@ body, html {
 /* Estado Ativo da Linha (Escala total e foco nítido) */
 .lyric-line.active {
     color: #ffffff;
-    font-size: clamp(1.8rem, 4vw, 2.8rem);
     transform: scale3d(1.001, 1.001, 1);
     filter: none;
     opacity: 1;
@@ -625,14 +626,9 @@ input:focus {
     padding-bottom: 0.25rem !important;
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;
-}
-
-.pip-mode .lyric-line.active {
+    
+    /* Tamanho de fonte base unificado no PiP */
     font-size: clamp(1.5rem, 5vw, 2.5rem) !important;
-}
-
-.pip-mode .lyric-line.inactive {
-    font-size: clamp(1.2rem, 4vw, 2rem) !important;
 }
 
 .pip-mode .lyrics-syllable.instrumental-icon {
