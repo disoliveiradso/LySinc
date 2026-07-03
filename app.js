@@ -610,12 +610,20 @@ class LySincApp {
 
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
+            const isAutoSkip = this.currentTrackId !== null && this.isPlaying;
             this.currentTrackId = stateTrackId;
             this.hasAutoSeekedToFirstLine = false; // Reset da flag de pular intro
             this.adjustSyncOffset(0, true);
             
             this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
+            
+            if (isAutoSkip) {
+                // Força o Spotify a esvaziar o buffer de crossfade enviando um comando de seek silencioso.
+                // Isso resolve a desincronização em que a API se dessincroniza do áudio real.
+                this.seekToTime(this.progressMs, true).catch(() => {});
+            }
+
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
         } else {
