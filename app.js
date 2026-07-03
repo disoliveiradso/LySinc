@@ -1477,8 +1477,9 @@ class LySincApp {
         const topMenu = document.getElementById('lyrics-top-menu');
         const floatingMenu = document.getElementById('floating-lyrics-menu');
         const wrapper = document.getElementById('floating-controls-wrapper');
+        const btnFloatingToggle = document.getElementById('btn-floating-toggle');
         
-        if (!topMenu || !floatingMenu || !wrapper) return;
+        if (!topMenu || !floatingMenu || !wrapper || !btnFloatingToggle) return;
 
         // Garante que o wrapper principal está sempre visível
         wrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
@@ -1495,22 +1496,22 @@ class LySincApp {
 
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
-            if (floatingMenu.classList.contains('hidden')) {
-                floatingMenu.classList.remove('hidden');
-                void floatingMenu.offsetWidth; // Força reflow para transição Tailwind rodar
-                floatingMenu.classList.remove('opacity-0', 'scale-95');
-                floatingMenu.classList.add('opacity-100', 'scale-100');
+            if (btnFloatingToggle && btnFloatingToggle.classList.contains('hidden')) {
+                btnFloatingToggle.classList.remove('hidden');
+                void btnFloatingToggle.offsetWidth; // Força reflow para transição Tailwind rodar
+                btnFloatingToggle.classList.remove('opacity-0', 'scale-95');
+                btnFloatingToggle.classList.add('opacity-100', 'scale-100');
             }
         } else {
-            if (!floatingMenu.classList.contains('hidden')) {
-                floatingMenu.classList.remove('opacity-100', 'scale-100');
-                floatingMenu.classList.add('opacity-0', 'scale-95');
-                this.toggleFloatingMenu(false);
+            if (btnFloatingToggle && !btnFloatingToggle.classList.contains('hidden')) {
+                btnFloatingToggle.classList.remove('opacity-100', 'scale-100');
+                btnFloatingToggle.classList.add('opacity-0', 'scale-95');
+                this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
                 setTimeout(() => {
                     // Confirma se ainda está oculto após a animação de 300ms antes de ocultar do DOM
                     const currentRect = topMenu.getBoundingClientRect();
                     if (currentRect.bottom >= 0) {
-                        floatingMenu.classList.add('hidden');
+                        btnFloatingToggle.classList.add('hidden');
                     }
                 }, 300);
             }
