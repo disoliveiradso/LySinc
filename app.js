@@ -491,7 +491,7 @@ class LySincApp {
                 if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
                 
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                if (this.btnRecenter && this.activeLineId !== null) {
+                if (this.btnRecenter && this.lyrics.length > 0) {
                     this.btnRecenter.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         this.btnRecenter.classList.remove('opacity-0', 'scale-95');
@@ -1188,7 +1188,7 @@ class LySincApp {
             btnScrollTop.addEventListener('click', () => {
                 this.isUserInteracting = true;
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                if (this.btnRecenter && this.activeLineId !== null) {
+                if (this.btnRecenter && this.lyrics.length > 0) {
                     this.btnRecenter.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         this.btnRecenter.classList.remove('opacity-0', 'scale-95');
