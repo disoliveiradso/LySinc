@@ -62,7 +62,11 @@ class LySincApp {
         this.btnFloatingToggle = document.getElementById('btn-floating-toggle');
         this.floatingMenuContent = document.getElementById('floating-menu-content');
         this.floatingToggleIcon = document.getElementById('floating-toggle-icon');
-        this.btnFloatingScrollTop = document.getElementById('btn-floating-scrollTop');
+        this.btnFloatingRestart = document.getElementById('btn-floating-restart');
+        
+        // Botões de PiP
+        this.btnPipTop = document.getElementById('btn-pip-top');
+        this.btnFloatingPip = document.getElementById('btn-floating-pip');
 
         // Offset Global
         this.syncOffset = 0;
@@ -629,6 +633,98 @@ class LySincApp {
         setupMediaEvent(this.btnFloatingNext, 'next');
         setupMediaEvent(this.btnTopPlayPause, 'playpause');
         setupMediaEvent(this.btnFloatingPlayPause, 'playpause');
+
+        // Botão de Reiniciar
+        if (this.btnFloatingRestart) {
+            this.btnFloatingRestart.addEventListener('click', async () => {
+                if (this.isPlaying || this.progressMs > 0) {
+                    await SpotifyService.seekToPosition(0);
+                    // Força polling imediato para refletir estado
+                    setTimeout(() => this.pollPlayerState(), 200);
+                }
+            });
+        }
+        
+        // Configuração de Picture-in-Picture (PiP)
+        this.setupPiP();
+    }
+
+    setupPiP() {
+        // Verifica se a API de Document PiP é suportada
+        if ('documentPictureInPicture' in window) {
+            if (this.btnPipTop) this.btnPipTop.classList.remove('hidden');
+            if (this.btnFloatingPip) this.btnFloatingPip.classList.remove('hidden');
+            
+            const handlePipClick = async () => {
+                try {
+                    // Se já estivermos no PiP e o usuário clicar de novo, não faz nada
+                    if (window.documentPictureInPicture.window) return;
+                    
+                    const pipWindow = await window.documentPictureInPicture.requestWindow({
+                        width: 400,
+                        height: 600,
+                    });
+                    
+                    // Copia folhas de estilo para a janela PiP
+                    [...document.styleSheets].forEach((styleSheet) => {
+                        try {
+                            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+                            const style = document.createElement('style');
+                            style.textContent = cssRules;
+                            pipWindow.document.head.appendChild(style);
+                        } catch (e) {
+                            const link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.type = styleSheet.type;
+                            link.media = styleSheet.media;
+                            link.href = styleSheet.href;
+                            pipWindow.document.head.appendChild(link);
+                        }
+                    });
+                    
+                    // Ajusta o corpo da janela PiP
+                    pipWindow.document.body.className = 'bg-black text-white h-screen flex flex-col overflow-hidden custom-scrollbar';
+                    
+                    // Movemos o container de letras para a janela PiP
+                    const originalContainer = document.getElementById('lyrics-container');
+                    const placeholder = document.createElement('div');
+                    placeholder.id = 'pip-placeholder';
+                    placeholder.className = 'flex-1 flex flex-col justify-center items-center text-white/50 text-center px-4';
+                    placeholder.innerHTML = `
+                        <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
+                        </svg>
+                        <h2 class="text-xl font-bold mb-2 text-white">Modo Picture-in-Picture ativo</h2>
+                        <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
+                        <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cá</button>
+                    `;
+                    
+                    originalContainer.parentNode.insertBefore(placeholder, originalContainer);
+                    pipWindow.document.body.appendChild(originalContainer);
+                    
+                    // Lógica para o botão de voltar na aba original
+                    placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
+                        pipWindow.close();
+                    });
+                    
+                    // Lógica para quando o PiP é fechado (pelo usuário na janelinha, ou pelo botão)
+                    pipWindow.addEventListener("pagehide", (event) => {
+                        placeholder.parentNode.insertBefore(originalContainer, placeholder);
+                        placeholder.remove();
+                    });
+                    
+                } catch (error) {
+                    console.error('Erro ao iniciar PiP:', error);
+                    this.showToast('Erro ao abrir Picture-in-Picture.', 'error');
+                }
+            };
+            
+            if (this.btnPipTop) this.btnPipTop.addEventListener('click', handlePipClick);
+            if (this.btnFloatingPip) this.btnFloatingPip.addEventListener('click', handlePipClick);
+        } else {
+            // Document PiP não suportado (ex: Firefox, Safari), mantemos botões ocultos
+            console.log('Document Picture-in-Picture não suportado pelo navegador.');
+        }
     }
 
     adjustSyncOffset(ms, reset = false) {

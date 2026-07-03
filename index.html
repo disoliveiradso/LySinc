@@ -116,7 +116,13 @@
                         </button>
                         <!-- Divisor -->
                         <div class="w-px h-4 bg-white/20 mx-1"></div>
-                        <!-- Tela Cheia (Barra Superior) -->
+                        <div class="flex items-center space-x-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <!-- Botão Picture-in-Picture -->
+                        <button id="btn-pip-top" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden items-center justify-center" title="Picture-in-Picture">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
+                            </svg>
+                        </button>
                         <button id="btn-fullscreen-top" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center" title="Tela Cheia">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
                         </button>
@@ -164,13 +170,20 @@
                         
                         <div class="h-4 w-px bg-white/20"></div>
                         
-                        <!-- Voltar ao Início -->
-                        <button id="btn-floating-scrollTop" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Voltar ao Início">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        <!-- Reiniciar Música -->
+                        <button id="btn-floating-restart" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Reiniciar Música">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                             </svg>
                         </button>
                         
+                        <!-- Picture-in-Picture Flutuante -->
+                        <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden items-center justify-center" title="Picture-in-Picture">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
+                            </svg>
+                        </button>
+
                         <!-- Tela Cheia (Reposicionado) -->
                         <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
