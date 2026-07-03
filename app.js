@@ -597,10 +597,10 @@ class LySincApp {
         const latencyCompensation = Date.now() - state.requestTime;
         const stateTrackId = state.trackId || (state.trackName + state.albumName);
 
-        // Se a música é nova ou tá no começo, ignora a compensação de latência
-        // Isso previne o "adiantamento" (aceleração artificial) das letras enquanto o Spotify carrega o buffer de áudio real
+        // Se a música é nova, está no começo ou ESTÁ PAUSADA, ignora a compensação de latência
+        // Isso previne o "adiantamento" (aceleração artificial) das letras enquanto o Spotify carrega ou está parado
         let safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
-        if (stateTrackId !== this.currentTrackId || state.progressMs < 2000) {
+        if (!state.isPlaying || stateTrackId !== this.currentTrackId || state.progressMs < 2000) {
             safeCompensation = 0;
         }
 
@@ -908,11 +908,11 @@ class LySincApp {
                 const alignRight = lastLine ? (lastLine.oppositeTurn || lastLine.alignment === 'end') : false;
                 result.push({
                     id: lines.length + 0.5,
-                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs - 500 }],
+                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs + 5000 }],
                     background: false,
                     backgroundText: [],
                     timestamp: lastEndtime + 500,
-                    endtime: this.durationMs - 500,
+                    endtime: this.durationMs + 5000,
                     isWordSynced: true,
                     alignment: alignRight ? 'end' : 'start',
                     oppositeTurn: alignRight
@@ -1501,12 +1501,18 @@ class LySincApp {
                 void btnFloatingToggle.offsetWidth; // Força reflow para transição Tailwind rodar
                 btnFloatingToggle.classList.remove('opacity-0', 'scale-95');
                 btnFloatingToggle.classList.add('opacity-100', 'scale-100');
+                if (this.btnRecenter) {
+                    this.btnRecenter.style.setProperty('--tw-translate-x', '0px');
+                }
             }
         } else {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('hidden')) {
                 btnFloatingToggle.classList.remove('opacity-100', 'scale-100');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95');
                 this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
+                if (this.btnRecenter) {
+                    this.btnRecenter.style.setProperty('--tw-translate-x', '-52px');
+                }
                 setTimeout(() => {
                     // Confirma se ainda está oculto após a animação de 300ms antes de ocultar do DOM
                     const currentRect = topMenu.getBoundingClientRect();
