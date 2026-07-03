@@ -231,8 +231,7 @@ const KPOE_SERVERS = [
   'https://lyricsplus.prjktla.workers.dev',
   'https://lyrics-plus-backend.vercel.app',
 ];
-const DEFAULT_KPOE_SOURCE_ORDER = 'apple,musixmatch,qq';
-const GENIUS_WORKER_URL = 'https://fetch-genius.samidy.workers.dev/';
+const UNISON_BASE_URL = 'https://unison.boidu.dev';
 const FETCH_TIMEOUT_MS = 8000;
 
 function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
@@ -387,51 +386,115 @@ const LyricsService = {
 
     const lines = [];
     const rawLines = lrc.split('\n');
+    const timeTagRegex = /\[(\d{1,3}):(\d{2})\.(\d{1,3})\]/;
+    const wordTagRegex = /<(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?>/g;
+    
     const parsed = [];
+    let isEnhanced = false;
 
     for (const raw of rawLines) {
-      const match = raw.match(/^\[(\d{1,3}):(\d{2})\.(\d{1,3})\]\s?(.*)$/);
+      const match = raw.match(timeTagRegex);
       if (!match) continue;
 
-      const minutes = parseInt(match[1], 10);
-      const seconds = parseInt(match[2], 10);
-      const fractionStr = match[3];
-      let ms = 0;
-      if (fractionStr.length === 1) {
-        ms = parseInt(fractionStr, 10) * 100;
-      } else if (fractionStr.length === 2) {
-        ms = parseInt(fractionStr, 10) * 10;
-      } else if (fractionStr.length === 3) {
-        ms = parseInt(fractionStr, 10);
+      const parseTime = (minutes, seconds, msStr) => {
+        let ms = 0;
+        if (msStr) {
+          if (msStr.length === 1) ms = parseInt(msStr, 10) * 100;
+          else if (msStr.length === 2) ms = parseInt(msStr, 10) * 10;
+          else ms = parseInt(msStr.substring(0, 3), 10);
+        }
+        return (parseInt(minutes, 10) * 60 + parseInt(seconds, 10)) * 1000 + ms;
+      };
+
+      const lineTime = parseTime(match[1], match[2], match[3]);
+      let content = raw.replace(timeTagRegex, '').trim();
+
+      const wordMatches = [...content.matchAll(wordTagRegex)];
+      let syllables = [];
+      
+      if (wordMatches.length > 0) {
+        isEnhanced = true;
+        let lastIndex = 0;
+        
+        wordMatches.forEach(wm => {
+          const wordTime = parseTime(wm[1], wm[2], wm[3]);
+          const preText = content.substring(lastIndex, wm.index);
+          
+          if (preText) {
+            syllables.push({ text: preText, time: 0, isTag: false });
+          }
+          syllables.push({ text: "", time: wordTime, isTag: true });
+          lastIndex = wm.index + wm[0].length;
+        });
+        
+        const tailText = content.substring(lastIndex);
+        if (tailText) {
+          syllables.push({ text: tailText, time: 0, isTag: false });
+        }
+
+        const refinedSyllables = [];
+        let currentWordTime = 0;
+
+        syllables.forEach(item => {
+          if (item.isTag) {
+            currentWordTime = item.time;
+          } else {
+            refinedSyllables.push({
+              text: item.text,
+              timestamp: currentWordTime,
+              duration: 0
+            });
+          }
+        });
+
+        syllables = refinedSyllables;
+        
+        if (syllables.length > 0 && syllables[0].timestamp === 0) {
+          syllables[0].timestamp = lineTime;
+        }
       }
-      const timestamp = (minutes * 60 + seconds) * 1000 + ms;
-      const text = match[4] || '';
-      parsed.push({ timestamp, text });
+
+      parsed.push({ timestamp: lineTime, text: content.replace(wordTagRegex, '').trim(), syllables });
     }
 
     for (let i = 0; i < parsed.length; i += 1) {
-      const { timestamp, text } = parsed[i];
-      const endtime = i + 1 < parsed.length ? parsed[i + 1].timestamp : timestamp + 5000;
+      const current = parsed[i];
+      const endtime = i + 1 < parsed.length ? parsed[i + 1].timestamp : current.timestamp + 5000;
 
-      if (!text.trim()) continue;
+      if (!current.text) continue;
 
-      const syllable = {
-        text,
-        part: false,
-        timestamp,
-        endtime,
-        lineSynced: true,
-      };
+      let finalSyllables = [];
+      if (isEnhanced && current.syllables.length > 0) {
+        for (let j = 0; j < current.syllables.length; j++) {
+          const syl = current.syllables[j];
+          const sylEndtime = j + 1 < current.syllables.length ? current.syllables[j+1].timestamp : endtime;
+          finalSyllables.push({
+            text: syl.text,
+            part: false,
+            timestamp: syl.timestamp,
+            endtime: sylEndtime,
+            lineSynced: false
+          });
+        }
+      } else {
+        finalSyllables = [{
+          text: current.text,
+          part: false,
+          timestamp: current.timestamp,
+          endtime: endtime,
+          lineSynced: true,
+        }];
+      }
 
       lines.push({
         id: i,
-        text: [syllable],
+        text: finalSyllables,
         background: false,
         backgroundText: [],
         oppositeTurn: false,
-        timestamp,
+        timestamp: current.timestamp,
         endtime,
-        isWordSynced: false,
+        isWordSynced: isEnhanced && current.syllables.length > 0,
       });
     }
 
@@ -1015,16 +1078,33 @@ const LyricsService = {
     if (!title || !artist) return null;
 
     try {
-      const searchQuery = `${artist} ${title}`;
-      const params = new URLSearchParams({ q: searchQuery });
-      const response = await fetchWithTimeout(`https://lrclib.net/api/search?${params.toString()}`);
+      const params = new URLSearchParams({
+        track_name: title,
+        artist_name: artist
+      });
+      if (metadata.album) params.append('album_name', metadata.album);
+      if (metadata.durationMs && metadata.durationMs > 0) {
+        params.append('duration', Math.round(metadata.durationMs / 1000).toString());
+      }
+      
+      let response = await fetchWithTimeout(`https://lrclib.net/api/get?${params.toString()}`);
+      let bestMatch = null;
 
-      if (!response.ok) return null;
-      const results = await response.json();
-      if (!Array.isArray(results) || results.length === 0) return null;
+      if (response.ok) {
+        bestMatch = await response.json();
+      } else {
+        // Fallback to search
+        const searchParams = new URLSearchParams({ q: `${artist} ${title}` });
+        const searchRes = await fetchWithTimeout(`https://lrclib.net/api/search?${searchParams.toString()}`);
+        if (searchRes.ok) {
+          const results = await searchRes.json();
+          if (Array.isArray(results) && results.length > 0) {
+            bestMatch = results.find(r => r.syncedLyrics && typeof r.syncedLyrics === 'string') || results[0];
+          }
+        }
+      }
 
-      const withSynced = results.find(r => r.syncedLyrics && typeof r.syncedLyrics === 'string');
-      const bestMatch = withSynced || results[0];
+      if (!bestMatch) return null;
 
       if (bestMatch.syncedLyrics) {
         const lines = this.parseLrcSubtitles(bestMatch.syncedLyrics);
@@ -1046,6 +1126,40 @@ const LyricsService = {
             isWordSynced: false,
           }));
           return { lines, source: 'LRCLIB (unsynced)' };
+        }
+      }
+    } catch {}
+    return null;
+  },
+
+  async fetchLyricsFromUnison(metadata) {
+    const title = metadata.title?.trim();
+    const artist = metadata.artist?.trim();
+    if (!title || !artist) return null;
+
+    try {
+      const params = new URLSearchParams({ song: title, artist });
+      if (metadata.album) params.append('album', metadata.album);
+      if (metadata.durationMs && metadata.durationMs > 0) {
+        params.append('duration', Math.round(metadata.durationMs / 1000).toString());
+      }
+
+      const response = await fetchWithTimeout(`${UNISON_BASE_URL}/lyrics?${params.toString()}`);
+      if (!response.ok) return null;
+      
+      const json = await response.json();
+      if (!json.success || !json.data || !json.data.lyrics) return null;
+
+      const format = (json.data.format || '').toLowerCase();
+      if (format === 'ttml') {
+        const lines = this.parseTTML(json.data.lyrics);
+        if (lines && lines.length > 0) {
+          return { lines, source: 'Unison (TTML)' };
+        }
+      } else if (format === 'lrc') {
+        const lines = this.parseLrcSubtitles(json.data.lyrics);
+        if (lines && lines.length > 0) {
+          return { lines, source: 'Unison (LRC)' };
         }
       }
     } catch {}
@@ -1098,13 +1212,24 @@ const LyricsService = {
       collectedSources.push(...youLyResults);
     }
 
-    // Prioriza busca palavra-por-palavra (ignora LRCLIB se já tivermos letras sincronizadas por palavra)
+    // 2. Busca do Unison se ainda não tiver word-sync
+    const hasWordSyncBini = collectedSources.some(src => 
+      src.lines && src.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
+    );
+
+    if (!hasWordSyncBini) {
+      const unisonResult = await this.fetchLyricsFromUnison(metadata);
+      if (unisonResult && unisonResult.lines.length > 0) {
+        collectedSources.push(unisonResult);
+      }
+    }
+
+    // 3. Busca do LRCLIB se não tivermos encontrado palavra-por-palavra no Bini e no Unison
     const hasWordSync = collectedSources.some(src => 
       src.lines && src.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
     );
 
     if (!hasWordSync) {
-      // 2. Só busca do LRCLIB (geralmente line-sync) se não tivermos encontrado palavra-por-palavra
       const lrclibResult = await this.fetchLyricsFromLrclib(metadata);
       if (lrclibResult && lrclibResult.lines.length > 0) {
         collectedSources.push(lrclibResult);

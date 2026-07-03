@@ -395,7 +395,7 @@ class LySincApp {
 
         // Detecção Fisiológica Dinâmica de Interação Manual do Usuário
         const handleUserInteraction = () => {
-            if (!this.isUserInteracting && this.activeLineId !== null) {
+            if (!this.isUserInteracting && this.lyrics.length > 0) {
                 this.isUserInteracting = true;
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                 // Mostra botão de Sincronizar usando classes Tailwind
@@ -422,6 +422,8 @@ class LySincApp {
                 if (activeEl) {
                     this.scrollToLine(activeEl);
                 }
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
 
@@ -597,10 +599,9 @@ class LySincApp {
         const latencyCompensation = Date.now() - state.requestTime;
         const stateTrackId = state.trackId || (state.trackName + state.albumName);
 
-        // Se a música é nova, está no começo ou ESTÁ PAUSADA, ignora a compensação de latência
-        // Isso previne o "adiantamento" (aceleração artificial) das letras enquanto o Spotify carrega ou está parado
+        // Se a música ESTÁ PAUSADA, ignora a compensação de latência
         let safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
-        if (!state.isPlaying || stateTrackId !== this.currentTrackId || state.progressMs < 2000) {
+        if (!state.isPlaying) {
             safeCompensation = 0;
         }
 
@@ -908,11 +909,11 @@ class LySincApp {
                 const alignRight = lastLine ? (lastLine.oppositeTurn || lastLine.alignment === 'end') : false;
                 result.push({
                     id: lines.length + 0.5,
-                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs + 5000 }],
+                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs }],
                     background: false,
                     backgroundText: [],
                     timestamp: lastEndtime + 500,
-                    endtime: this.durationMs + 5000,
+                    endtime: this.durationMs,
                     isWordSynced: true,
                     alignment: alignRight ? 'end' : 'start',
                     oppositeTurn: alignRight
@@ -1217,6 +1218,14 @@ class LySincApp {
                 
                 // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
                 this.updateLyricsSync(currentProgressMs);
+
+                // Antecipa o final da música para evitar desincronização ao pular faixa automaticamente
+                if (currentProgressMs >= this.durationMs && this.durationMs > 0 && !this.isWaitingForNextTrack) {
+                    this.isWaitingForNextTrack = true;
+                    this.pollPlayerState().finally(() => {
+                        setTimeout(() => { this.isWaitingForNextTrack = false; }, 3000);
+                    });
+                }
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };
@@ -1502,7 +1511,8 @@ class LySincApp {
                 btnFloatingToggle.classList.remove('opacity-0', 'scale-95');
                 btnFloatingToggle.classList.add('opacity-100', 'scale-100');
                 if (this.btnRecenter) {
-                    this.btnRecenter.style.setProperty('--tw-translate-x', '0px');
+                    this.btnRecenter.classList.remove('-translate-x-[52px]');
+                    this.btnRecenter.classList.add('translate-x-0');
                 }
             }
         } else {
@@ -1511,7 +1521,8 @@ class LySincApp {
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95');
                 this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
                 if (this.btnRecenter) {
-                    this.btnRecenter.style.setProperty('--tw-translate-x', '-52px');
+                    this.btnRecenter.classList.remove('translate-x-0');
+                    this.btnRecenter.classList.add('-translate-x-[52px]');
                 }
                 setTimeout(() => {
                     // Confirma se ainda está oculto após a animação de 300ms antes de ocultar do DOM
