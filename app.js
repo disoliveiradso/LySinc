@@ -462,6 +462,8 @@ class LySincApp {
         if (this.btnFloatingScrollTop) {
             this.btnFloatingScrollTop.addEventListener('click', () => {
                 this.isUserInteracting = true;
+                if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
+                
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
                 if (this.btnRecenter && this.activeLineId !== null) {
                     this.btnRecenter.classList.remove('hidden');
@@ -1546,9 +1548,6 @@ class LySincApp {
                 btnFloatingToggle.classList.remove('opacity-100', 'scale-100');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95');
                 this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
-                if (this.btnRecenter) {
-                    this.btnRecenter.style.transform = 'translateX(-52px)';
-                }
                 
                 if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
                 this.floatingMenuTimeoutId = setTimeout(() => {
@@ -1556,14 +1555,6 @@ class LySincApp {
                     const currentRect = topMenu.getBoundingClientRect();
                     if (currentRect.bottom >= 0) {
                         btnFloatingToggle.classList.add('hidden');
-                        
-                        // Reseta a posição do btnRecenter perfeitamente para evitar pulos
-                        if (this.btnRecenter) {
-                            this.btnRecenter.style.transition = 'none';
-                            this.btnRecenter.style.transform = '';
-                            void this.btnRecenter.offsetWidth;
-                            this.btnRecenter.style.transition = '';
-                        }
                     }
                 }, 500);
             }
