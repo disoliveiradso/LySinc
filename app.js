@@ -325,11 +325,16 @@ class LySincApp {
         const hideMousePointer = () => {
             if (document.fullscreenElement) {
                 document.body.style.cursor = 'none';
+                const floatingWrapper = document.getElementById('floating-controls-wrapper');
+                if (floatingWrapper) floatingWrapper.style.opacity = '0';
             }
         };
 
         const resetMousePointer = () => {
             document.body.style.cursor = 'default';
+            const floatingWrapper = document.getElementById('floating-controls-wrapper');
+            if (floatingWrapper) floatingWrapper.style.opacity = '1';
+            
             if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
             
             if (document.fullscreenElement) {
@@ -338,12 +343,70 @@ class LySincApp {
         };
 
         document.addEventListener('mousemove', resetMousePointer);
+        document.addEventListener('wheel', resetMousePointer, { passive: true });
+        document.addEventListener('touchmove', resetMousePointer, { passive: true });
         
+        const iconFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>`;
+        const iconExitFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25" /></svg>`;
+
         document.addEventListener('fullscreenchange', () => {
             resetMousePointer(); // Reseta imediatamente se entrou ou saiu do fullscreen
             if (!document.fullscreenElement) {
                 if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
                 document.body.style.cursor = 'default';
+                const floatingWrapper = document.getElementById('floating-controls-wrapper');
+                if (floatingWrapper) floatingWrapper.style.opacity = '1';
+                if (this.btnFullscreen) this.btnFullscreen.innerHTML = iconFullscreen;
+                if (this.btnFullscreenTop) this.btnFullscreenTop.innerHTML = iconFullscreen;
+            } else {
+                if (this.btnFullscreen) this.btnFullscreen.innerHTML = iconExitFullscreen;
+                if (this.btnFullscreenTop) this.btnFullscreenTop.innerHTML = iconExitFullscreen;
+            }
+        });
+        
+        // Setup de Tooltips Customizadas
+        const customTooltip = document.createElement('div');
+        customTooltip.id = 'custom-tooltip';
+        customTooltip.className = 'fixed pointer-events-none z-[100] opacity-0 transition-opacity duration-200 bg-[#121212] text-white/90 text-[11px] px-2.5 py-1.5 rounded-lg shadow-2xl border border-white/10 whitespace-nowrap font-medium';
+        document.body.appendChild(customTooltip);
+
+        let tooltipTarget = null;
+
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest('[title], [data-tooltip]');
+            if (target) {
+                if (target.hasAttribute('title')) {
+                    target.setAttribute('data-tooltip', target.getAttribute('title'));
+                    target.removeAttribute('title');
+                }
+                const text = target.getAttribute('data-tooltip');
+                if (text) {
+                    tooltipTarget = target;
+                    customTooltip.textContent = text;
+                    customTooltip.style.opacity = '1';
+                    
+                    const rect = target.getBoundingClientRect();
+                    const tooltipRect = customTooltip.getBoundingClientRect();
+                    let top = rect.top - tooltipRect.height - 8;
+                    let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    
+                    if (top < 0) top = rect.bottom + 8;
+                    if (left < 0) left = 8;
+                    if (left + tooltipRect.width > window.innerWidth) left = window.innerWidth - tooltipRect.width - 8;
+                    
+                    customTooltip.style.top = `${top}px`;
+                    customTooltip.style.left = `${left}px`;
+                }
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            if (tooltipTarget) {
+                const target = e.target.closest('[data-tooltip]');
+                if (target === tooltipTarget) {
+                    customTooltip.style.opacity = '0';
+                    tooltipTarget = null;
+                }
             }
         });
         
@@ -1595,9 +1658,12 @@ class LySincApp {
         
         if (!topMenu || !floatingMenu || !wrapper || !btnFloatingToggle) return;
 
-        // Garante que o wrapper principal está sempre visível
-        wrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-        wrapper.classList.add('opacity-100');
+        // Garante que o wrapper principal está sempre visível (a menos que o cursor esteja oculto)
+        if (document.body.style.cursor !== 'none') {
+            wrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            wrapper.classList.add('opacity-100');
+            wrapper.style.opacity = '1';
+        }
 
         const rect = topMenu.getBoundingClientRect();
         
