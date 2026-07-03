@@ -316,8 +316,14 @@ const LyricsService = {
   },
 
   async resolveSongMetadata(songTitle, songArtist, songAlbum, durationMs, musicId, isrc, query) {
+    // Limpa tags do Spotify ("- Radio Edit", "- Remastered", etc) que quebram as APIs de letras
+    const cleanTitle = (t) => {
+      if (!t) return '';
+      return t.replace(/\s*(?:-|\(|\[)(?:radio edit|remastered|remaster|radio cut|live|bonus track|feat\.|ft\.|with |version|edit|mix|remix|acoustic).*/i, '').trim();
+    };
+
     const metadata = {
-      title: songTitle?.trim() ?? '',
+      title: cleanTitle(songTitle),
       artist: songArtist?.trim() ?? '',
       album: songAlbum?.trim() || undefined,
       durationMs: undefined,

@@ -646,13 +646,15 @@ class LySincApp {
             const currentEstimatedTime = this.progressMs + elapsed + this.syncOffset;
             this.updateLyricsSync(currentEstimatedTime);
             
-            // Forçar ressincronização da API do Spotify
-            // Quando a faixa passa automaticamente, o Spotify às vezes desincroniza o player local.
-            // Simular um "seek" no primeiro segundo conserta as letras sem que o usuário perceba que houve um pulo.
-            if (this.isPlaying && currentEstimatedTime >= 1000 && currentEstimatedTime <= 2500 && !this.hasAutoSeekedToFirstLine) {
+            // Forçar ressincronização da API do Spotify simulando um clique na letra
+            // Executado apenas uma vez ao carregar a nova música, busca a próxima linha da letra
+            // a partir do momento atual (ex: 0:08) e pula para ela, resolvendo o bug de desync.
+            if (this.isPlaying && !this.hasAutoSeekedToFirstLine) {
                 this.hasAutoSeekedToFirstLine = true;
-                console.log('[LySinc] Forçando seek invisível para 1s para corrigir desync do Spotify na nova faixa');
-                this.seekToTime(1000);
+                const nextLine = this.lyrics.find(line => line.timestamp >= currentEstimatedTime);
+                const timestampToSeek = nextLine ? nextLine.timestamp : currentEstimatedTime;
+                console.log(`[LySinc] Forçando seek invisível para a próxima linha (${timestampToSeek}ms) para corrigir desync do Spotify na nova faixa`);
+                this.seekToTime(timestampToSeek);
             }
         }
     }
@@ -1504,8 +1506,10 @@ class LySincApp {
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
             floatingMenu.classList.remove('collapsed');
+            wrapper.classList.remove('shifted');
         } else {
             floatingMenu.classList.add('collapsed');
+            wrapper.classList.add('shifted');
             this.toggleFloatingMenu(false);
         }
     }
