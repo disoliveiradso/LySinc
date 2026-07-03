@@ -904,30 +904,44 @@ const LyricsService = {
 
   getRankForCollected(sourceLabel, parsedLines) {
     const lower = sourceLabel.toLowerCase();
+    
+    // Check if Syllable/Word sync (more than 1 word per line)
     const hasWordSync = parsedLines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1);
+    
+    // Check if totally unsynced (all timestamps are 0)
     const isUnsynced = parsedLines.length > 0 && parsedLines.every(line => line.timestamp === 0 && line.endtime === 0);
-    const isQQ = lower.includes('qq') || lower.includes('lyricsplus');
+    
+    const isLineSync = !hasWordSync && !isUnsynced;
+    
+    // Identifiers based on user table priorities
+    const isApple = lower.includes('apple') || lower.includes('qq') || lower.includes('lyricsplus') || lower.includes('better lyrics') || lower.includes('betterlyrics');
+    const isUnison = lower.includes('unison');
+    const isBini = lower.includes('bini');
+    const isMusixmatch = lower.includes('musixmatch');
+    const isLrcLib = lower.includes('lrclib');
 
-    if (lower.includes('apple') && hasWordSync) return 1;
-    if (isQQ && hasWordSync) return 2;
-    if (lower.includes('musixmatch') && hasWordSync) return 3;
-    if (lower.includes('tidal') && hasWordSync) return 4;
-    if (lower.includes('lrclib') && hasWordSync) return 5;
-    if (hasWordSync) return 6;
+    if (hasWordSync) {
+      if (isApple) return 1;
+      if (isUnison) return 2;
+      if (isBini) return 3;
+      if (isMusixmatch) return 5;
+      return 6;
+    }
 
-    if (lower.includes('apple') && !hasWordSync && !isUnsynced) return 7;
-    if (isQQ && !hasWordSync && !isUnsynced) return 8;
-    if (lower.includes('musixmatch') && !hasWordSync && !isUnsynced) return 9;
-    if (lower.includes('tidal') && !hasWordSync && !isUnsynced) return 10;
-    if (lower.includes('lrclib') && !hasWordSync && !isUnsynced) return 11;
-    if (!hasWordSync && !isUnsynced) return 12;
+    if (isLineSync) {
+      if (isApple) return 6;
+      if (isUnison) return 7;
+      if (isBini) return 9;
+      if (isLrcLib) return 10;
+      if (isMusixmatch) return 12;
+      return 13;
+    }
 
-    if (lower.includes('apple') && isUnsynced) return 13;
-    if (isQQ && isUnsynced) return 14;
-    if (lower.includes('musixmatch') && isUnsynced) return 15;
-    if (lower.includes('tidal') && isUnsynced) return 16;
-    if (lower.includes('lrclib') && isUnsynced) return 17;
-    if (lower.includes('genius')) return 18;
+    if (isUnsynced) {
+      if (isUnison) return 14;
+      if (isLrcLib) return 15;
+      return 16;
+    }
 
     return 20;
   },
@@ -1009,15 +1023,9 @@ const LyricsService = {
             const ttmlText = await ttmlRes.text();
             const lines = this.parseTTML(ttmlText);
             if (lines && lines.length > 0) {
-              const hasWordSync = lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1);
-              if (hasWordSync) {
-                // Se o cache já tiver letras em palavra por palavra (sílaba), retorna imediatamente
-                allResults.push({ lines, source: 'BiniLyrics' });
-                return allResults;
-              } else {
-                // Senão, guardamos como fallback e prosseguimos com a busca paralela nas outras fontes
-                fallbackBiniResult = { lines, source: 'BiniLyrics' };
-              }
+              // Salva BiniLyrics sempre como opção (mesmo se tiver word-sync)
+              // para não abortar precocemente a busca de fontes melhores como Apple Music
+              fallbackBiniResult = { lines, source: 'BiniLyrics' };
             }
           }
         }
@@ -1055,18 +1063,9 @@ const LyricsService = {
       }
     });
 
-    // Se encontramos letras palavra por palavra nas outras fontes, priorizamos e retornamos elas
-    const hasWordSync = allResults.some(r => 
-      r.lines && r.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
-    );
-
-    if (hasWordSync) {
-      return allResults;
-    }
-
-    // Se nenhuma fonte retornou palavra por palavra mas temos o fallback linha-por-linha do Bini, usamos ele
+    // Sempre adiciona o resultado do Bini (se houver) ao invés de abortar no meio
     if (fallbackBiniResult) {
-      allResults.unshift(fallbackBiniResult);
+      allResults.push(fallbackBiniResult);
     }
 
     return allResults;
@@ -1206,34 +1205,24 @@ const LyricsService = {
 
     const collectedSources = [];
 
-    // 1. Sempre busca da base Apple / LyricsPlus (que tem word-sync)
-    const youLyResults = await this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata);
+    // Lança todas as buscas simultaneamente para acelerar drasticamente o carregamento
+    const fetchPromises = [
+      this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata).catch(() => null),
+      this.fetchLyricsFromUnison(metadata).catch(() => null),
+      this.fetchLyricsFromLrclib(metadata).catch(() => null)
+    ];
+
+    const results = await Promise.all(fetchPromises);
+    const [youLyResults, unisonResult, lrclibResult] = results;
+
     if (youLyResults && youLyResults.length > 0) {
       collectedSources.push(...youLyResults);
     }
-
-    // 2. Busca do Unison se ainda não tiver word-sync
-    const hasWordSyncBini = collectedSources.some(src => 
-      src.lines && src.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
-    );
-
-    if (!hasWordSyncBini) {
-      const unisonResult = await this.fetchLyricsFromUnison(metadata);
-      if (unisonResult && unisonResult.lines.length > 0) {
-        collectedSources.push(unisonResult);
-      }
+    if (unisonResult && unisonResult.lines && unisonResult.lines.length > 0) {
+      collectedSources.push(unisonResult);
     }
-
-    // 3. Busca do LRCLIB se não tivermos encontrado palavra-por-palavra no Bini e no Unison
-    const hasWordSync = collectedSources.some(src => 
-      src.lines && src.lines.some(line => line.text && Array.isArray(line.text) && line.text.length > 1)
-    );
-
-    if (!hasWordSync) {
-      const lrclibResult = await this.fetchLyricsFromLrclib(metadata);
-      if (lrclibResult && lrclibResult.lines.length > 0) {
-        collectedSources.push(lrclibResult);
-      }
+    if (lrclibResult && lrclibResult.lines && lrclibResult.lines.length > 0) {
+      collectedSources.push(lrclibResult);
     }
 
     // Fontes baseadas em Genius removidas a pedido do usuário
