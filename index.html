@@ -228,16 +228,17 @@
 
     <!-- MODAL DE CONFIGURAÇÃO (CLIENT ID) -->
     <div id="settings-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md max-h-[85vh] overflow-y-auto rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl">
+        <div class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden">
             
             <!-- Fechar Modal -->
-            <button id="btn-settings-close" class="absolute top-5 right-5 text-white/50 hover:text-white transition-colors">
+            <button id="btn-settings-close" class="absolute top-5 right-5 z-10 text-white/50 hover:text-white transition-colors bg-black/20 rounded-full p-1 backdrop-blur-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
 
-            <h3 class="text-2xl font-bold tracking-tight mb-2">Configurar Spotify API</h3>
+            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 w-full">
+                <h3 class="text-2xl font-bold tracking-tight mb-2">Configurar Spotify API</h3>
             <p class="text-white/60 text-sm mb-6">Para conectar ao Spotify, você precisa fornecer o seu próprio <strong>Client ID</strong> de desenvolvedor.</p>
 
             <!-- Campo Client ID -->
@@ -282,6 +283,7 @@
                 <button id="btn-save-settings" class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
                     Salvar Configurações
                 </button>
+            </div>
             </div>
         </div>
     </div>
