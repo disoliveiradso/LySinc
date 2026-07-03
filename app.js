@@ -1522,13 +1522,13 @@ class LySincApp {
             // Previne que o botão seja escondido se estivermos no processo de exibi-lo
             if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
 
-            if (btnFloatingToggle && btnFloatingToggle.classList.contains('hidden')) {
+            if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
                 btnFloatingToggle.classList.remove('hidden');
                 
                 // Técnica FLIP para animar a entrada do botão de Seta empurrando o de Sincronizar
                 if (this.btnRecenter) {
                     this.btnRecenter.style.transition = 'none';
-                    this.btnRecenter.classList.add('-translate-x-[52px]');
+                    this.btnRecenter.style.transform = 'translateX(-52px)';
                 }
                 
                 void btnFloatingToggle.offsetWidth; // Força reflow
@@ -1538,18 +1538,16 @@ class LySincApp {
                 
                 if (this.btnRecenter) {
                     this.btnRecenter.style.transition = '';
-                    this.btnRecenter.classList.remove('-translate-x-[52px]');
-                    this.btnRecenter.classList.add('translate-x-0');
+                    this.btnRecenter.style.transform = 'translateX(0px)';
                 }
             }
         } else {
-            if (btnFloatingToggle && !btnFloatingToggle.classList.contains('hidden')) {
+            if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
                 btnFloatingToggle.classList.remove('opacity-100', 'scale-100');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95');
                 this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
                 if (this.btnRecenter) {
-                    this.btnRecenter.classList.remove('translate-x-0');
-                    this.btnRecenter.classList.add('-translate-x-[52px]');
+                    this.btnRecenter.style.transform = 'translateX(-52px)';
                 }
                 
                 if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
@@ -1562,7 +1560,7 @@ class LySincApp {
                         // Reseta a posição do btnRecenter perfeitamente para evitar pulos
                         if (this.btnRecenter) {
                             this.btnRecenter.style.transition = 'none';
-                            this.btnRecenter.classList.remove('-translate-x-[52px]');
+                            this.btnRecenter.style.transform = '';
                             void this.btnRecenter.offsetWidth;
                             this.btnRecenter.style.transition = '';
                         }
