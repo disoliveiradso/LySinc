@@ -1302,7 +1302,7 @@ class LySincApp {
                 this.showToast(`Fonte alterada para: ${nextSource.source}`, 'success');
                 
                 // Re-aplica o modo e renderiza
-                this.applyLyricsMode(this.currentLyricsMode);
+                this.changeLyricsMode(this.currentLyricsMode);
             });
         }
         
