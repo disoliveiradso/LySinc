@@ -1558,36 +1558,25 @@ class LySincApp {
             if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
                 btnFloatingToggle.classList.remove('hidden');
                 
-                // Técnica FLIP para animar a entrada do botão de Seta empurrando o de Sincronizar
-                if (this.btnRecenter) {
-                    this.btnRecenter.style.transition = 'none';
-                    this.btnRecenter.style.transform = 'translateX(-52px)';
-                }
-                
                 void btnFloatingToggle.offsetWidth; // Força reflow
                 
-                btnFloatingToggle.classList.remove('opacity-0', 'scale-95');
-                btnFloatingToggle.classList.add('opacity-100', 'scale-100');
-                
-                if (this.btnRecenter) {
-                    this.btnRecenter.style.transition = '';
-                    this.btnRecenter.style.transform = 'translateX(0px)';
-                }
+                btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0');
+                btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10');
             }
         } else {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
-                btnFloatingToggle.classList.remove('opacity-100', 'scale-100');
-                btnFloatingToggle.classList.add('opacity-0', 'scale-95');
+                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10');
+                btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0');
                 this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
                 
                 if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
                 this.floatingMenuTimeoutId = setTimeout(() => {
-                    // Confirma se ainda está oculto após a animação de 500ms antes de ocultar do DOM
+                    // Confirma se ainda está oculto após a animação antes de ocultar do DOM
                     const currentRect = topMenu.getBoundingClientRect();
                     if (currentRect.bottom >= 0) {
                         btnFloatingToggle.classList.add('hidden');
                     }
-                }, 500);
+                }, 300);
             }
         }
     }
