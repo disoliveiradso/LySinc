@@ -646,16 +646,13 @@ class LySincApp {
             const currentEstimatedTime = this.progressMs + elapsed + this.syncOffset;
             this.updateLyricsSync(currentEstimatedTime);
             
-            // Pular intro automaticamente (Simula clique na primeira linha)
-            // Apenas no 1º segundo de uma nova faixa
+            // Forçar ressincronização da API do Spotify
+            // Quando a faixa passa automaticamente, o Spotify às vezes desincroniza o player local.
+            // Simular um "seek" no primeiro segundo conserta as letras sem que o usuário perceba que houve um pulo.
             if (this.isPlaying && currentEstimatedTime >= 1000 && currentEstimatedTime <= 2500 && !this.hasAutoSeekedToFirstLine) {
                 this.hasAutoSeekedToFirstLine = true;
-                const firstLine = this.lyrics[0];
-                const firstSyl = firstLine && firstLine.text && firstLine.text[0];
-                if (firstSyl && firstSyl.timestamp > 1500) {
-                    console.log('[LySinc] Pulando intro automaticamente para a primeira linha');
-                    this.seekToTime(firstSyl.timestamp);
-                }
+                console.log('[LySinc] Forçando seek invisível para 1s para corrigir desync do Spotify na nova faixa');
+                this.seekToTime(1000);
             }
         }
     }

@@ -622,7 +622,6 @@ input:focus {
     transform: scale(0.95);
     margin-right: -0.75rem; /* Remove o gap do wrapper visualmente */
     pointer-events: none;
-    overflow: hidden;
 }
 
 /* Hack para evitar que o navegador perca o backdrop-filter (blur) durante as transições de max-width dos pais */
