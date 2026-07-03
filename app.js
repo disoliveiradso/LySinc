@@ -610,6 +610,7 @@ class LySincApp {
         // Se mudou de música ou ainda não carregou as letras
         if (stateTrackId !== this.currentTrackId) {
             this.currentTrackId = stateTrackId;
+            this.hasAutoSeekedToFirstLine = false; // Reset da flag de pular intro
             this.adjustSyncOffset(0, true);
             
             this.progressMs = state.progressMs + safeCompensation;
@@ -642,7 +643,20 @@ class LySincApp {
         // Força sincronia imediata na interface usando o progresso real compensado
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-            this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
+            const currentEstimatedTime = this.progressMs + elapsed + this.syncOffset;
+            this.updateLyricsSync(currentEstimatedTime);
+            
+            // Pular intro automaticamente (Simula clique na primeira linha)
+            // Apenas no 1º segundo de uma nova faixa
+            if (this.isPlaying && currentEstimatedTime >= 1000 && currentEstimatedTime <= 2500 && !this.hasAutoSeekedToFirstLine) {
+                this.hasAutoSeekedToFirstLine = true;
+                const firstLine = this.lyrics[0];
+                const firstSyl = firstLine && firstLine.text && firstLine.text[0];
+                if (firstSyl && firstSyl.timestamp > 1500) {
+                    console.log('[LySinc] Pulando intro automaticamente para a primeira linha');
+                    this.seekToTime(firstSyl.timestamp);
+                }
+            }
         }
     }
 

@@ -624,3 +624,11 @@ input:focus {
     pointer-events: none;
     overflow: hidden;
 }
+
+/* Hack para evitar que o navegador perca o backdrop-filter (blur) durante as transições de max-width dos pais */
+#btn-floating-toggle, #floating-menu-content, #btn-recenter {
+    will-change: transform, backdrop-filter;
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
