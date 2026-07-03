@@ -735,7 +735,7 @@ class LySincApp {
                     
                     // Wrapper para simular o main e alinhar as letras centralizadas
                     const pipMain = document.createElement('main');
-                    pipMain.className = 'flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full px-4 py-8 relative z-10 h-screen overflow-y-auto custom-scrollbar';
+                    pipMain.className = 'flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-8 relative z-10 h-screen overflow-y-auto custom-scrollbar';
                     
                     const placeholder = document.createElement('div');
                     placeholder.id = 'pip-placeholder';
@@ -1491,28 +1491,6 @@ class LySincApp {
             `;
             creditsBlock.appendChild(btnChangeSource);
 
-            // Botão de Voltar ao Início
-            const btnScrollTop = document.createElement('button');
-            btnScrollTop.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
-            btnScrollTop.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                <span class="font-medium">Voltar ao Início</span>
-            `;
-            btnScrollTop.addEventListener('click', () => {
-                this.isUserInteracting = true;
-                if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                if (this.btnRecenter && this.lyrics.length > 0) {
-                    this.btnRecenter.classList.remove('hidden');
-                    requestAnimationFrame(() => {
-                        this.btnRecenter.classList.remove('opacity-0', 'scale-95');
-                        this.btnRecenter.classList.add('opacity-100', 'scale-100');
-                    });
-                }
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            creditsBlock.appendChild(btnScrollTop);
 
             // Botão de Reiniciar Música
             const btnRestartTrack = document.createElement('button');
