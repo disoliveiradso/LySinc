@@ -747,7 +747,11 @@ class LySincApp {
                     // Clona e configura o botão Sincronizar (recenter) no PiP
                     const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
                     btnRecenterClone.id = 'btn-recenter-pip';
-                    btnRecenterClone.classList.add('fixed', 'bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50');
+                    btnRecenterClone.style.position = 'fixed';
+                    btnRecenterClone.style.bottom = '2rem';
+                    btnRecenterClone.style.left = '50%';
+                    btnRecenterClone.style.transform = 'translateX(-50%)';
+                    btnRecenterClone.style.zIndex = '50';
                     btnRecenterClone.style.display = 'flex';
                     btnRecenterClone.style.alignItems = 'center';
                     btnRecenterClone.style.justifyContent = 'center';
