@@ -1034,20 +1034,24 @@ const LyricsService = {
       console.error('Cache API failed', e);
     }
 
-    const shuffledServers = [...KPOE_SERVERS].sort(() => Math.random() - 0.5).slice(0, 3);
+    // Providers que queremos forçar a busca
+    const targetProviders = ['apple', 'netease', 'musixmatch', 'spotify'];
 
-    // Busca paralela com timeout reduzido de 3000ms para acelerar o carregamento
-    const fetchPromises = shuffledServers.map(async (base) => {
+    // Busca paralela com timeout de 4000ms para acelerar o carregamento
+    const fetchPromises = targetProviders.map(async (providerName) => {
+      // Pega um servidor aleatório para não sobrecarregar um só
+      const base = KPOE_SERVERS[Math.floor(Math.random() * KPOE_SERVERS.length)];
       const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
-      const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
+      const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}&provider=${providerName}`;
+      
       try {
-        const response = await fetchWithTimeout(url, {}, 3000);
+        const response = await fetchWithTimeout(url, {}, 4000);
         if (response.ok) {
           const payload = await response.json();
           if (payload) {
             const lines = this.convertKPoeLyrics(payload);
             if (lines && lines.length > 0) {
-              const sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
+              const sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || providerName;
               return { lines, source: sourceLabel };
             }
           }
