@@ -1598,7 +1598,7 @@ class LySincApp {
                             this.btnRecenter.style.transition = '';
                         }
                     }
-                }, 300);
+                }, 500);
             }
         }
     }
