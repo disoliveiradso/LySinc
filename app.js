@@ -3,7 +3,7 @@ import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
 
 /**
- * LySinc - Lógica Principal do Aplicativo (Orquestrador de UI)
+ * LySinc - LÃ³gica Principal do Aplicativo (Orquestrador de UI)
  */
 class LySincApp {
     constructor() {
@@ -20,11 +20,11 @@ class LySincApp {
         this.lyricsContainer = document.getElementById('lyrics-container');
         this.progressBar = document.getElementById('progress-bar');
         
-        // Elementos DOM de Configuração / Modais
+        // Elementos DOM de ConfiguraÃ§Ã£o / Modais
         this.btnDemoMode = document.getElementById('btn-demo-mode');
         this.demoContainer = document.getElementById('demo-container');
 
-        // Controles de Mídia
+        // Controles de MÃ­dia
         this.btnTopPrev = document.getElementById('btn-top-prev');
         this.btnTopPlayPause = document.getElementById('btn-top-playpause');
         this.btnTopNext = document.getElementById('btn-top-next');
@@ -64,23 +64,23 @@ class LySincApp {
         this.floatingToggleIcon = document.getElementById('floating-toggle-icon');
         this.btnFloatingRestart = document.getElementById('btn-floating-restart');
         
-        // Botões de PiP
+        // BotÃµes de PiP
         this.btnPipTop = document.getElementById('btn-pip-top');
         this.btnFloatingPip = document.getElementById('btn-floating-pip');
 
         // Offset Global
         this.syncOffset = 0;
 
-        // Estado Interno da Música
+        // Estado Interno da MÃºsica
         this.currentTrackId = null;
         this.lyrics = [];
-        this.lyricsData = null; // Guardará o objeto completo de idiomas
+        this.lyricsData = null; // GuardarÃ¡ o objeto completo de idiomas
         this.currentLyricsMode = 'original'; // original, translation, romanized
         this.activeLineId = null;
         this.tempDisableScroll = false;
-        this.currentLyricsProvider = 'lrclib'; // Provedor de letras padrão: LRCLIB
+        this.currentLyricsProvider = 'lrclib'; // Provedor de letras padrÃ£o: LRCLIB
         
-        // Estado do Relógio Interno (Ticker)
+        // Estado do RelÃ³gio Interno (Ticker)
         this.isPlaying = false;
         this.progressMs = 0;
         this.lastSyncTime = 0; // Timestamp local do momento em que sincronizamos com a API
@@ -91,12 +91,12 @@ class LySincApp {
         // Intervalo de Polling
         this.pollingIntervalId = null;
 
-        // Estado do Scroll Manual do Usuário
+        // Estado do Scroll Manual do UsuÃ¡rio
         this.isUserInteracting = false;
         this.userScrollTimeout = null;
         this.lastAutoScrollTime = 0;
 
-        // Expõe o gerenciador de notificações globalmente
+        // ExpÃµe o gerenciador de notificaÃ§Ãµes globalmente
         window.showToast = (message, type) => this.showToast(message, type);
 
         this.init();
@@ -128,7 +128,7 @@ class LySincApp {
             this.setupEventListeners();
             this.loadSettings();
 
-            // Modo de Demonstração Local (sem necessidade de API do Spotify)
+            // Modo de DemonstraÃ§Ã£o Local (sem necessidade de API do Spotify)
             const urlParams = new URLSearchParams(window.location.search);
             this.isDemoMode = urlParams.get('mock') === 'true';
 
@@ -137,7 +137,7 @@ class LySincApp {
                 return;
             }
 
-            // Verifica se havia indicação de login anterior no localStorage para saber se expirou
+            // Verifica se havia indicaÃ§Ã£o de login anterior no localStorage para saber se expirou
             const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
 
             if (hadRefreshToken) {
@@ -145,7 +145,7 @@ class LySincApp {
                 if (btnConnectText) {
                     btnConnectText.textContent = 'Continuar com o Spotify';
                 }
-                // Se já tem refresh token, tenta validar imediatamente para ir direto ao app
+                // Se jÃ¡ tem refresh token, tenta validar imediatamente para ir direto ao app
                 try {
                     const authenticated = await SpotifyService.isAuthenticated();
                     if (authenticated) {
@@ -153,14 +153,14 @@ class LySincApp {
                         this.startPolling();
                         this.startTicker();
                         this.btnLogout.classList.remove('hidden');
-                        return; // Pula o resto da inicialização convencional
+                        return; // Pula o resto da inicializaÃ§Ã£o convencional
                     }
                 } catch (e) {
                     console.error('Falha silenciosa ao autenticar refresh token:', e);
                 }
             }
 
-            // Trata o callback do Spotify OAuth ou tenta renovação silenciosa em runtime
+            // Trata o callback do Spotify OAuth ou tenta renovaÃ§Ã£o silenciosa em runtime
             let authenticated = false;
             try {
                 authenticated = await SpotifyService.handleCallback();
@@ -169,26 +169,26 @@ class LySincApp {
             }
             
             if (authenticated) {
-                this.showScreen('idle'); // Mostra tela de espera até obter a primeira resposta do player
+                this.showScreen('idle'); // Mostra tela de espera atÃ© obter a primeira resposta do player
                 this.startPolling();
                 this.startTicker();
-                this.btnLogout.classList.remove('hidden'); // Exibe o botão de sair se logado
+                this.btnLogout.classList.remove('hidden'); // Exibe o botÃ£o de sair se logado
             } else {
                 this.showScreen('pre-login');
                 this.btnLogout.classList.add('hidden');
                 
-                // Se tinha refresh token mas falhou a validação agora, a sessão de fato expirou
+                // Se tinha refresh token mas falhou a validaÃ§Ã£o agora, a sessÃ£o de fato expirou
                 if (hadRefreshToken) {
-                    this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
+                    this.showToast('SessÃ£o expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
                 }
 
-                // Se o Client ID não estiver configurado, abre as configurações para facilitar o uso
+                // Se o Client ID nÃ£o estiver configurado, abre as configuraÃ§Ãµes para facilitar o uso
                 if (!Config.getClientId()) {
                     this.toggleSettingsModal(true);
                 }
             }
         } catch (globalError) {
-            console.error('Erro crítico na inicialização do aplicativo LySinc:', globalError);
+            console.error('Erro crÃ­tico na inicializaÃ§Ã£o do aplicativo LySinc:', globalError);
         }
     }
 
@@ -216,7 +216,7 @@ class LySincApp {
         this.loadLyricsForTrack(state).then(() => {
             this.startTicker();
             
-            // Loop para simular o progresso da música continuamente na demonstração
+            // Loop para simular o progresso da mÃºsica continuamente na demonstraÃ§Ã£o
             setInterval(() => {
                 if (this.isPlaying) {
                     const elapsed = Date.now() - this.lastSyncTime;
@@ -229,10 +229,10 @@ class LySincApp {
             }, 1000);
         });
 
-        // Offset manual de sincronização (em ms)
+        // Offset manual de sincronizaÃ§Ã£o (em ms)
         this.syncOffset = 0;
 
-        // Oculta o botão logout na demonstração
+        // Oculta o botÃ£o logout na demonstraÃ§Ã£o
         this.btnLogout.classList.add('hidden');
     }
 
@@ -246,7 +246,7 @@ class LySincApp {
                 if (window.confirm("Tem certeza que deseja sair e remover seus dados de login?")) {
                     window.localStorage.removeItem(Config.CLIENT_ID_KEY);
                     this.btnLogout.classList.add('hidden');
-                    this.showToast('Sessão encerrada com o Spotify.', 'info');
+                    this.showToast('SessÃ£o encerrada com o Spotify.', 'info');
                 }
             }
         });
@@ -255,7 +255,7 @@ class LySincApp {
         this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
         this.btnSaveSettings.addEventListener('click', () => this.saveSettings());
         
-        // Botão Fechar Modal Customizado de Sair
+        // BotÃ£o Fechar Modal Customizado de Sair
         const btnConfirmLogout = document.getElementById('btn-confirm-logout');
         const btnCancelLogout = document.getElementById('btn-cancel-logout');
         
@@ -265,8 +265,8 @@ class LySincApp {
                 this.confirmLogoutModal.classList.add('hidden');
                 this.confirmLogoutModal.classList.remove('flex');
                 this.btnLogout.classList.add('hidden');
-                this.showToast('Sessão encerrada com o Spotify.', 'info');
-                // Opcionalmente dar um reload na página
+                this.showToast('SessÃ£o encerrada com o Spotify.', 'info');
+                // Opcionalmente dar um reload na pÃ¡gina
                 setTimeout(() => window.location.reload(), 1500);
             });
         }
@@ -306,7 +306,7 @@ class LySincApp {
             });
         }
 
-        // Clicar fora ou em qualquer botão do header fecha os controles
+        // Clicar fora ou em qualquer botÃ£o do header fecha os controles
         document.addEventListener('click', (e) => {
             if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('translate-x-10')) {
                 const isClickInside = this.headerControlsContainer.contains(e.target);
@@ -316,7 +316,7 @@ class LySincApp {
                     closeControls();
                 }
                 
-                // Se clicou dentro (num botão por exemplo), fecha também
+                // Se clicou dentro (num botÃ£o por exemplo), fecha tambÃ©m
                 if (isClickInside) {
                     setTimeout(closeControls, 300); // pequeno delay visual
                 }
@@ -335,6 +335,9 @@ class LySincApp {
 
         if (this.btnFullscreenTop) {
             this.btnFullscreenTop.addEventListener('click', () => {
+                if (this.pipWindow) {
+                    this.pipWindow.close();
+                }
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(err => console.error(err));
                 } else {
@@ -343,7 +346,7 @@ class LySincApp {
             });
         }
 
-        // Lógica de ocultar cursor em Tela Cheia após 3s inativo
+        // LÃ³gica de ocultar cursor em Tela Cheia apÃ³s 3s inativo
         let mouseHideTimeout = null;
         
         const hideMousePointer = () => {
@@ -413,9 +416,9 @@ class LySincApp {
                         if (tooltipTarget === target) {
                             customTooltip.textContent = text;
                             
-                            // Primeiro remove opacity-0 para que getBoundingClientRect traga o tamanho real antes da animação
+                            // Primeiro remove opacity-0 para que getBoundingClientRect traga o tamanho real antes da animaÃ§Ã£o
                             customTooltip.style.opacity = '0'; 
-                            // Renderiza escondido para pegar as dimensões corretas e posicionar
+                            // Renderiza escondido para pegar as dimensÃµes corretas e posicionar
                             setTimeout(() => {
                                 const rect = target.getBoundingClientRect();
                                 const tooltipRect = customTooltip.getBoundingClientRect();
@@ -452,7 +455,7 @@ class LySincApp {
             }
         });
 
-        // Abas do rodapé de letras (Tradução / Romanização)
+        // Abas do rodapÃ© de letras (TraduÃ§Ã£o / RomanizaÃ§Ã£o)
         document.querySelectorAll('.lyric-tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const mode = e.currentTarget.getAttribute('data-mode');
@@ -460,7 +463,7 @@ class LySincApp {
             });
         });
 
-        // Controles de Sincronização (Offset)
+        // Controles de SincronizaÃ§Ã£o (Offset)
         const btnSyncUp = document.getElementById('btn-sync-up');
         const btnSyncDown = document.getElementById('btn-sync-down');
         const btnSyncReset = document.getElementById('btn-sync-reset');
@@ -475,7 +478,7 @@ class LySincApp {
             btnSyncReset.addEventListener('click', () => this.adjustSyncOffset(0, true));
         }
         
-        // Clique no ícone para alterar dinamicamente o provedor (fonte) de letras
+        // Clique no Ã­cone para alterar dinamicamente o provedor (fonte) de letras
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
             btnChangeSource.addEventListener('click', async () => {
@@ -493,7 +496,7 @@ class LySincApp {
                 
                 this.showToast(`Buscando letras via ${providerLabels[this.currentLyricsProvider]}...`, 'info');
                 
-                // Recarrega as letras da música atual com o novo provedor
+                // Recarrega as letras da mÃºsica atual com o novo provedor
                 if (this.currentTrackId || this.isDemoMode) {
                     const currentTitle = this.trackName.textContent;
                     const currentArtists = this.trackArtists.textContent;
@@ -509,25 +512,27 @@ class LySincApp {
             });
         }
 
-        // Detecção Fisiológica Dinâmica de Interação Manual do Usuário
+        // DetecÃ§Ã£o FisiolÃ³gica DinÃ¢mica de InteraÃ§Ã£o Manual do UsuÃ¡rio
         const handleUserInteraction = () => {
             if (!this.isUserInteracting && this.lyrics.length > 0) {
                 this.isUserInteracting = true;
                 
-                // Cancela qualquer timeout pendente que iria esconder o botão indevidamente
+                // Cancela qualquer timeout pendente que iria esconder o botÃ£o indevidamente
                 if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
                 
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                // Mostra botão de Sincronizar usando classes Tailwind
-                this.btnRecenter.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    this.btnRecenter.classList.remove('opacity-0', 'scale-95');
-                    this.btnRecenter.classList.add('opacity-100', 'scale-100');
-                });
+                // Mostra botão de Sincronizar apenas se o PiP não estiver ativo
+                if (this.btnRecenter && !this.pipWindow) {
+                    this.btnRecenter.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        this.btnRecenter.classList.remove('opacity-0', 'scale-95');
+                        this.btnRecenter.classList.add('opacity-100', 'scale-100');
+                    });
+                }
             }
         };
         
-        // Listener do botão de ressincronizar
+        // Listener do botÃ£o de ressincronizar
         this.btnRecenter.addEventListener('click', () => {
             this.isUserInteracting = false;
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
@@ -541,8 +546,8 @@ class LySincApp {
             
             let targetLineId = this.activeLineId;
 
-            // Se não houver uma linha ativa (ex: introdução, pausa instrumental ou fim da música),
-            // procura a linha cujo timestamp seja o mais próximo do progresso atual.
+            // Se nÃ£o houver uma linha ativa (ex: introduÃ§Ã£o, pausa instrumental ou fim da mÃºsica),
+            // procura a linha cujo timestamp seja o mais prÃ³ximo do progresso atual.
             if (targetLineId === null && this.lyrics.length > 0) {
                 let closestLine = null;
                 let minDiff = Infinity;
@@ -575,7 +580,7 @@ class LySincApp {
             }
         });
 
-        // Ouvintes físicos de interação para capturar rolagem de mouse e toque
+        // Ouvintes fÃ­sicos de interaÃ§Ã£o para capturar rolagem de mouse e toque
         window.addEventListener('wheel', handleUserInteraction, { passive: true });
         window.addEventListener('touchmove', handleUserInteraction, { passive: true });
 
@@ -584,11 +589,11 @@ class LySincApp {
             // Sempre atualiza a visibilidade do menu flutuante em qualquer scroll
             this.updateFloatingMenuVisibility();
 
-            // Se o scroll ocorreu dentro de 800ms de um scroll automático, ignoramos para detecção de manual
+            // Se o scroll ocorreu dentro de 800ms de um scroll automÃ¡tico, ignoramos para detecÃ§Ã£o de manual
             if (Date.now() - this.lastAutoScrollTime < 800) {
                 return;
             }
-            // Caso contrário, foi uma rolagem real do usuário (inclui arrastar a barra de rolagem)
+            // Caso contrÃ¡rio, foi uma rolagem real do usuÃ¡rio (inclui arrastar a barra de rolagem)
             handleUserInteraction();
         });
 
@@ -607,7 +612,8 @@ class LySincApp {
                 if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
                 
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                if (this.btnRecenter && this.lyrics.length > 0) {
+                // Mostra botÃ£o de Sincronizar apenas se o PiP nÃ£o estiver ativo
+                if (this.btnRecenter && !this.pipWindow) {
                     this.btnRecenter.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         this.btnRecenter.classList.remove('opacity-0', 'scale-95');
@@ -619,7 +625,7 @@ class LySincApp {
             });
         }
 
-        // Fecha o menu flutuante ao clicar em qualquer botão de opção dentro dele
+        // Fecha o menu flutuante ao clicar em qualquer botÃ£o de opÃ§Ã£o dentro dele
         document.querySelectorAll('#floating-lyrics-menu button').forEach(btn => {
             if (btn.id !== 'btn-floating-toggle') {
                 btn.addEventListener('click', () => {
@@ -638,7 +644,7 @@ class LySincApp {
             }
         });
 
-        // Eventos de Mídia (Spotify)
+        // Eventos de MÃ­dia (Spotify)
         const setupMediaEvent = (btn, action) => {
             if (btn) {
                 btn.addEventListener('click', async (e) => {
@@ -652,7 +658,7 @@ class LySincApp {
                             await SpotifyService.playTrack();
                         }
                     }
-                    // Força polling imediato para refletir estado
+                    // ForÃ§a polling imediato para refletir estado
                     setTimeout(() => this.pollPlayerState(), 200);
                 });
             }
@@ -665,30 +671,30 @@ class LySincApp {
         setupMediaEvent(this.btnTopPlayPause, 'playpause');
         setupMediaEvent(this.btnFloatingPlayPause, 'playpause');
 
-        // Botão de Reiniciar
+        // BotÃ£o de Reiniciar
         if (this.btnFloatingRestart) {
             this.btnFloatingRestart.addEventListener('click', async () => {
                 if (this.isPlaying || this.progressMs > 0) {
                     this.seekToTime(0);
-                    // Força polling imediato para refletir estado
+                    // ForÃ§a polling imediato para refletir estado
                     setTimeout(() => this.pollPlayerState(), 200);
                 }
             });
         }
         
-        // Configuração de Picture-in-Picture (PiP)
+        // ConfiguraÃ§Ã£o de Picture-in-Picture (PiP)
         this.setupPiP();
     }
 
     setupPiP() {
-        // Verifica se a API de Document PiP é suportada
+        // Verifica se a API de Document PiP Ã© suportada
         if ('documentPictureInPicture' in window) {
             if (this.btnPipTop) this.btnPipTop.classList.remove('hidden');
             if (this.btnFloatingPip) this.btnFloatingPip.classList.remove('hidden');
             
             const handlePipClick = async () => {
                 try {
-                    // Se já estivermos no PiP e o usuário clicar de novo, não faz nada
+                    // Se jÃ¡ estivermos no PiP e o usuÃ¡rio clicar de novo, nÃ£o faz nada
                     if (window.documentPictureInPicture.window) return;
                     
                     const pipWindow = await window.documentPictureInPicture.requestWindow({
@@ -717,7 +723,7 @@ class LySincApp {
                     // Ajusta o corpo da janela PiP
                     pipWindow.document.body.className = 'pip-mode bg-[#050505] text-white flex flex-col min-h-screen relative';
                     
-                    // Clona o background dinâmico (com a imagem atual e sobreposições)
+                    // Clona o background dinÃ¢mico (com a imagem atual e sobreposiÃ§Ãµes)
                     const bgClone = document.querySelector('.blur-background-container').cloneNode(true);
                     pipWindow.document.body.appendChild(bgClone);
                     
@@ -736,15 +742,15 @@ class LySincApp {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
                         </svg>
                         <h2 class="text-xl font-bold mb-2 text-white">Modo Picture-in-Picture ativo</h2>
-                        <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
-                        <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cá</button>
+                        <p class="text-sm">As letras estÃ£o sendo exibidas na janela flutuante.</p>
+                        <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cÃ¡</button>
                     `;
                     
                     originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     pipMain.appendChild(originalContainer);
                     pipWindow.document.body.appendChild(pipMain);
                     
-                    // Clona e configura o botão Sincronizar (recenter) no PiP
+                    // Clona e configura o botÃ£o Sincronizar (recenter) no PiP
                     const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
                     btnRecenterClone.id = 'btn-recenter-pip';
                     btnRecenterClone.style.position = 'fixed';
@@ -781,7 +787,7 @@ class LySincApp {
                     pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
                     pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
                     pipWindow.addEventListener('scroll', () => {
-                        // Ignora evento se for scroll automático
+                        // Ignora evento se for scroll automÃ¡tico
                         if (Date.now() - this.lastAutoScrollTime < 800) {
                             return;
                         }
@@ -797,31 +803,30 @@ class LySincApp {
                         this.updateLyricsSync(this.progressMs);
                     });
                     
-                    // Esconde botões do rodapé e topo da tela original enquanto no PiP
+                    // Esconde botÃ£o do rodapÃ© da tela original enquanto no PiP, mas mantÃ©m o topo
                     if (this.btnFloatingRestart) this.btnFloatingRestart.classList.add('hidden');
-                    const topMenu = document.getElementById('lyrics-top-menu');
-                    if (topMenu) {
-                        topMenu.style.opacity = '0';
-                        topMenu.style.pointerEvents = 'none';
+                    const btnPipTop = document.getElementById('btn-pip-top');
+                    if (btnPipTop) {
+                        btnPipTop.classList.add('text-green-500');
                     }
                     
-                    // Lógica para o botão de voltar na aba original
+                    // LÃ³gica para o botÃ£o de voltar na aba original
                     placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
                         pipWindow.close();
                     });
                     
-                    // Lógica para quando o PiP é fechado (pelo usuário na janelinha, ou pelo botão)
+                    // LÃ³gica para quando o PiP Ã© fechado (pelo usuÃ¡rio na janelinha, ou pelo botÃ£o)
                     pipWindow.addEventListener("pagehide", (event) => {
                         placeholder.parentNode.insertBefore(originalContainer, placeholder);
                         placeholder.remove();
                         this.pipWindow = null;
                         if (this.btnFloatingRestart) this.btnFloatingRestart.classList.remove('hidden');
-                        if (topMenu) {
-                            topMenu.style.opacity = '';
-                            topMenu.style.pointerEvents = '';
+                        const btnPipTop = document.getElementById('btn-pip-top');
+                        if (btnPipTop) {
+                            btnPipTop.classList.remove('text-green-500');
                         }
                         
-                        // Retoma auto-sincronização ao voltar para tela principal
+                        // Retoma auto-sincronizaÃ§Ã£o ao voltar para tela principal
                         this.isUserInteracting = false;
                         if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
                         if (this.btnRecenter) {
@@ -841,8 +846,8 @@ class LySincApp {
             if (this.btnPipTop) this.btnPipTop.addEventListener('click', handlePipClick);
             if (this.btnFloatingPip) this.btnFloatingPip.addEventListener('click', handlePipClick);
         } else {
-            // Document PiP não suportado (ex: Firefox, Safari), mantemos botões ocultos
-            console.log('Document Picture-in-Picture não suportado pelo navegador.');
+            // Document PiP nÃ£o suportado (ex: Firefox, Safari), mantemos botÃµes ocultos
+            console.log('Document Picture-in-Picture nÃ£o suportado pelo navegador.');
         }
     }
 
@@ -870,8 +875,8 @@ class LySincApp {
     }
 
     loadSettings() {
-        // Exibe no input apenas o Client ID salvo localmente no localStorage por este usuário.
-        // O Client ID padrão (Base64) embutido no código é ocultado e nunca exibido aqui.
+        // Exibe no input apenas o Client ID salvo localmente no localStorage por este usuÃ¡rio.
+        // O Client ID padrÃ£o (Base64) embutido no cÃ³digo Ã© ocultado e nunca exibido aqui.
         this.inputClientId.value = localStorage.getItem(Config.CLIENT_ID_KEY) || '';
     }
 
@@ -879,7 +884,7 @@ class LySincApp {
         const id = this.inputClientId.value.trim();
         Config.setClientId(id);
         this.toggleSettingsModal(false);
-        this.showToast('Configurações salvas! Agora você pode conectar sua conta do Spotify.', 'success');
+        this.showToast('ConfiguraÃ§Ãµes salvas! Agora vocÃª pode conectar sua conta do Spotify.', 'success');
     }
 
     toggleSettingsModal(show) {
@@ -924,23 +929,23 @@ class LySincApp {
     }
 
     async pollPlayerState() {
-        // Ignora atualizações do Spotify se o usuário acabou de fazer seek/clique nas letras
+        // Ignora atualizaÃ§Ãµes do Spotify se o usuÃ¡rio acabou de fazer seek/clique nas letras
         if (Date.now() - this.lastUserSeekTime < 3000) {
-            console.log('[LySinc] Ignorando pollPlayerState devido a clique/seek recente do usuário.');
+            console.log('[LySinc] Ignorando pollPlayerState devido a clique/seek recente do usuÃ¡rio.');
             return;
         }
 
         const state = await SpotifyService.getCurrentlyPlaying();
         
-        // Se a chamada falhou ou não há token
+        // Se a chamada falhou ou nÃ£o hÃ¡ token
         if (!state) {
-            // Verifica se a autenticação caiu
+            // Verifica se a autenticaÃ§Ã£o caiu
             const authenticated = await SpotifyService.isAuthenticated();
             if (!authenticated) {
                 this.stopPolling();
                 this.showScreen('pre-login');
                 this.btnLogout.classList.add('hidden');
-                this.showToast('Sessão encerrada com o Spotify.', 'info');
+                this.showToast('SessÃ£o encerrada com o Spotify.', 'info');
             }
             return;
         }
@@ -952,11 +957,11 @@ class LySincApp {
             return;
         }
 
-        // Atualiza a sincronização de tempo baseado puramente no relógio local para anular clock drift do servidor
+        // Atualiza a sincronizaÃ§Ã£o de tempo baseado puramente no relÃ³gio local para anular clock drift do servidor
         const latencyCompensation = Date.now() - state.requestTime;
         const stateTrackId = state.trackId || (state.trackName + state.albumName);
 
-        // Se a música ESTÁ PAUSADA, ignora a compensação de latência
+        // Se a mÃºsica ESTÃ PAUSADA, ignora a compensaÃ§Ã£o de latÃªncia
         let safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
         if (!state.isPlaying) {
             safeCompensation = 0;
@@ -965,7 +970,7 @@ class LySincApp {
         this.isPlaying = state.isPlaying;
         this.durationMs = state.durationMs;
 
-        // Atualiza os ícones de Play/Pause
+        // Atualiza os Ã­cones de Play/Pause
         if (this.isPlaying) {
             if (this.iconTopPlay) this.iconTopPlay.classList.add('hidden');
             if (this.iconTopPause) this.iconTopPause.classList.remove('hidden');
@@ -978,7 +983,7 @@ class LySincApp {
             if (this.iconFloatingPause) this.iconFloatingPause.classList.add('hidden');
         }
 
-        // Se mudou de música ou ainda não carregou as letras
+        // Se mudou de mÃºsica ou ainda nÃ£o carregou as letras
         if (stateTrackId !== this.currentTrackId) {
             const isAutoSkip = this.currentTrackId !== null && this.isPlaying;
             this.currentTrackId = stateTrackId;
@@ -989,8 +994,8 @@ class LySincApp {
             this.lastSyncTime = Date.now();
             
             if (isAutoSkip) {
-                // Força o Spotify a esvaziar o buffer de crossfade enviando um comando de seek silencioso.
-                // Isso resolve a desincronização em que a API se dessincroniza do áudio real.
+                // ForÃ§a o Spotify a esvaziar o buffer de crossfade enviando um comando de seek silencioso.
+                // Isso resolve a desincronizaÃ§Ã£o em que a API se dessincroniza do Ã¡udio real.
                 this.seekToTime(this.progressMs, true).catch(() => {});
             }
 
@@ -998,8 +1003,8 @@ class LySincApp {
             await this.loadLyricsForTrack(state);
         } else {
             // Monotonic progress protection & Realignment:
-            // Só ignora pequenas variações de lag menores que 1.2 segundos para evitar oscilações.
-            // Se o Spotify estiver mais de 1.2s à frente ou atrás (ex: devido a buffering ou busca atrasada), realinha o tempo local imediatamente.
+            // SÃ³ ignora pequenas variaÃ§Ãµes de lag menores que 1.2 segundos para evitar oscilaÃ§Ãµes.
+            // Se o Spotify estiver mais de 1.2s Ã  frente ou atrÃ¡s (ex: devido a buffering ou busca atrasada), realinha o tempo local imediatamente.
             const elapsed = Date.now() - this.lastSyncTime;
             const currentLocalProgress = this.progressMs + elapsed;
             const diff = Math.abs(state.progressMs - currentLocalProgress);
@@ -1011,16 +1016,16 @@ class LySincApp {
             if (isSeek || isOutOfSync) {
                 this.progressMs = state.progressMs + safeCompensation;
                 this.lastSyncTime = Date.now();
-                console.log(`[LySinc] Sincronização alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
+                console.log(`[LySinc] SincronizaÃ§Ã£o alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
             } else {
-                // Mantém o ticker local rodando
+                // MantÃ©m o ticker local rodando
                 console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
             }
         }
 
         this.showScreen('main');
         
-        // Força sincronia imediata na interface usando o progresso real compensado
+        // ForÃ§a sincronia imediata na interface usando o progresso real compensado
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             const currentEstimatedTime = this.progressMs + elapsed + this.syncOffset;
@@ -1032,13 +1037,13 @@ class LySincApp {
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
         
-        // Aplica o marquee (Ping-Pong Effect) para Título e Artistas
+        // Aplica o marquee (Ping-Pong Effect) para TÃ­tulo e Artistas
         setTimeout(() => {
             this.setupMarquee(this.trackName);
             this.setupMarquee(this.trackArtists);
         }, 50);
         
-        // Efeito de imagem e fundo desfocado dinâmico (Apple Music style)
+        // Efeito de imagem e fundo desfocado dinÃ¢mico (Apple Music style)
         if (state.albumArtUrl) {
             this.albumArt.src = state.albumArtUrl;
             this.albumArtBlur.style.backgroundImage = `url('${state.albumArtUrl}')`;
@@ -1074,7 +1079,7 @@ class LySincApp {
     }
 
     async loadLyricsForTrack(state) {
-        // Zera o offset sempre que mudar de música
+        // Zera o offset sempre que mudar de mÃºsica
         this.adjustSyncOffset(0, true);
         
         const requestTrackId = state.trackId || (state.trackName + state.albumName);
@@ -1125,17 +1130,17 @@ class LySincApp {
         if (fetchedLyrics) {
             this.currentLyricsProvider = fetchedLyrics.source;
         }
-        this.userForcedProvider = false; // Reset pro autoplay automático da próxima música
+        this.userForcedProvider = false; // Reset pro autoplay automÃ¡tico da prÃ³xima mÃºsica
 
-        // Previne Race Condition: Verifica se a música não mudou ENQUANTO buscava a atual
+        // Previne Race Condition: Verifica se a mÃºsica nÃ£o mudou ENQUANTO buscava a atual
         if (requestTrackId !== this.currentTrackId) {
-            return; // O usuário já pulou para outra música, descarta este resultado
+            return; // O usuÃ¡rio jÃ¡ pulou para outra mÃºsica, descarta este resultado
         }
 
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
             this.lyricsData = fetchedLyrics;
             
-            // Se o modo selecionado for tradução/romanização mas não estiver pré-carregado, aciona a carga assíncrona
+            // Se o modo selecionado for traduÃ§Ã£o/romanizaÃ§Ã£o mas nÃ£o estiver prÃ©-carregado, aciona a carga assÃ­ncrona
             if (this.currentLyricsMode !== 'original' && !this.lyricsData[this.currentLyricsMode]) {
                 this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
                 this.renderLyrics();
@@ -1152,7 +1157,7 @@ class LySincApp {
                 topMenu.classList.add('flex');
             }
 
-            // Força a atualização de sincronização e o scroll imediato para a linha ativa atual após renderizar
+            // ForÃ§a a atualizaÃ§Ã£o de sincronizaÃ§Ã£o e o scroll imediato para a linha ativa atual apÃ³s renderizar
             this.activeLineId = null;
             this.currentActiveIdsKey = '';
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
@@ -1162,8 +1167,8 @@ class LySincApp {
             this.lyrics = [];
             this.lyricsContainer.innerHTML = `
                 <div class="text-center text-white/40 text-xl py-20">
-                    Letras não disponíveis para esta música.<br>
-                    <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
+                    Letras nÃ£o disponÃ­veis para esta mÃºsica.<br>
+                    <span class="text-sm mt-2 block">Tente tocar outra mÃºsica no Spotify para testar a sincronizaÃ§Ã£o!</span>
                 </div>`;
             if (topMenu) {
                 topMenu.classList.add('hidden');
@@ -1172,7 +1177,7 @@ class LySincApp {
         }
     }
 
-    // Alterna o idioma das letras mantendo a reprodução e processando sob demanda
+    // Alterna o idioma das letras mantendo a reproduÃ§Ã£o e processando sob demanda
     async changeLyricsMode(mode) {
         if (!this.lyricsData) return;
         
@@ -1187,19 +1192,19 @@ class LySincApp {
 
         this.currentLyricsMode = mode;
 
-        // Se o modo selecionado ainda não foi gerado no original, processa dinamicamente via GoogleService
+        // Se o modo selecionado ainda nÃ£o foi gerado no original, processa dinamicamente via GoogleService
         const needsTranslation = mode === 'translation' && this.lyricsData.original.some(line => !line.translation);
         const needsRomanization = mode === 'romanized' && this.lyricsData.original.some(line => !line.romanizedText);
 
         if (needsTranslation || needsRomanization) {
             if (mode === 'translation') {
                 this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
-                this.showToast('Traduzindo letras para o português...', 'info');
+                this.showToast('Traduzindo letras para o portuguÃªs...', 'info');
                 
                 const translated = await LyricsService.translateLyrics(this.lyricsData.original);
                 this.lyricsData.original = translated;
             } else if (mode === 'romanized') {
-                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
+                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanizaÃ§Ã£o das letras...</div>';
                 this.showToast('Convertendo escrita para caracteres latinos...', 'info');
                 
                 const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
@@ -1214,9 +1219,9 @@ class LySincApp {
         
         const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
         const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
-        this.activeLineId = null; // Força re-realce da linha
+        this.activeLineId = null; // ForÃ§a re-realce da linha
 
-        // Ativa o auto-scroll: desativa a interação manual e esconde o botão de sincronizar
+        // Ativa o auto-scroll: desativa a interaÃ§Ã£o manual e esconde o botÃ£o de sincronizar
         this.isUserInteracting = false;
         this.lastAutoScrollTime = Date.now(); // Impede que o re-render ative o user-scrolling indevidamente
         if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
@@ -1253,12 +1258,12 @@ class LySincApp {
 
         const result = [];
         
-        // Verifica o intervalo do início da música até a primeira letra
+        // Verifica o intervalo do inÃ­cio da mÃºsica atÃ© a primeira letra
         const firstLine = lines[0];
         if (firstLine.timestamp > 5000) {
             result.push({
-                id: -1, // ID numérico para funcionar no comparador isPassed
-                text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
+                id: -1, // ID numÃ©rico para funcionar no comparador isPassed
+                text: [{ text: 'âª', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
                 background: false,
                 backgroundText: [],
                 timestamp: 0,
@@ -1271,13 +1276,13 @@ class LySincApp {
             const currentLine = lines[i];
             if (i > 0) {
                 const prevLine = lines[i - 1];
-                // Se a música não for word-synced, prevLine.endtime é undefined. Assumimos timestamp + 3000ms.
+                // Se a mÃºsica nÃ£o for word-synced, prevLine.endtime Ã© undefined. Assumimos timestamp + 3000ms.
                 const prevEndtime = prevLine.endtime || (prevLine.timestamp + 3000);
                 
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
-                        id: i - 0.5, // ID numérico intermediário
-                        text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
+                        id: i - 0.5, // ID numÃ©rico intermediÃ¡rio
+                        text: [{ text: 'âª', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
                         background: false,
                         backgroundText: [],
                         timestamp: prevEndtime + 1000,
@@ -1289,7 +1294,7 @@ class LySincApp {
             result.push(currentLine);
         }
         
-        // Instrumental no final da música
+        // Instrumental no final da mÃºsica
         if (lines.length > 0 && this.durationMs) {
             const lastLine = lines[lines.length - 1];
             const lastEndtime = lastLine.endtime || (lastLine.timestamp + 3000);
@@ -1340,7 +1345,7 @@ class LySincApp {
                 lineClass += ' line-synced';
             }
             
-            const isInstrumental = line.isInstrumental || (line.text.length === 1 && line.text[0].text.trim() === '♪');
+            const isInstrumental = line.isInstrumental || (line.text.length === 1 && line.text[0].text.trim() === 'âª');
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
             }
@@ -1365,7 +1370,7 @@ class LySincApp {
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '♪';
+                sylSpan.innerHTML = 'âª';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let currentWordWrapper = document.createElement('span');
@@ -1402,7 +1407,7 @@ class LySincApp {
             }
             lineContainer.appendChild(mainVocal);
 
-            // Voz secundária (Backing Vocal)
+            // Voz secundÃ¡ria (Backing Vocal)
             if (line.background && line.backgroundText && line.backgroundText.length > 0) {
                 const bgVocal = document.createElement('div');
                 bgVocal.className = 'background-vocal-container';
@@ -1441,7 +1446,7 @@ class LySincApp {
                 lineContainer.appendChild(bgVocal);
             }
 
-            // Tradução ou Romanização na interface
+            // TraduÃ§Ã£o ou RomanizaÃ§Ã£o na interface
             if (this.currentLyricsMode === 'translation' && line.translation) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
@@ -1458,13 +1463,13 @@ class LySincApp {
             this.lyricsContainer.appendChild(lineEl);
         });
 
-        // Bloco de Créditos e Fonte (No final das letras)
+        // Bloco de CrÃ©ditos e Fonte (No final das letras)
         if (this.lyrics.length > 0) {
             const creditsBlock = document.createElement('div');
             creditsBlock.id = 'lyrics-credits-block';
             creditsBlock.className = 'mt-10 mb-8 pt-6 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
             
-            // Intérpretes (Artistas) - Balão Pill para cada artista
+            // IntÃ©rpretes (Artistas) - BalÃ£o Pill para cada artista
             if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
                 this.currentTrackArtistsRaw.forEach(artist => {
                     const artistInfo = document.createElement('div');
@@ -1502,7 +1507,7 @@ class LySincApp {
                 creditsBlock.appendChild(artistInfo);
             }
 
-            // Fonte e Botão de Trocar Fonte - Balão Pill Clicável
+            // Fonte e BotÃ£o de Trocar Fonte - BalÃ£o Pill ClicÃ¡vel
             const providerText = this.lyricsData?.source || 'Desconhecida';
             
             const btnChangeSource = document.createElement('button');
@@ -1520,14 +1525,14 @@ class LySincApp {
             creditsBlock.appendChild(btnChangeSource);
 
 
-            // Botão de Reiniciar Música
+            // BotÃ£o de Reiniciar MÃºsica
             const btnRestartTrack = document.createElement('button');
             btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
             btnRestartTrack.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" />
                 </svg>
-                <span class="font-medium">Reiniciar Música</span>
+                <span class="font-medium">Reiniciar MÃºsica</span>
             `;
             btnRestartTrack.addEventListener('click', () => {
                 this.seekToTime(0);
@@ -1544,7 +1549,7 @@ class LySincApp {
             // Listener de troca de provedor
             btnChangeSource.addEventListener('click', () => {
                 if (!this.lyricsData || !this.lyricsData.availableSources || this.lyricsData.availableSources.length <= 1) {
-                    this.showToast('Nenhuma outra fonte disponível para esta música.', 'info');
+                    this.showToast('Nenhuma outra fonte disponÃ­vel para esta mÃºsica.', 'info');
                     return;
                 }
 
@@ -1555,7 +1560,7 @@ class LySincApp {
                 const nextIdx = (currentIdx + 1) % available.length;
                 const nextSource = this.lyricsData.availableSources[nextIdx];
                 
-                // Em vez de buscar na API novamente, apenas troca para a alternativa já salva na memória
+                // Em vez de buscar na API novamente, apenas troca para a alternativa jÃ¡ salva na memÃ³ria
                 this.lyricsData.original = nextSource.lines;
                 this.lyricsData.source = nextSource.source;
                 this.currentLyricsProvider = nextSource.source;
@@ -1583,10 +1588,10 @@ class LySincApp {
                 
                 this.updateProgressBar(currentProgressMs);
                 
-                // Aplica tempo exato da música (sem compensação de adiantamento, já lidado pela rede)
+                // Aplica tempo exato da mÃºsica (sem compensaÃ§Ã£o de adiantamento, jÃ¡ lidado pela rede)
                 this.updateLyricsSync(currentProgressMs);
 
-                // Antecipa o final da música para evitar desincronização ao pular faixa automaticamente
+                // Antecipa o final da mÃºsica para evitar desincronizaÃ§Ã£o ao pular faixa automaticamente
                 if (currentProgressMs >= this.durationMs && this.durationMs > 0 && !this.isWaitingForNextTrack) {
                     this.isWaitingForNextTrack = true;
                     this.pollPlayerState().finally(() => {
@@ -1610,7 +1615,7 @@ class LySincApp {
     updateLyricsSync(currentProgressMs) {
         if (this.lyrics.length === 0) return;
 
-        // Encontra todas as linhas ativas correspondentes ao tempo (suporta sobreposições!)
+        // Encontra todas as linhas ativas correspondentes ao tempo (suporta sobreposiÃ§Ãµes!)
         const activeLines = this.lyrics.filter(line => currentProgressMs >= line.timestamp && currentProgressMs < line.endtime);
         const activeLineIds = new Set(activeLines.map(l => l.id));
         
@@ -1626,7 +1631,7 @@ class LySincApp {
 
         if (activeLines.length > 0) {
             const primaryActiveId = minActiveId;
-            // Se o conjunto de linhas ativas mudou (adicionou ou removeu uma sobreposição)
+            // Se o conjunto de linhas ativas mudou (adicionou ou removeu uma sobreposiÃ§Ã£o)
             if (activeIdsKey !== this.currentActiveIdsKey) {
                 this.currentActiveIdsKey = activeIdsKey;
                 this.activeLineId = primaryActiveId;
@@ -1637,20 +1642,20 @@ class LySincApp {
             this.currentActiveIdsKey = '';
             this.clearHighlights();
             
-            // Se as letras foram resetadas pro vazio e o tempo está antes do primeiro verso, volta pro topo!
+            // Se as letras foram resetadas pro vazio e o tempo estÃ¡ antes do primeiro verso, volta pro topo!
             if (currentProgressMs < (this.lyrics[0]?.timestamp || 0)) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
-        // Sincronização interna de todas as palavras (karaoke fluido de 0% a 100%)
+        // SincronizaÃ§Ã£o interna de todas as palavras (karaoke fluido de 0% a 100%)
         this.lyrics.forEach((line) => {
             const isActive = activeLineIds.has(line.id);
             const isPassed = activeLines.length > 0 
                 ? line.id < minActiveId 
                 : (this.activeLineId !== null ? line.id < this.activeLineId : false);
 
-            // Sincroniza sílabas da voz principal
+            // Sincroniza sÃ­labas da voz principal
             line.text.forEach((syl, idx) => {
                 const wordEl = this.getDocument().getElementById(`word-${line.id}-${idx}`);
                 if (wordEl) {
@@ -1662,7 +1667,7 @@ class LySincApp {
                         wordEl.style.setProperty('--word-progress', '0%');
                         wordEl.classList.remove('passed', 'current');
                     } else {
-                        // Sílaba sendo cantada no frame atual
+                        // SÃ­laba sendo cantada no frame atual
                         const duration = syl.endtime - syl.timestamp;
                         const elapsed = currentProgressMs - syl.timestamp;
                         const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
@@ -1673,7 +1678,7 @@ class LySincApp {
                 }
             });
 
-            // Sincroniza sílabas da voz secundária (backing vocal)
+            // Sincroniza sÃ­labas da voz secundÃ¡ria (backing vocal)
             if (line.backgroundText && line.backgroundText.length > 0) {
                 line.backgroundText.forEach((syl, idx) => {
                     const wordEl = this.getDocument().getElementById(`bgword-${line.id}-${idx}`);
@@ -1720,11 +1725,11 @@ class LySincApp {
             }
         });
 
-        // Rola a linha ativa suavemente para o centro se o usuário não estiver interagindo manualmente
+        // Rola a linha ativa suavemente para o centro se o usuÃ¡rio nÃ£o estiver interagindo manualmente
         if (!this.isUserInteracting) {
             const targetEl = this.getDocument().getElementById(`line-${scrollTargetId}`);
             if (targetEl) {
-                // Calcula a posição de scroll levando em conta janelas PiP vs Main
+                // Calcula a posiÃ§Ã£o de scroll levando em conta janelas PiP vs Main
                 const viewportHeight = this.pipWindow ? this.pipWindow.innerHeight : window.innerHeight;
                 // Ancoragem um pouco mais acima do meio (40% do topo) para melhor leitura
                 const targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight * 0.4 + targetEl.offsetHeight / 2;
@@ -1750,7 +1755,7 @@ class LySincApp {
                 }
             });
 
-            // Limpa voz secundária
+            // Limpa voz secundÃ¡ria
             if (line.backgroundText && line.backgroundText.length > 0) {
                 line.backgroundText.forEach((_, idx) => {
                     const wordEl = document.getElementById(`bgword-${line.id}-${idx}`);
@@ -1790,7 +1795,7 @@ class LySincApp {
         const startPosition = this.getScrollY();
         const distance = target - startPosition;
         let startTime = null;
-        const duration = 650; // milissegundos para a transição
+        const duration = 650; // milissegundos para a transiÃ§Ã£o
         
         // Cancela qualquer rolagem em andamento para evitar tremedeira (jittering)
         if (this.scrollAnimationId) {
@@ -1806,7 +1811,7 @@ class LySincApp {
             const progress = Math.min(timeElapsed / duration, 1);
             
             this.scrollToPosition(startPosition + distance * easeOutQuart(progress));
-            this.lastAutoScrollTime = Date.now(); // Mantém atualizado para evitar que o evento de scroll programático dispare o modo manual
+            this.lastAutoScrollTime = Date.now(); // MantÃ©m atualizado para evitar que o evento de scroll programÃ¡tico dispare o modo manual
             
             if (timeElapsed < duration) {
                 this.scrollAnimationId = this.getRaf()(animation);
@@ -1833,23 +1838,23 @@ class LySincApp {
 
             if (response.status === 403) {
                 if (!isAutoSync) {
-                    this.showToast('Navegação temporal por letras requer conta Spotify Premium.', 'error');
+                    this.showToast('NavegaÃ§Ã£o temporal por letras requer conta Spotify Premium.', 'error');
                 }
                 return;
             }
 
             if (!response.ok) {
-                throw new Error('Falha ao pular reprodução');
+                throw new Error('Falha ao pular reproduÃ§Ã£o');
             }
 
-            // Atualiza localmente para resposta rápida imediata
+            // Atualiza localmente para resposta rÃ¡pida imediata
             this.progressMs = timeMs;
             this.lastSyncTime = Date.now();
             this.lastUserSeekTime = Date.now();
             this.updateLyricsSync(timeMs);
         } catch (error) {
-            console.error('Erro ao pular reprodução:', error);
-            this.showToast('Erro ao atualizar a reprodução no Spotify.', 'error');
+            console.error('Erro ao pular reproduÃ§Ã£o:', error);
+            this.showToast('Erro ao atualizar a reproduÃ§Ã£o no Spotify.', 'error');
         }
     }
 
@@ -1861,7 +1866,7 @@ class LySincApp {
         
         if (!topMenu || !floatingMenu || !wrapper || !btnFloatingToggle) return;
 
-        // Garante que o wrapper principal está sempre visível (a menos que o cursor esteja oculto)
+        // Garante que o wrapper principal estÃ¡ sempre visÃ­vel (a menos que o cursor esteja oculto)
         if (document.body.style.cursor !== 'none') {
             wrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
             wrapper.classList.add('opacity-100');
@@ -1870,8 +1875,8 @@ class LySincApp {
 
         const rect = topMenu.getBoundingClientRect();
         
-        // Limita o botão de Sincronizar para NUNCA sobrepor o topMenu.
-        // O valor padrão fixo é 5.5rem (aprox 88px).
+        // Limita o botÃ£o de Sincronizar para NUNCA sobrepor o topMenu.
+        // O valor padrÃ£o fixo Ã© 5.5rem (aprox 88px).
         // Se o topMenu estiver na tela, garantimos que o wrapper fique abaixo dele (rect.bottom + 16px de margem).
         const minTop = 88;
         const dynamicTop = Math.max(minTop, rect.bottom + 16);
@@ -1879,13 +1884,13 @@ class LySincApp {
 
         // Se o menu de abas principal estiver oculto (scrollado para cima da borda superior)
         if (rect.bottom < 0) {
-            // Previne que o botão seja escondido se estivermos no processo de exibi-lo
+            // Previne que o botÃ£o seja escondido se estivermos no processo de exibi-lo
             if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
 
             if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
                 btnFloatingToggle.classList.remove('hidden');
                 
-                void btnFloatingToggle.offsetWidth; // Força reflow
+                void btnFloatingToggle.offsetWidth; // ForÃ§a reflow
                 
                 btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0');
                 btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10');
@@ -1894,11 +1899,11 @@ class LySincApp {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
                 btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0');
-                this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botão
+                this.toggleFloatingMenu(false); // Fecha o menu expandido (se aberto) junto com o botÃ£o
                 
                 if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
                 this.floatingMenuTimeoutId = setTimeout(() => {
-                    // Confirma se ainda está oculto após a animação antes de ocultar do DOM
+                    // Confirma se ainda estÃ¡ oculto apÃ³s a animaÃ§Ã£o antes de ocultar do DOM
                     const currentRect = topMenu.getBoundingClientRect();
                     if (currentRect.bottom >= 0) {
                         btnFloatingToggle.classList.add('hidden');
@@ -1911,7 +1916,7 @@ class LySincApp {
     toggleFloatingMenu(show) {
         if (!this.floatingMenuContent || !this.floatingToggleIcon) return;
 
-        // Troca o path do SVG da seta diretamente (sem rotação CSS), igual ao btn-toggle-controls do header
+        // Troca o path do SVG da seta diretamente (sem rotaÃ§Ã£o CSS), igual ao btn-toggle-controls do header
         const iconPath = this.floatingToggleIcon.querySelector('path');
         if (show) {
             this.floatingMenuContent.classList.add('open');
@@ -1922,12 +1927,12 @@ class LySincApp {
         }
     }
 
-    // Exibe notificação popup estilizada (Toast) na tela
+    // Exibe notificaÃ§Ã£o popup estilizada (Toast) na tela
     showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
         if (!container) return;
 
-        // Cria o elemento da notificação
+        // Cria o elemento da notificaÃ§Ã£o
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${type}`;
 
@@ -1936,13 +1941,13 @@ class LySincApp {
         indicator.className = 'toast-type-indicator';
         toast.appendChild(indicator);
 
-        // Texto do conteúdo
+        // Texto do conteÃºdo
         const textContainer = document.createElement('div');
         textContainer.className = 'flex-1 text-sm font-medium mr-4';
         textContainer.textContent = message;
         toast.appendChild(textContainer);
 
-        // Botão de fechar
+        // BotÃ£o de fechar
         const closeBtn = document.createElement('button');
         closeBtn.className = 'text-white/40 hover:text-white transition-colors focus:outline-none';
         closeBtn.innerHTML = `
@@ -1952,14 +1957,14 @@ class LySincApp {
         `;
         toast.appendChild(closeBtn);
 
-        // Injeta no contêiner
+        // Injeta no contÃªiner
         container.appendChild(toast);
 
-        // Função de remoção com animação
+        // FunÃ§Ã£o de remoÃ§Ã£o com animaÃ§Ã£o
         const removeToast = () => {
             if (toast.classList.contains('toast-hide')) return;
             toast.classList.add('toast-hide');
-            // Aguarda a animação terminar
+            // Aguarda a animaÃ§Ã£o terminar
             setTimeout(() => {
                 toast.remove();
             }, 300);
@@ -1968,12 +1973,12 @@ class LySincApp {
         // Evento de clique para fechar imediatamente
         closeBtn.addEventListener('click', removeToast);
 
-        // Auto-dismiss após 4 segundos
+        // Auto-dismiss apÃ³s 4 segundos
         setTimeout(removeToast, 4000);
     }
 }
 
-// Inicializa a aplicação quando o DOM estiver completamente pronto e os nós do cabeçalho acessíveis
+// Inicializa a aplicaÃ§Ã£o quando o DOM estiver completamente pronto e os nÃ³s do cabeÃ§alho acessÃ­veis
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         window.app = new LySincApp();
