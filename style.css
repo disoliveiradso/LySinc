@@ -143,19 +143,19 @@ body, html {
     opacity: 0.35;
 }
 
-/* Estado visual durante o scroll manual - tudo fica branco e legível (letras passadas e futuras) */
+/* Estado visual durante o scroll manual - tudo fica legível mas não branco (letras passadas e futuras) */
 .user-scrolling .lyric-line.inactive,
 .user-scrolling .lyric-line.inactive.passed {
     opacity: 0.8 !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    color: #cccccc !important;
+    -webkit-text-fill-color: #cccccc !important;
 }
 
 .user-scrolling .lyric-line.inactive .lyrics-syllable,
 .user-scrolling .lyric-line.inactive.passed .lyrics-syllable {
     background-image: none !important;
-    -webkit-text-fill-color: #ffffff !important;
-    color: #ffffff !important;
+    -webkit-text-fill-color: #cccccc !important;
+    color: #cccccc !important;
 }
 
 /* Traduções e Romanizações brancas durante o scroll */
@@ -164,8 +164,8 @@ body, html {
 .user-scrolling .lyric-line.inactive.passed .lyrics-translation-container,
 .user-scrolling .lyric-line.inactive.passed .lyrics-romanization-container {
     opacity: 0.9 !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    color: #cccccc !important;
+    -webkit-text-fill-color: #cccccc !important;
 }
 
 
