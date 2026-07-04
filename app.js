@@ -803,10 +803,150 @@ class LySincApp {
 
         if (this.btnPipTop) this.btnPipTop.classList.remove('hidden');
         if (this.btnFloatingPip) this.btnFloatingPip.classList.remove('hidden');
+
+        let pipVideo = null;
+        let pipCanvas = null;
+        let pipCtx = null;
+        let pipAnimationId = null;
+
+        const wrapText = (ctx, text, maxWidth) => {
+            const words = text.split(' ');
+            let lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        };
+
+        const renderPipCanvas = () => {
+            if (!pipCanvas || !pipCtx) return;
+            
+            pipCtx.fillStyle = '#121212';
+            pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
+            
+            if (this.activeLineId) {
+                const activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
+                if (activeIndex !== -1) {
+                    const currentLyric = this.lyrics[activeIndex];
+                    const nextLyric = this.lyrics[activeIndex + 1];
+
+                    const mode = this.currentLyricsMode;
+                    const currentText = currentLyric[mode] || currentLyric.original;
+                    const nextText = nextLyric ? (nextLyric[mode] || nextLyric.original) : '';
+
+                    const maxWidth = pipCanvas.width * 0.9;
+                    
+                    pipCtx.font = 'bold 50px Inter, sans-serif';
+                    pipCtx.fillStyle = '#ffffff';
+                    pipCtx.textAlign = 'center';
+                    pipCtx.textBaseline = 'middle';
+                    const currentLines = wrapText(pipCtx, currentText, maxWidth);
+                    
+                    pipCtx.font = 'bold 30px Inter, sans-serif';
+                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    const nextLines = nextText ? wrapText(pipCtx, nextText, maxWidth) : [];
+
+                    const currentLineHeight = 65;
+                    const nextLineHeight = 40;
+                    const spacing = 30;
+                    
+                    const totalHeight = (currentLines.length * currentLineHeight) + 
+                                      (nextLines.length > 0 ? spacing + (nextLines.length * nextLineHeight) : 0);
+                                      
+                    let startY = (pipCanvas.height - totalHeight) / 2 + (currentLineHeight / 2);
+
+                    pipCtx.font = 'bold 50px Inter, sans-serif';
+                    pipCtx.fillStyle = '#ffffff';
+                    currentLines.forEach(line => {
+                        pipCtx.fillText(line, pipCanvas.width / 2, startY);
+                        startY += currentLineHeight;
+                    });
+
+                    if (nextLines.length > 0) {
+                        startY += spacing - currentLineHeight + (nextLineHeight / 2);
+                        pipCtx.font = 'bold 30px Inter, sans-serif';
+                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        nextLines.forEach(line => {
+                            pipCtx.fillText(line, pipCanvas.width / 2, startY);
+                            startY += nextLineHeight;
+                        });
+                    }
+                }
+            } else {
+                pipCtx.font = 'bold 40px Inter, sans-serif';
+                pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                pipCtx.textAlign = 'center';
+                pipCtx.textBaseline = 'middle';
+                pipCtx.fillText('LySinc PiP', pipCanvas.width / 2, pipCanvas.height / 2);
+            }
+
+            pipAnimationId = requestAnimationFrame(renderPipCanvas);
+        };
+
+        const startCanvasPip = async () => {
+            if (!pipVideo) {
+                pipCanvas = document.createElement('canvas');
+                pipCanvas.width = 1280;
+                pipCanvas.height = 720;
+                pipCtx = pipCanvas.getContext('2d');
+
+                pipVideo = document.createElement('video');
+                pipVideo.muted = true;
+                pipVideo.playsInline = true;
+                pipVideo.style.display = 'none';
+                document.body.appendChild(pipVideo);
+
+                pipVideo.addEventListener('enterpictureinpicture', () => {
+                    if (!pipAnimationId) {
+                        pipAnimationId = requestAnimationFrame(renderPipCanvas);
+                    }
+                });
+
+                pipVideo.addEventListener('leavepictureinpicture', () => {
+                    if (pipAnimationId) {
+                        cancelAnimationFrame(pipAnimationId);
+                        pipAnimationId = null;
+                    }
+                });
+            }
+
+            if (!pipAnimationId) {
+                pipAnimationId = requestAnimationFrame(renderPipCanvas);
+            }
+
+            const stream = pipCanvas.captureStream(30);
+            pipVideo.srcObject = stream;
+            
+            try {
+                await pipVideo.play();
+                await pipVideo.requestPictureInPicture();
+            } catch (err) {
+                console.error("Erro ao abrir Video PiP:", err);
+                this.showToast('Picture-in-Picture falhou.', 'error');
+                if (pipAnimationId) {
+                    cancelAnimationFrame(pipAnimationId);
+                    pipAnimationId = null;
+                }
+            }
+        };
         
         const handlePipClick = async () => {
             if (!('documentPictureInPicture' in window)) {
-                this.showToast('Picture-in-Picture não suportado neste navegador.', 'error');
+                if (document.pictureInPictureElement) {
+                    document.exitPictureInPicture();
+                } else {
+                    await startCanvasPip();
+                }
                 return;
             }
             try {
