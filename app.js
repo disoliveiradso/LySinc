@@ -452,15 +452,22 @@ class LySincApp {
         const hideMousePointer = () => {
             if (document.fullscreenElement) {
                 document.body.style.cursor = 'none';
-                const floatingWrapper = document.getElementById('floating-controls-wrapper');
-                if (floatingWrapper) floatingWrapper.style.opacity = '0';
+                if (this.btnFloatingToggle) {
+                    this.btnFloatingToggle.style.opacity = '0';
+                    this.btnFloatingToggle.style.pointerEvents = 'none';
+                }
+                if (this.floatingMenuContent && !this.floatingMenuContent.classList.contains('closed')) {
+                    this.toggleFloatingMenu(false);
+                }
             }
         };
 
         const resetMousePointer = () => {
             document.body.style.cursor = 'default';
-            const floatingWrapper = document.getElementById('floating-controls-wrapper');
-            if (floatingWrapper) floatingWrapper.style.opacity = '1';
+            if (this.btnFloatingToggle) {
+                this.btnFloatingToggle.style.opacity = '';
+                this.btnFloatingToggle.style.pointerEvents = '';
+            }
             
             if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
             
@@ -470,10 +477,10 @@ class LySincApp {
         };
 
         const handleScrollAction = (e) => {
-            resetMousePointer();
             if (e && e.type === 'scroll' && (Date.now() - this.lastAutoScrollTime < 800)) {
                 return;
             }
+            resetMousePointer();
             if (this.floatingMenuContent && !this.floatingMenuContent.classList.contains('closed')) {
                 this.toggleFloatingMenu(false);
             }
@@ -483,6 +490,7 @@ class LySincApp {
         document.addEventListener('wheel', handleScrollAction, { passive: true });
         document.addEventListener('touchmove', handleScrollAction, { passive: true });
         document.addEventListener('scroll', handleScrollAction, { passive: true });
+        document.addEventListener('touchstart', resetMousePointer, { passive: true });
         
         const iconFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>`;
         const iconExitFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h4V4m12 4h-4V4M4 16h4v4m12-4h-4v4" /></svg>`;
@@ -492,8 +500,10 @@ class LySincApp {
             if (!document.fullscreenElement) {
                 if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
                 document.body.style.cursor = 'default';
-                const floatingWrapper = document.getElementById('floating-controls-wrapper');
-                if (floatingWrapper) floatingWrapper.style.opacity = '1';
+                if (this.btnFloatingToggle) {
+                    this.btnFloatingToggle.style.opacity = '';
+                    this.btnFloatingToggle.style.pointerEvents = '';
+                }
                 if (this.btnFullscreen) this.btnFullscreen.innerHTML = iconFullscreen;
                 if (this.btnFullscreenTop) this.btnFullscreenTop.innerHTML = iconFullscreen;
             } else {
