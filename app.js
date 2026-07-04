@@ -453,8 +453,10 @@ class LySincApp {
             if (document.fullscreenElement) {
                 document.body.style.cursor = 'none';
                 if (this.btnFloatingToggle) {
-                    this.btnFloatingToggle.style.opacity = '0';
-                    this.btnFloatingToggle.style.pointerEvents = 'none';
+                    this.btnFloatingToggle.style.opacity = '';
+                    this.btnFloatingToggle.style.pointerEvents = '';
+                    this.btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
+                    this.btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                 }
                 if (this.floatingMenuContent && !this.floatingMenuContent.classList.contains('closed')) {
                     this.toggleFloatingMenu(false);
@@ -468,6 +470,7 @@ class LySincApp {
                 this.btnFloatingToggle.style.opacity = '';
                 this.btnFloatingToggle.style.pointerEvents = '';
             }
+            this.updateFloatingMenuVisibility();
             
             if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
             
@@ -798,14 +801,17 @@ class LySincApp {
 
     setupPiP() {
 
-        if ('documentPictureInPicture' in window) {
-            if (this.btnPipTop) this.btnPipTop.classList.remove('hidden');
-            if (this.btnFloatingPip) this.btnFloatingPip.classList.remove('hidden');
-            
-            const handlePipClick = async () => {
-                try {
+        if (this.btnPipTop) this.btnPipTop.classList.remove('hidden');
+        if (this.btnFloatingPip) this.btnFloatingPip.classList.remove('hidden');
+        
+        const handlePipClick = async () => {
+            if (!('documentPictureInPicture' in window)) {
+                this.showToast('Picture-in-Picture não suportado neste navegador.', 'error');
+                return;
+            }
+            try {
 
-                    if (window.documentPictureInPicture.window) return;
+                if (window.documentPictureInPicture.window) return;
                     
                     const pipWindow = await window.documentPictureInPicture.requestWindow({
                         width: 400,
@@ -948,10 +954,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             
             if (this.btnPipTop) this.btnPipTop.addEventListener('click', handlePipClick);
             if (this.btnFloatingPip) this.btnFloatingPip.addEventListener('click', handlePipClick);
-        } else {
-
-            console.log('Document Picture-in-Picture não suportado pelo navegador.');
-        }
     }
 
     adjustSyncOffset(ms, reset = false) {
@@ -1934,13 +1936,15 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
             if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
 
-            if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
-                btnFloatingToggle.classList.remove('hidden');
-                
-                void btnFloatingToggle.offsetWidth;
-                
-                btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
-                btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
+            if (document.body.style.cursor !== 'none') {
+                if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
+                    btnFloatingToggle.classList.remove('hidden');
+                    
+                    void btnFloatingToggle.offsetWidth;
+                    
+                    btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
+                    btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
+                }
             }
         } else {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
