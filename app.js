@@ -557,6 +557,15 @@ class LySincApp {
             }
         });
 
+        document.addEventListener('mousedown', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target && target === tooltipTarget) {
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                customTooltip.style.opacity = '0';
+                tooltipTarget = null;
+            }
+        });
+
         this.settingsModal.addEventListener('click', (e) => {
             if (e.target === this.settingsModal) {
                 this.toggleSettingsModal(false);
