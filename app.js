@@ -846,26 +846,26 @@ class LySincApp {
 
                     const maxWidth = pipCanvas.width * 0.9;
                     
-                    pipCtx.font = 'bold 50px Inter, sans-serif';
+                    pipCtx.font = 'bold 80px Inter, sans-serif';
                     pipCtx.fillStyle = '#ffffff';
                     pipCtx.textAlign = 'center';
                     pipCtx.textBaseline = 'middle';
                     const currentLines = wrapText(pipCtx, currentText, maxWidth);
                     
-                    pipCtx.font = 'bold 30px Inter, sans-serif';
+                    pipCtx.font = 'bold 50px Inter, sans-serif';
                     pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                     const nextLines = nextText ? wrapText(pipCtx, nextText, maxWidth) : [];
 
-                    const currentLineHeight = 65;
-                    const nextLineHeight = 40;
-                    const spacing = 30;
+                    const currentLineHeight = 100;
+                    const nextLineHeight = 70;
+                    const spacing = 60;
                     
                     const totalHeight = (currentLines.length * currentLineHeight) + 
                                       (nextLines.length > 0 ? spacing + (nextLines.length * nextLineHeight) : 0);
                                       
                     let startY = (pipCanvas.height - totalHeight) / 2 + (currentLineHeight / 2);
 
-                    pipCtx.font = 'bold 50px Inter, sans-serif';
+                    pipCtx.font = 'bold 80px Inter, sans-serif';
                     pipCtx.fillStyle = '#ffffff';
                     currentLines.forEach(line => {
                         pipCtx.fillText(line, pipCanvas.width / 2, startY);
@@ -874,7 +874,7 @@ class LySincApp {
 
                     if (nextLines.length > 0) {
                         startY += spacing - currentLineHeight + (nextLineHeight / 2);
-                        pipCtx.font = 'bold 30px Inter, sans-serif';
+                        pipCtx.font = 'bold 50px Inter, sans-serif';
                         pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                         nextLines.forEach(line => {
                             pipCtx.fillText(line, pipCanvas.width / 2, startY);
@@ -896,8 +896,8 @@ class LySincApp {
         const startCanvasPip = async () => {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
-                pipCanvas.width = 1280;
-                pipCanvas.height = 720;
+                pipCanvas.width = 1080;
+                pipCanvas.height = 1379;
                 pipCtx = pipCanvas.getContext('2d');
 
                 pipVideo = document.createElement('video');
@@ -910,6 +910,35 @@ class LySincApp {
                     if (!pipAnimationId) {
                         pipAnimationId = requestAnimationFrame(renderPipCanvas);
                     }
+                    
+                    const mainContent = document.getElementById('lyrics-container');
+                    const topMenu = document.getElementById('lyrics-top-menu');
+                    const floatingControls = document.getElementById('floating-controls-wrapper');
+                    
+                    if (mainContent) mainContent.style.display = 'none';
+                    if (topMenu) topMenu.style.display = 'none';
+                    if (floatingControls) floatingControls.style.display = 'none';
+
+                    const placeholder = document.createElement('div');
+                    placeholder.id = 'mobile-pip-placeholder';
+                    placeholder.className = 'flex-1 flex flex-col items-center justify-center text-white/70 text-center px-4 h-full absolute inset-0 z-[100]';
+                    placeholder.innerHTML = `
+                        <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
+                        </svg>
+                        <h2 class="text-xl font-bold mb-2 text-white">Modo Picture-in-Picture ativo</h2>
+                        <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
+                        <button id="btn-mobile-pip-return" class="mt-6 bg-white text-black px-6 py-2 rounded-full font-bold hover:scale-105 transition-transform">
+                            Voltar para cá
+                        </button>
+                    `;
+                    document.body.appendChild(placeholder);
+                    
+                    document.getElementById('btn-mobile-pip-return').addEventListener('click', () => {
+                        if (document.pictureInPictureElement) {
+                            document.exitPictureInPicture();
+                        }
+                    });
                 });
 
                 pipVideo.addEventListener('leavepictureinpicture', () => {
@@ -917,6 +946,17 @@ class LySincApp {
                         cancelAnimationFrame(pipAnimationId);
                         pipAnimationId = null;
                     }
+                    
+                    const mainContent = document.getElementById('lyrics-container');
+                    const topMenu = document.getElementById('lyrics-top-menu');
+                    const floatingControls = document.getElementById('floating-controls-wrapper');
+                    
+                    if (mainContent) mainContent.style.display = '';
+                    if (topMenu) topMenu.style.display = '';
+                    if (floatingControls) floatingControls.style.display = '';
+
+                    const placeholder = document.getElementById('mobile-pip-placeholder');
+                    if (placeholder) placeholder.remove();
                 });
             }
 
