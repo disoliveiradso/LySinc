@@ -911,6 +911,11 @@ class LySincApp {
                 const pixelRatio = window.devicePixelRatio || 1;
                 pipCanvas.width = window.innerWidth * pixelRatio;
                 pipCanvas.height = window.innerHeight * pixelRatio;
+                pipCanvas.style.position = 'fixed';
+                pipCanvas.style.top = '-9999px';
+                pipCanvas.style.left = '-9999px';
+                pipCanvas.style.visibility = 'hidden';
+                document.body.appendChild(pipCanvas);
                 pipCtx = pipCanvas.getContext('2d');
 
                 pipVideo = document.createElement('video');
@@ -922,6 +927,11 @@ class LySincApp {
                 pipVideo.addEventListener('enterpictureinpicture', () => {
                     if (!pipAnimationId) {
                         pipAnimationId = setInterval(renderPipCanvas, 1000 / 30);
+                    }
+                    
+                    const btnPipTop = document.getElementById('btn-pip-top');
+                    if (btnPipTop) {
+                        btnPipTop.classList.add('text-green-500');
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
@@ -963,6 +973,11 @@ class LySincApp {
                     if (pipAnimationId) {
                         clearInterval(pipAnimationId);
                         pipAnimationId = null;
+                    }
+                    
+                    const btnPipTop = document.getElementById('btn-pip-top');
+                    if (btnPipTop) {
+                        btnPipTop.classList.remove('text-green-500');
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
