@@ -831,91 +831,113 @@ class LySincApp {
         const renderPipCanvas = () => {
             if (!pipCanvas || !pipCtx) return;
             
-            pipCtx.fillStyle = this.currentAlbumColor || '#121212';
-            pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
-            
-            if (this.lyrics && this.lyrics.length > 0) {
-                let activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
-                if (activeIndex === -1) {
-                    const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-                    const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
-                    activeIndex = this.lyrics.findIndex(l => l.timestamp > smoothProgress);
-                }
+            try {
+                pipCtx.fillStyle = this.currentAlbumColor || '#121212';
+                pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
                 
-                if (activeIndex !== -1) {
-                    const currentLyric = this.lyrics[activeIndex];
-                    const nextLyric = this.lyrics[activeIndex + 1];
-
-                    const mode = this.currentLyricsMode;
-                    const currentText = (currentLyric[mode] || currentLyric.original || '') + '';
-                    const nextText = nextLyric ? ((nextLyric[mode] || nextLyric.original || '') + '') : '';
-
-                    const baseWidth = 1080;
-                    const scale = pipCanvas.width / baseWidth;
-
-                    const currentFontSize = Math.round(80 * scale);
-                    const nextFontSize = Math.round(50 * scale);
-                    const currentLineHeight = Math.round(100 * scale);
-                    const nextLineHeight = Math.round(70 * scale);
-                    const spacing = Math.round(60 * scale);
-
-                    const maxWidth = pipCanvas.width * 0.9;
+                if (this.lyrics && this.lyrics.length > 0) {
+                    let activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
+                    if (activeIndex === -1) {
+                        const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                        const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
+                        activeIndex = this.lyrics.findIndex(l => l.timestamp > smoothProgress);
+                    }
                     
-                    pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
-                    pipCtx.fillStyle = '#ffffff';
-                    pipCtx.textAlign = 'center';
-                    pipCtx.textBaseline = 'middle';
-                    const currentLines = wrapText(pipCtx, currentText, maxWidth);
-                    
-                    pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
-                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                    const nextLines = nextText ? wrapText(pipCtx, nextText, maxWidth) : [];
-                    
-                    const totalHeight = (currentLines.length * currentLineHeight) + 
-                                      (nextLines.length > 0 ? spacing + (nextLines.length * nextLineHeight) : 0);
-                                      
-                    let startY = (pipCanvas.height - totalHeight) / 2 + (currentLineHeight / 2);
+                    if (activeIndex !== -1) {
+                        const currentLyric = this.lyrics[activeIndex];
+                        const nextLyric = this.lyrics[activeIndex + 1];
 
-                    pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
-                    pipCtx.fillStyle = '#ffffff';
-                    currentLines.forEach(line => {
-                        pipCtx.fillText(line, pipCanvas.width / 2, startY);
-                        startY += currentLineHeight;
-                    });
+                        const mode = this.currentLyricsMode;
+                        const currentText = (currentLyric[mode] || currentLyric.original || '') + '';
+                        const nextText = nextLyric ? ((nextLyric[mode] || nextLyric.original || '') + '') : '';
 
-                    if (nextLines.length > 0) {
-                        startY += spacing - currentLineHeight + (nextLineHeight / 2);
+                        const baseWidth = 1080;
+                        const scale = pipCanvas.width / baseWidth;
+
+                        const currentFontSize = Math.round(80 * scale);
+                        const nextFontSize = Math.round(50 * scale);
+                        const currentLineHeight = Math.round(100 * scale);
+                        const nextLineHeight = Math.round(70 * scale);
+                        const spacing = Math.round(60 * scale);
+
+                        const maxWidth = pipCanvas.width * 0.9;
+                        
+                        pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
+                        pipCtx.fillStyle = '#ffffff';
+                        pipCtx.textAlign = 'center';
+                        pipCtx.textBaseline = 'middle';
+                        const currentLines = wrapText(pipCtx, currentText, maxWidth);
+                        
                         pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
                         pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        nextLines.forEach(line => {
+                        const nextLines = nextText ? wrapText(pipCtx, nextText, maxWidth) : [];
+                        
+                        const totalHeight = (currentLines.length * currentLineHeight) + 
+                                          (nextLines.length > 0 ? spacing + (nextLines.length * nextLineHeight) : 0);
+                                          
+                        let startY = (pipCanvas.height - totalHeight) / 2 + (currentLineHeight / 2);
+
+                        pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
+                        pipCtx.fillStyle = '#ffffff';
+                        currentLines.forEach(line => {
                             pipCtx.fillText(line, pipCanvas.width / 2, startY);
-                            startY += nextLineHeight;
+                            startY += currentLineHeight;
                         });
+
+                        if (nextLines.length > 0) {
+                            startY += spacing - currentLineHeight + (nextLineHeight / 2);
+                            pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
+                            pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                            nextLines.forEach(line => {
+                                pipCtx.fillText(line, pipCanvas.width / 2, startY);
+                                startY += nextLineHeight;
+                            });
+                        }
+                    } else {
+                        const scale = pipCanvas.width / 1080;
+                        const fontSize = Math.round(40 * scale);
+                        pipCtx.font = `bold ${fontSize}px Inter, sans-serif`;
+                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        pipCtx.textAlign = 'center';
+                        pipCtx.textBaseline = 'middle';
+                        pipCtx.fillText('Instrumental / Pausa', pipCanvas.width / 2, pipCanvas.height / 2);
                     }
+                } else {
+                    const scale = pipCanvas.width / 1080;
+                    const fontSize = Math.round(50 * scale);
+                    pipCtx.font = `bold ${fontSize}px Inter, sans-serif`;
+                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    pipCtx.textAlign = 'center';
+                    pipCtx.textBaseline = 'middle';
+                    pipCtx.fillText('LySinc PiP', pipCanvas.width / 2, pipCanvas.height / 2);
                 }
-            } else {
-                const scale = pipCanvas.width / 1080;
-                const fontSize = Math.round(50 * scale);
-                pipCtx.font = `bold ${fontSize}px Inter, sans-serif`;
-                pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            } catch (err) {
+                pipCtx.fillStyle = '#ff0000';
+                pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
+                pipCtx.fillStyle = '#ffffff';
+                pipCtx.font = '24px sans-serif';
                 pipCtx.textAlign = 'center';
                 pipCtx.textBaseline = 'middle';
-                pipCtx.fillText('LySinc PiP', pipCanvas.width / 2, pipCanvas.height / 2);
+                pipCtx.fillText("Err: " + err.message, pipCanvas.width / 2, pipCanvas.height / 2);
             }
-
         };
 
         const startCanvasPip = async () => {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
                 const pixelRatio = window.devicePixelRatio || 1;
-                pipCanvas.width = window.innerWidth * pixelRatio;
-                pipCanvas.height = window.innerHeight * pixelRatio;
+                const targetWidth = Math.min(window.innerWidth * pixelRatio, 1080);
+                pipCanvas.width = targetWidth;
+                pipCanvas.height = targetWidth * (1379 / 1080);
+                
                 pipCanvas.style.position = 'fixed';
-                pipCanvas.style.top = '-9999px';
-                pipCanvas.style.left = '-9999px';
-                pipCanvas.style.opacity = '0.01';
+                pipCanvas.style.top = '0';
+                pipCanvas.style.left = '0';
+                pipCanvas.style.width = '1px';
+                pipCanvas.style.height = '1px';
+                pipCanvas.style.opacity = '0.001';
                 pipCanvas.style.pointerEvents = 'none';
+                pipCanvas.style.zIndex = '-9999';
                 document.body.appendChild(pipCanvas);
                 pipCtx = pipCanvas.getContext('2d');
 
@@ -923,12 +945,13 @@ class LySincApp {
                 pipVideo.muted = true;
                 pipVideo.playsInline = true;
                 pipVideo.style.position = 'fixed';
-                pipVideo.style.top = '-9999px';
-                pipVideo.style.left = '-9999px';
-                pipVideo.style.width = '10px';
-                pipVideo.style.height = '10px';
-                pipVideo.style.opacity = '0.01';
+                pipVideo.style.top = '0';
+                pipVideo.style.left = '0';
+                pipVideo.style.width = '108px';
+                pipVideo.style.height = '137px';
+                pipVideo.style.opacity = '0.001';
                 pipVideo.style.pointerEvents = 'none';
+                pipVideo.style.zIndex = '-9999';
                 document.body.appendChild(pipVideo);
 
                 pipVideo.addEventListener('enterpictureinpicture', () => {
@@ -938,7 +961,8 @@ class LySincApp {
                     
                     const btnPipTop = document.getElementById('btn-pip-top');
                     if (btnPipTop) {
-                        btnPipTop.classList.add('text-green-500');
+                        btnPipTop.classList.add('!text-green-500');
+                        btnPipTop.classList.remove('text-white/50');
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
@@ -984,7 +1008,8 @@ class LySincApp {
                     
                     const btnPipTop = document.getElementById('btn-pip-top');
                     if (btnPipTop) {
-                        btnPipTop.classList.remove('text-green-500');
+                        btnPipTop.classList.remove('!text-green-500');
+                        btnPipTop.classList.add('text-white/50');
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
@@ -1030,7 +1055,10 @@ class LySincApp {
             }
         };
         
-        const handlePipClick = async () => {
+        const handlePipClick = async (event) => {
+            if (event && event.currentTarget) {
+                event.currentTarget.blur();
+            }
             if (!('documentPictureInPicture' in window)) {
                 if (document.pictureInPictureElement) {
                     document.exitPictureInPicture();
