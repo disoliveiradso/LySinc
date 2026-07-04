@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LySinc - Serviço de Busca e Parsing de Letras (Baseado no am-lyrics-main)
  */
 
