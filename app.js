@@ -3,8 +3,109 @@ import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
 
 
+class WakeLockManager {
+    constructor() {
+        this.wakeLock = null;
+        document.addEventListener('visibilitychange', async () => {
+            if (this.wakeLock !== null && document.visibilityState === 'visible') {
+                await this.request();
+            }
+        });
+    }
+
+    async request() {
+        if ('wakeLock' in navigator) {
+            try {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.warn(`Wake Lock error: ${err.name}, ${err.message}`);
+            }
+        }
+    }
+
+    release() {
+        if (this.wakeLock !== null) {
+            this.wakeLock.release().then(() => {
+                this.wakeLock = null;
+            });
+        }
+    }
+}
+
+class CustomTooltipManager {
+    constructor() {
+        this.tooltip = document.getElementById('custom-tooltip');
+        this.activeElement = null;
+        this.showTimeout = null;
+        this.isTouch = window.matchMedia("(hover: none)").matches;
+        
+        if (this.isTouch) {
+            this.setupTouchTooltips();
+        }
+    }
+
+    setupTouchTooltips() {
+        document.addEventListener('touchstart', (e) => {
+            const btn = e.target.closest('button[title]');
+            if (btn) {
+                if (!btn.dataset.title) {
+                    btn.dataset.title = btn.getAttribute('title');
+                }
+                btn.removeAttribute('title');
+                
+                this.activeElement = btn;
+                this.showTimeout = setTimeout(() => {
+                    this.show(btn);
+                }, 500); 
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => this.hide(), { passive: true });
+        document.addEventListener('touchcancel', () => this.hide(), { passive: true });
+        document.addEventListener('touchmove', () => this.hide(), { passive: true });
+        
+        document.addEventListener('contextmenu', (e) => {
+            if (this.activeElement && this.activeElement.contains(e.target)) {
+                e.preventDefault(); 
+            }
+        });
+    }
+
+    show(element) {
+        if (!this.tooltip || !element.dataset.title) return;
+        
+        this.tooltip.textContent = element.dataset.title;
+        const rect = element.getBoundingClientRect();
+        
+        const tooltipWidth = this.tooltip.offsetWidth || 100;
+        const tooltipHeight = this.tooltip.offsetHeight || 30;
+        
+        let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+        let top = rect.top - tooltipHeight - 10;
+        
+        if (left < 10) left = 10;
+        if (left + tooltipWidth > window.innerWidth - 10) left = window.innerWidth - tooltipWidth - 10;
+        if (top < 10) top = rect.bottom + 10;
+        
+        this.tooltip.style.left = `${left}px`;
+        this.tooltip.style.top = `${top}px`;
+        this.tooltip.classList.add('visible');
+    }
+
+    hide() {
+        if (this.showTimeout) clearTimeout(this.showTimeout);
+        this.activeElement = null;
+        if (this.tooltip) {
+            this.tooltip.classList.remove('visible');
+        }
+    }
+}
+
 class LySincApp {
     constructor() {
+
+        this.wakeLockManager = new WakeLockManager();
+        this.tooltipManager = new CustomTooltipManager();
 
         this.screenPreLogin = document.getElementById('screen-pre-login');
         this.screenMain = document.getElementById('screen-main');
@@ -279,9 +380,10 @@ class LySincApp {
         let controlsTimeout = null;
 
         const closeControls = () => {
-            if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('translate-x-10')) {
-                this.headerControlsContainer.classList.add('translate-x-10', 'opacity-0', 'pointer-events-none');
-                if (this.iconToggleControls) this.iconToggleControls.innerHTML = '<path d="M15 18l-6-6 6-6"/>';
+            if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('closed')) {
+                this.headerControlsContainer.classList.add('closed');
+                this.headerControlsContainer.classList.remove('open');
+                if (this.iconToggleControls) this.iconToggleControls.classList.remove('rotate-180');
             }
         };
 
@@ -293,10 +395,11 @@ class LySincApp {
         if (this.btnToggleControls) {
             this.btnToggleControls.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isHidden = this.headerControlsContainer.classList.contains('translate-x-10');
+                const isHidden = this.headerControlsContainer.classList.contains('closed');
                 if (isHidden) {
-                    this.headerControlsContainer.classList.remove('translate-x-10', 'opacity-0', 'pointer-events-none');
-                    this.iconToggleControls.innerHTML = '<path d="M9 18l6-6-6-6"/>';
+                    this.headerControlsContainer.classList.remove('closed');
+                    this.headerControlsContainer.classList.add('open');
+                    this.iconToggleControls.classList.add('rotate-180');
                     resetControlsTimeout();
                 } else {
                     closeControls();
@@ -305,7 +408,7 @@ class LySincApp {
         }
 
         document.addEventListener('click', (e) => {
-            if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('translate-x-10')) {
+            if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('closed')) {
                 const isClickInside = this.headerControlsContainer.contains(e.target);
                 const isClickOnToggle = this.btnToggleControls && this.btnToggleControls.contains(e.target);
                 
@@ -930,7 +1033,14 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             safeCompensation = 0;
         }
 
-        this.isPlaying = state.isPlaying;
+        if (this.isPlaying !== state.isPlaying) {
+            this.isPlaying = state.isPlaying;
+            if (this.isPlaying) {
+                this.wakeLockManager.request();
+            } else {
+                this.wakeLockManager.release();
+            }
+        }
         this.durationMs = state.durationMs;
 
         if (this.isPlaying) {
@@ -1811,13 +1921,14 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     toggleFloatingMenu(show) {
         if (!this.floatingMenuContent || !this.floatingToggleIcon) return;
 
-        const iconPath = this.floatingToggleIcon.querySelector('path');
         if (show) {
             this.floatingMenuContent.classList.add('open');
-            if (iconPath) iconPath.setAttribute('d', 'M15 19l-7-7 7-7');
+            this.floatingMenuContent.classList.remove('closed');
+            this.floatingToggleIcon.classList.add('rotate-180');
         } else {
             this.floatingMenuContent.classList.remove('open');
-            if (iconPath) iconPath.setAttribute('d', 'M9 5l7 7-7 7');
+            this.floatingMenuContent.classList.add('closed');
+            this.floatingToggleIcon.classList.remove('rotate-180');
         }
     }
 

@@ -105,6 +105,45 @@ body, html {
     padding-bottom: 5vh; 
 }
 
+/* Custom Tooltip */
+#custom-tooltip {
+    position: fixed;
+    background-color: rgba(20, 20, 20, 0.95);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+#custom-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Dropdown Animation */
+.dropdown-menu {
+    transform-origin: top right;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-menu.closed {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    pointer-events: none;
+}
+.dropdown-menu.open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+}
+
 .lyric-line {
     font-family: var(--font-heading);
     font-weight: 700;
@@ -118,11 +157,10 @@ body, html {
     will-change: transform, opacity, filter;
     
     
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    display: block;
     word-break: keep-all;
     overflow-wrap: break-word;
+    text-wrap: balance;
     
     
     font-size: clamp(1.8rem, 4vw, 2.8rem);
@@ -620,40 +658,3 @@ input:focus {
     overflow: hidden;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-#floating-menu-content.open {
-    max-width: 500px;
-    opacity: 1;
-    transform: translateX(0);
-    margin-left: 0.75rem;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-
-
-
-#btn-floating-toggle, #floating-menu-content, #btn-recenter {
-    will-change: transform, backdrop-filter;
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-.pip-mode .lyric-line {
-    padding-top: 0.25rem !important;
-    padding-bottom: 0.25rem !important;
-    margin-top: 0.25rem !important;
-    margin-bottom: 0.25rem !important;
-    
-    
-    font-size: clamp(1.5rem, 5vw, 2.5rem) !important;
-}
-
-.pip-mode .lyrics-syllable.instrumental-icon {
-    font-size: clamp(1.5rem, 5vw, 2.5rem) !important;
-}
-
