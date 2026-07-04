@@ -128,20 +128,51 @@ body, html {
     transform: translateY(0) scale(1);
 }
 
-/* Dropdown Animation */
-.dropdown-menu {
-    transform-origin: top right;
+/* Drawer and Dropdown Animations */
+.menu-drawer {
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.dropdown-menu.closed {
+.menu-drawer.closed {
     opacity: 0;
-    transform: scale(0.95) translateY(-10px);
     pointer-events: none;
 }
-.dropdown-menu.open {
+.menu-drawer.open {
     opacity: 1;
-    transform: scale(1) translateY(0);
     pointer-events: auto;
+}
+
+/* Mobile: Dropdown */
+@media (max-width: 767px) {
+    .menu-drawer {
+        transform-origin: top right;
+    }
+    .menu-drawer.closed {
+        transform: scale(0.95) translateY(-10px);
+    }
+    .menu-drawer.open {
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Desktop: Horizontal Drawer */
+@media (min-width: 768px) {
+    .menu-drawer {
+        transform-origin: right center;
+    }
+    /* For Header Controls: Slide right */
+    #header-controls-container.menu-drawer.closed {
+        transform: translateX(20px);
+    }
+    #header-controls-container.menu-drawer.open {
+        transform: translateX(0);
+    }
+    /* For Floating Controls: Slide left */
+    #floating-menu-content.menu-drawer.closed {
+        transform: translateX(-20px);
+    }
+    #floating-menu-content.menu-drawer.open {
+        transform: translateX(0);
+    }
 }
 
 .lyric-line {
@@ -158,9 +189,10 @@ body, html {
     
     
     display: block;
-    word-break: keep-all;
+    word-break: break-word;
     overflow-wrap: break-word;
     text-wrap: balance;
+    max-width: 90vw;
     
     
     font-size: clamp(1.8rem, 4vw, 2.8rem);

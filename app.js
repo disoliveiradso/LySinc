@@ -46,29 +46,27 @@ class CustomTooltipManager {
 
     setupTouchTooltips() {
         document.addEventListener('touchstart', (e) => {
-            const btn = e.target.closest('button[title]');
+            const btn = e.target.closest('button[title], button[data-title]');
             if (btn) {
-                if (!btn.dataset.title) {
+                if (btn.hasAttribute('title')) {
                     btn.dataset.title = btn.getAttribute('title');
+                    btn.removeAttribute('title');
                 }
-                btn.removeAttribute('title');
-                
                 this.activeElement = btn;
-                this.showTimeout = setTimeout(() => {
-                    this.show(btn);
-                }, 500); 
             }
         }, { passive: true });
 
-        document.addEventListener('touchend', () => this.hide(), { passive: true });
-        document.addEventListener('touchcancel', () => this.hide(), { passive: true });
-        document.addEventListener('touchmove', () => this.hide(), { passive: true });
-        
         document.addEventListener('contextmenu', (e) => {
             if (this.activeElement && this.activeElement.contains(e.target)) {
-                e.preventDefault(); 
+                e.preventDefault();
+                this.show(this.activeElement);
             }
         });
+
+        const hideHandler = () => this.hide();
+        document.addEventListener('touchend', hideHandler, { passive: true });
+        document.addEventListener('touchcancel', hideHandler, { passive: true });
+        document.addEventListener('click', hideHandler, { passive: true });
     }
 
     show(element) {
@@ -149,13 +147,15 @@ class LySincApp {
         this.headerControlsContainer = document.getElementById('header-controls-container');
         this.btnFullscreen = document.getElementById('btn-fullscreen');
         this.btnFullscreenTop = document.getElementById('btn-fullscreen-top');
-        this.iconToggleControls = document.getElementById('icon-toggle-controls');
+        this.iconToggleControlsMobile = document.getElementById('icon-toggle-controls-mobile');
+        this.iconToggleControlsDesktop = document.getElementById('icon-toggle-controls-desktop');
 
         this.floatingControlsWrapper = document.getElementById('floating-controls-wrapper');
         this.floatingMenu = document.getElementById('floating-lyrics-menu');
         this.btnFloatingToggle = document.getElementById('btn-floating-toggle');
         this.floatingMenuContent = document.getElementById('floating-menu-content');
-        this.floatingToggleIcon = document.getElementById('floating-toggle-icon');
+        this.floatingToggleIconMobile = document.getElementById('icon-floating-toggle-mobile');
+        this.floatingToggleIconDesktop = document.getElementById('icon-floating-toggle-desktop');
         this.btnFloatingRestart = document.getElementById('btn-floating-restart');
 
         this.btnPipTop = document.getElementById('btn-pip-top');
@@ -383,7 +383,8 @@ class LySincApp {
             if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('closed')) {
                 this.headerControlsContainer.classList.add('closed');
                 this.headerControlsContainer.classList.remove('open');
-                if (this.iconToggleControls) this.iconToggleControls.classList.remove('rotate-180');
+                if (this.iconToggleControlsMobile) this.iconToggleControlsMobile.classList.remove('rotate-180');
+                if (this.iconToggleControlsDesktop) this.iconToggleControlsDesktop.classList.remove('rotate-180');
             }
         };
 
@@ -399,7 +400,8 @@ class LySincApp {
                 if (isHidden) {
                     this.headerControlsContainer.classList.remove('closed');
                     this.headerControlsContainer.classList.add('open');
-                    this.iconToggleControls.classList.add('rotate-180');
+                    if (this.iconToggleControlsMobile) this.iconToggleControlsMobile.classList.add('rotate-180');
+                    if (this.iconToggleControlsDesktop) this.iconToggleControlsDesktop.classList.add('rotate-180');
                     resetControlsTimeout();
                 } else {
                     closeControls();
@@ -1919,16 +1921,18 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     }
 
     toggleFloatingMenu(show) {
-        if (!this.floatingMenuContent || !this.floatingToggleIcon) return;
+        if (!this.floatingMenuContent) return;
 
         if (show) {
             this.floatingMenuContent.classList.add('open');
             this.floatingMenuContent.classList.remove('closed');
-            this.floatingToggleIcon.classList.add('rotate-180');
+            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('rotate-180');
+            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('rotate-180');
         } else {
             this.floatingMenuContent.classList.remove('open');
             this.floatingMenuContent.classList.add('closed');
-            this.floatingToggleIcon.classList.remove('rotate-180');
+            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('rotate-180');
+            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('rotate-180');
         }
     }
 
