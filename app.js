@@ -901,7 +901,6 @@ class LySincApp {
                 pipCtx.fillText('LySinc PiP', pipCanvas.width / 2, pipCanvas.height / 2);
             }
 
-            pipAnimationId = requestAnimationFrame(renderPipCanvas);
         };
 
         const startCanvasPip = async () => {
@@ -920,7 +919,7 @@ class LySincApp {
 
                 pipVideo.addEventListener('enterpictureinpicture', () => {
                     if (!pipAnimationId) {
-                        pipAnimationId = requestAnimationFrame(renderPipCanvas);
+                        pipAnimationId = setInterval(renderPipCanvas, 1000 / 30);
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
@@ -928,12 +927,10 @@ class LySincApp {
                     const floatingControls = document.getElementById('floating-controls-wrapper');
                     
                     if (lyricsContainer) {
-                        lyricsContainer.style.visibility = 'hidden';
-                        lyricsContainer.style.opacity = '0';
+                        lyricsContainer.style.display = 'none';
                     }
                     if (tabsContainer) {
-                        tabsContainer.style.visibility = 'hidden';
-                        tabsContainer.style.opacity = '0';
+                        tabsContainer.style.display = 'none';
                     }
                     if (floatingControls) floatingControls.style.display = 'none';
 
@@ -966,7 +963,7 @@ class LySincApp {
 
                 pipVideo.addEventListener('leavepictureinpicture', () => {
                     if (pipAnimationId) {
-                        cancelAnimationFrame(pipAnimationId);
+                        clearInterval(pipAnimationId);
                         pipAnimationId = null;
                     }
                     
@@ -975,12 +972,10 @@ class LySincApp {
                     const floatingControls = document.getElementById('floating-controls-wrapper');
                     
                     if (lyricsContainer) {
-                        lyricsContainer.style.visibility = '';
-                        lyricsContainer.style.opacity = '';
+                        lyricsContainer.style.display = '';
                     }
                     if (tabsContainer) {
-                        tabsContainer.style.visibility = '';
-                        tabsContainer.style.opacity = '';
+                        tabsContainer.style.display = '';
                     }
                     if (floatingControls) floatingControls.style.display = '';
 
@@ -988,11 +983,14 @@ class LySincApp {
                     if (placeholder) placeholder.remove();
                     
                     this.currentActiveIdsKey = '';
+                    setTimeout(() => {
+                        this.updateLyricsSync(this.progressMs);
+                    }, 50);
                 });
             }
 
             if (!pipAnimationId) {
-                pipAnimationId = requestAnimationFrame(renderPipCanvas);
+                pipAnimationId = setInterval(renderPipCanvas, 1000 / 30);
             }
 
             const stream = pipCanvas.captureStream(30);
