@@ -1,4 +1,4 @@
-﻿import Config from './config.js';
+import Config from './config.js';
 import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
 
@@ -35,6 +35,7 @@ class LySincApp {
 
         this.btnConnect = document.getElementById('btn-connect');
         this.btnRecenter = document.getElementById('btn-recenter');
+        this.btnClearCache = document.getElementById('btn-clear-cache');
         this.btnLogout = document.getElementById('btn-logout');
         this.btnSettings = document.getElementById('btn-settings');
         this.btnSettingsClose = document.getElementById('btn-settings-close');
@@ -215,6 +216,21 @@ class LySincApp {
 
     setupEventListeners() {
         this.btnConnect.addEventListener('click', () => SpotifyService.login());
+
+        if (this.btnClearCache) {
+            this.btnClearCache.addEventListener('click', () => {
+                let keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('lysinc_cache_')) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(k => localStorage.removeItem(k));
+                this.showToast('Cache de letras apagado do navegador.', 'success');
+            });
+        }
+
         this.btnLogout.addEventListener('click', () => {
             if (this.confirmLogoutModal) {
                 this.confirmLogoutModal.classList.remove('hidden');
