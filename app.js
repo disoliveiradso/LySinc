@@ -745,12 +745,16 @@ class LySincApp {
                         <p class="text-sm">As letras estÃ£o sendo exibidas na janela flutuante.</p>
                         <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cÃ¡</button>
                     `;
-                    
-                    originalContainer.parentNode.insertBefore(placeholder, originalContainer);
+originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     pipMain.appendChild(originalContainer);
                     pipWindow.document.body.appendChild(pipMain);
                     
-                    // Clona e configura o botÃ£o Sincronizar (recenter) no PiP
+                    // Esconde botão principal de sincronizar
+                    if (this.btnRecenter) {
+                        this.btnRecenter.classList.add('hidden');
+                    }
+                    
+                    // Clona e configura o botão Sincronizar (recenter) no PiP
                     const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
                     btnRecenterClone.id = 'btn-recenter-pip';
                     btnRecenterClone.style.position = 'fixed';
@@ -832,7 +836,7 @@ class LySincApp {
                         if (this.btnRecenter) {
                             this.btnRecenter.classList.remove('opacity-100', 'scale-100');
                             this.btnRecenter.classList.add('opacity-0', 'scale-95');
-                            setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+                            setTimeout(() => this.btnRecenter.classList.remove('hidden'), 300);
                         }
                         this.updateLyricsSync(this.progressMs);
                     });
@@ -961,7 +965,7 @@ class LySincApp {
         const latencyCompensation = Date.now() - state.requestTime;
         const stateTrackId = state.trackId || (state.trackName + state.albumName);
 
-        // Se a mÃºsica ESTÃ PAUSADA, ignora a compensaÃ§Ã£o de latÃªncia
+        // Se a mÃºsica ESTÃ  PAUSADA, ignora a compensaÃ§Ã£o de latÃªncia
         let safeCompensation = Math.max(0, Math.min(1500, latencyCompensation));
         if (!state.isPlaying) {
             safeCompensation = 0;
@@ -1238,7 +1242,7 @@ class LySincApp {
     injectInstrumentalLines(lines) {
         if (!lines || lines.length === 0) return lines;
         
-        // Corrige o endtime de cada linha para incluir os backing vocals
+        // Corrige the endtime de cada linha para incluir os backing vocals
         lines.forEach(line => {
             let maxEnd = line.endtime || 0;
             if (line.backgroundText) {
@@ -1262,8 +1266,8 @@ class LySincApp {
         const firstLine = lines[0];
         if (firstLine.timestamp > 5000) {
             result.push({
-                id: -1, // ID numÃ©rico para funcionar no comparador isPassed
-                text: [{ text: 'âª', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
+                id: -1, // ID numérico para funcionar no comparador isPassed
+                text: [{ text: '🎵', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
                 background: false,
                 backgroundText: [],
                 timestamp: 0,
@@ -1281,8 +1285,8 @@ class LySincApp {
                 
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
-                        id: i - 0.5, // ID numÃ©rico intermediÃ¡rio
-                        text: [{ text: 'âª', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
+                        id: i - 0.5, // ID numérico intermediário
+                        text: [{ text: '🎵', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
                         background: false,
                         backgroundText: [],
                         timestamp: prevEndtime + 1000,
@@ -1345,7 +1349,7 @@ class LySincApp {
                 lineClass += ' line-synced';
             }
             
-            const isInstrumental = line.isInstrumental || (line.text.length === 1 && line.text[0].text.trim() === 'âª');
+            const isInstrumental = line.isInstrumental || (line.text.length === 1 && (line.text[0].text.trim() === '🎵' || line.text[0].text.trim().includes('🎵')));
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
             }
@@ -1370,18 +1374,11 @@ class LySincApp {
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = 'âª';
+                sylSpan.innerHTML = '🎵';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let currentWordWrapper = document.createElement('span');
                 currentWordWrapper.className = 'inline-block whitespace-nowrap';
-                
-                let totalWords = 0;
-                line.text.forEach((syl, idx) => {
-                    if (syl.text.endsWith(' ') || idx === line.text.length - 1) totalWords++;
-                });
-
-                let wordsProcessed = 0;
 
                 line.text.forEach((syl, idx) => {
                     const sylSpan = document.createElement('span');
@@ -1390,12 +1387,11 @@ class LySincApp {
                     sylSpan.textContent = syl.text;
                     currentWordWrapper.appendChild(sylSpan);
                     
-                    if (syl.text.endsWith(' ') || idx === line.text.length - 1) {
-                        wordsProcessed++;
-                        const wordsRemaining = totalWords - wordsProcessed;
-                        const shouldGroup = (totalWords >= 4 && wordsRemaining < 3);
-
-                        if (!shouldGroup || idx === line.text.length - 1) {
+                    const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.text.length - 1;
+                    const isNearEnd = idx >= line.text.length - 4;
+                    
+                    if (isWordEnd) {
+                        if (!isNearEnd || idx === line.text.length - 1) {
                             mainVocal.appendChild(currentWordWrapper);
                             if (idx < line.text.length - 1) {
                                 currentWordWrapper = document.createElement('span');
@@ -1414,13 +1410,6 @@ class LySincApp {
                 
                 let bgWordWrapper = document.createElement('span');
                 bgWordWrapper.className = 'inline-block whitespace-nowrap';
-                
-                let bgTotalWords = 0;
-                line.backgroundText.forEach((syl, idx) => {
-                    if (syl.text.endsWith(' ') || idx === line.backgroundText.length - 1) bgTotalWords++;
-                });
-
-                let bgWordsProcessed = 0;
 
                 line.backgroundText.forEach((syl, idx) => {
                     const sylSpan = document.createElement('span');
@@ -1429,12 +1418,11 @@ class LySincApp {
                     sylSpan.textContent = syl.text;
                     bgWordWrapper.appendChild(sylSpan);
                     
-                    if (syl.text.endsWith(' ') || idx === line.backgroundText.length - 1) {
-                        bgWordsProcessed++;
-                        const wordsRemaining = bgTotalWords - bgWordsProcessed;
-                        const shouldGroup = (bgTotalWords >= 4 && wordsRemaining < 3);
-
-                        if (!shouldGroup || idx === line.backgroundText.length - 1) {
+                    const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.backgroundText.length - 1;
+                    const isNearEnd = idx >= line.backgroundText.length - 4;
+                    
+                    if (isWordEnd) {
+                        if (!isNearEnd || idx === line.backgroundText.length - 1) {
                             bgVocal.appendChild(bgWordWrapper);
                             if (idx < line.backgroundText.length - 1) {
                                 bgWordWrapper = document.createElement('span');
