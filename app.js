@@ -504,7 +504,7 @@ class LySincApp {
 
         const customTooltip = document.createElement('div');
         customTooltip.id = 'custom-tooltip';
-        customTooltip.className = 'fixed pointer-events-none z-[100] opacity-0 transition-opacity duration-200 bg-[#121212] text-white/90 text-[11px] px-2.5 py-1.5 rounded-lg shadow-2xl border border-white/10 whitespace-nowrap font-medium';
+        customTooltip.className = 'fixed pointer-events-none z-[100] opacity-0 transition-opacity duration-200 bg-[#141414]/70 backdrop-blur-sm text-white/70 text-[11px] px-2.5 py-1.5 rounded-lg shadow-md border border-white/5 whitespace-nowrap font-normal';
         document.body.appendChild(customTooltip);
 
         let tooltipTarget = null;
@@ -543,7 +543,7 @@ class LySincApp {
                                 customTooltip.style.opacity = '1';
                             }, 10);
                         }
-                    }, 800);
+                    }, 1500);
                 }
             }
         });
