@@ -1,6 +1,4 @@
-﻿/**
- * LySinc - Serviço de Busca e Parsing de Letras (Baseado no am-lyrics-main)
- */
+﻿
 
 const GOOGLE_CONFIG = {
   MAX_RETRIES: 3,
@@ -8,7 +6,6 @@ const GOOGLE_CONFIG = {
   FETCH_TIMEOUT_MS: 6000,
 };
 
-// Classe para tradução e romanização usando a API livre do Google Translate
 class GoogleService {
   static delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -308,14 +305,14 @@ const LyricsService = {
           }
         }
       } catch (error) {
-        // Ignore and try next server
+
       }
     }
     return null;
   },
 
   async resolveSongMetadata(songTitle, songArtist, songAlbum, durationMs, musicId, isrc, query) {
-    // Limpa tags do Spotify ("- Radio Edit", "- Remastered", etc) que quebram as APIs de letras
+
     const cleanTitle = (t) => {
       if (!t) return '';
       return t.replace(/\s*(?:-|\(|\[)(?:radio edit|remastered|remaster|radio cut|live|bonus track|feat\.|ft\.|with |version|edit|mix|remix|acoustic).*/i, '').trim();
@@ -904,23 +901,19 @@ const LyricsService = {
 
   getRankForCollected(sourceLabel, parsedLines) {
     const lower = sourceLabel.toLowerCase();
-    
-    // Check if Syllable/Word sync (alguma linha confirmada como word-sync)
+
     const hasWordSync = parsedLines.some(line => line.isWordSynced);
-    
-    // Check if totally unsynced (all timestamps are 0)
+
     const isUnsynced = parsedLines.length > 0 && parsedLines.every(line => line.timestamp === 0 && line.endtime === 0);
     
     const isLineSync = !hasWordSync && !isUnsynced;
-    
-    // Identifiers based on user table priorities
+
     const isApple = lower.includes('apple') || lower.includes('qq') || lower.includes('lyricsplus') || lower.includes('better lyrics') || lower.includes('betterlyrics');
     const isLrcLib = lower.includes('lrclib');
     const isMusixmatch = lower.includes('musixmatch');
     const isUnison = lower.includes('unison');
     const isBini = lower.includes('bini');
 
-    // Apple Music e LRCLIB so prioridade máxima para sincronizao
     if (hasWordSync) {
       if (isApple) return 1;
       if (isLrcLib) return 2;
@@ -952,8 +945,8 @@ const LyricsService = {
   },
 
   mergeAndSortSources(collectedSources) {
-    // 1) Ordena por qualidade (Word-Sync primeiro) ANTES de deduplicar,
-    // para garantir que a melhor versão do provedor não seja descartada.
+
+
     const sortedAll = collectedSources.sort(
       (a, b) => this.getRankForCollected(a.source, a.lines) - this.getRankForCollected(b.source, b.lines)
     );
@@ -963,7 +956,6 @@ const LyricsService = {
     for (const source of sortedAll) {
       const normalizedSource = source.source.toLowerCase().includes('lyricsplus') ? 'QQ' : source.source;
 
-      // Como já está ordenado, o primeiro que bater aqui é o melhor daquele provedor
       if (!uniqueSourcesMap.has(normalizedSource)) {
         uniqueSourcesMap.set(normalizedSource, {
           ...source,
@@ -994,7 +986,6 @@ const LyricsService = {
     const allResults = [];
     let fallbackBiniResult = null;
 
-    // Tenta BiniLyrics cache API primeiro
     try {
       let cacheData = null;
 
@@ -1033,8 +1024,8 @@ const LyricsService = {
             const ttmlText = await ttmlRes.text();
             const lines = this.parseTTML(ttmlText);
             if (lines && lines.length > 0) {
-              // Salva BiniLyrics sempre como opção (mesmo se tiver word-sync)
-              // para não abortar precocemente a busca de fontes melhores
+
+
               fallbackBiniResult = { lines, source: 'Apple Music' };
             }
           }
@@ -1046,7 +1037,6 @@ const LyricsService = {
 
     const shuffledServers = [...KPOE_SERVERS].sort(() => Math.random() - 0.5).slice(0, 3);
 
-    // Busca paralela com timeout reduzido de 3000ms para acelerar o carregamento
     const fetchPromises = shuffledServers.map(async (base) => {
       const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
       const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
@@ -1059,7 +1049,7 @@ const LyricsService = {
             const lines = this.convertKPoeLyrics(payload);
             if (lines && lines.length > 0) {
               let sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
-              // Normalizar nomes das fontes para exibição mais bonita
+
               if (sourceLabel.toLowerCase() === 'qq') sourceLabel = 'QQ Music';
               if (sourceLabel.toLowerCase() === 'netease') sourceLabel = 'NetEase';
               if (sourceLabel.toLowerCase() === 'musixmatch') sourceLabel = 'Musixmatch';
@@ -1079,7 +1069,6 @@ const LyricsService = {
       }
     });
 
-    // Sempre adiciona o resultado do Bini (se houver) ao invés de abortar no meio
     if (fallbackBiniResult) {
       allResults.push(fallbackBiniResult);
     }
@@ -1108,7 +1097,7 @@ const LyricsService = {
       if (response.ok) {
         bestMatch = await response.json();
       } else {
-        // Fallback to search
+
         const searchParams = new URLSearchParams({ q: `${artist} ${title}` });
         const searchRes = await fetchWithTimeout(`https://lrclib.net/api/search?${searchParams.toString()}`);
         if (searchRes.ok) {
@@ -1181,9 +1170,7 @@ const LyricsService = {
     return null;
   },
 
-  // Removed fetchLyricsFromGenius
 
-  // Traduz um array de lines usando GoogleService
   async translateLyrics(lines) {
     if (!lines || lines.length === 0) return [];
     try {
@@ -1203,7 +1190,6 @@ const LyricsService = {
     }
   },
 
-  // Romaniza um array de lines usando GoogleService
   async romanizeLyrics(lines) {
     if (!lines || lines.length === 0) return [];
     try {
@@ -1221,7 +1207,6 @@ const LyricsService = {
 
     const collectedSources = [];
 
-    // Lança todas as buscas simultaneamente para acelerar drasticamente o carregamento
     const fetchPromises = [
       this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata).catch(() => null),
       this.fetchLyricsFromUnison(metadata).catch(() => null),
@@ -1241,12 +1226,10 @@ const LyricsService = {
       collectedSources.push(lrclibResult);
     }
 
-    // Fontes baseadas em Genius removidas a pedido do usuário
 
     if (collectedSources.length > 0) {
       const sortedSources = this.mergeAndSortSources(collectedSources);
-      
-      // Se um provedor específico for forçado, seleciona ele prioritariamente
+
       let selectedSource = sortedSources[0];
       if (provider && provider !== 'betterlyrics') {
         const forced = sortedSources.find(src => src.source.toLowerCase() === provider.toLowerCase());
@@ -1269,3 +1252,4 @@ const LyricsService = {
 };
 
 export default LyricsService;
+

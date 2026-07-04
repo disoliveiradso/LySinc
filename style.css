@@ -1,6 +1,4 @@
-/*
- * LySinc - Estilos Customizados (AparÃªncia Premium Apple Music)
- */
+
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap');
 
@@ -18,17 +16,17 @@ body {
     padding: 0;
 }
 
-/* Remover visualmente a barra de rolagem APENAS da pÃ¡gina principal */
+
 body::-webkit-scrollbar, html::-webkit-scrollbar {
     display: none;
     width: 0;
 }
 body, html {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
 }
 
-/* Scrollbar estilizado para elementos internos (como pop-ups) */
+
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -41,11 +39,13 @@ body, html {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
 }
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+@media (hover: hover) {
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
 }
 
-/* Fundo Desfocado DinÃ¢mico (Estilo Apple Music) */
+
 .blur-background-container {
     position: fixed;
     top: 0;
@@ -71,7 +71,7 @@ body, html {
     transition: background-image 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Overlay para escurecer o fundo e dar harmonia visual */
+
 .blur-background-overlay {
     position: absolute;
     top: 0;
@@ -81,7 +81,7 @@ body, html {
     background: radial-gradient(circle at 50% 50%, rgba(10, 10, 15, 0.2) 0%, rgba(5, 5, 5, 0.85) 100%);
 }
 
-/* Efeito Glassmorphism para Cards e Modais */
+
 .glass-panel {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(16px);
@@ -89,18 +89,20 @@ body, html {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.glass-panel-hover:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+@media (hover: hover) {
+    .glass-panel-hover:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
 }
 
-/* Estilo da Ãrea de Letras */
+
 .lyrics-container {
     position: relative;
     min-height: 0;
-    /* A rolagem agora Ã© gerida globalmente pela janela, entÃ£o removemos o overflow local e padding massivo */
+    
     box-sizing: border-box;
-    padding-bottom: 5vh; /* Pequeno respiro final apenas */
+    padding-bottom: 5vh; 
 }
 
 .lyric-line {
@@ -115,18 +117,18 @@ body, html {
     cursor: pointer;
     will-change: transform, opacity, filter;
     
-    /* Configuração Flexbox para suportar quebra de backing vocals */
+    
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     word-break: keep-all;
     overflow-wrap: break-word;
     
-    /* Tamanho de fonte base unificado para garantir que a quebra de linha seja idêntica entre estados */
+    
     font-size: clamp(1.8rem, 4vw, 2.8rem);
 }
 
-/* Estado Inativo da Linha (Letras futuras) */
+
 .lyric-line.inactive {
     color: rgba(255, 255, 255, 0.45);
     transform: scale3d(0.72, 0.72, 1) translateY(0);
@@ -134,7 +136,7 @@ body, html {
     opacity: 0.6;
 }
 
-/* Estado Inativo da Linha que já PASSOU */
+
 .lyric-line.inactive.passed,
 .lyric-line.inactive.passed .lyrics-syllable,
 .lyric-line.inactive.passed .lyrics-translation-container,
@@ -147,7 +149,7 @@ body, html {
     opacity: 0.35;
 }
 
-/* Estado visual durante o scroll manual - tudo fica legível mas não branco (letras passadas e futuras) */
+
 .user-scrolling .lyric-line.inactive,
 .user-scrolling .lyric-line.inactive.passed {
     opacity: 0.8 !important;
@@ -162,7 +164,7 @@ body, html {
     color: #cccccc !important;
 }
 
-/* Traduções e Romanizações brancas durante o scroll */
+
 .user-scrolling .lyric-line.inactive .lyrics-translation-container,
 .user-scrolling .lyric-line.inactive .lyrics-romanization-container,
 .user-scrolling .lyric-line.inactive.passed .lyrics-translation-container,
@@ -174,12 +176,14 @@ body, html {
 
 
 
-.lyric-line.inactive:hover {
-    color: rgba(255, 255, 255, 0.8);
-    opacity: 0.85;
+@media (hover: hover) {
+    .lyric-line.inactive:hover {
+        color: rgba(255, 255, 255, 0.8);
+        opacity: 0.85;
+    }
 }
 
-/* Estado Ativo da Linha (Escala total e foco nítido) */
+
 .lyric-line.active {
     color: #ffffff;
     transform: scale3d(1.001, 1.001, 1);
@@ -187,13 +191,13 @@ body, html {
     opacity: 1;
 }
 
-/* Alinhamento de Duetos */
+
 .lyric-line.text-right {
     text-align: right;
     transform-origin: right center;
 }
 
-/* Linha secundÃ¡ria de Backing Vocal (Dueto/Segunda Voz) */
+
 .background-vocal-container {
     max-height: 0;
     padding-top: 0;
@@ -207,7 +211,7 @@ body, html {
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         padding 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     margin: 0;
-    /* Evitar que a escala do parent cause redimensionamento brusco */
+    
     transform-origin: left top;
 }
 
@@ -224,7 +228,7 @@ body, html {
     will-change: max-height, opacity, padding, transform;
 }
 
-/* Containers de TraduÃ§Ã£o e RomanizaÃ§Ã£o */
+
 .lyrics-translation-container,
 .lyrics-romanization-container {
     padding-top: 0.2em;
@@ -240,7 +244,7 @@ body, html {
     opacity: 0.75;
 }
 
-/* AnimaÃ§Ã£o e Estilos de Palavras em KaraokÃª ContÃ­nuo (SÃ­labas) */
+
 .lyrics-syllable {
     display: inline-block;
     background-image: linear-gradient(to right, 
@@ -266,7 +270,7 @@ body, html {
     color: #ffffff !important;
 }
 
-/* Letras nÃ£o sincronizadas por palavra (iluminaÃ§Ã£o instantÃ¢nea da linha toda chapada sem degradÃª) */
+
 .lyric-line.line-synced.active .lyrics-syllable {
     --word-progress: 115% !important;
     background-image: none !important;
@@ -274,7 +278,7 @@ body, html {
     color: #ffffff !important;
 }
 
-/* Ãcone Instrumental (âª) que enche de cima pra baixo */
+
 .lyrics-syllable.instrumental-icon {
     font-size: 2.5rem;
     background-image: linear-gradient(to bottom, 
@@ -290,12 +294,12 @@ body, html {
     padding: 0 10px;
 }
 
-/* Palavra ativa atual (Efeito glow) */
+
 .lyrics-syllable.current {
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75));
 }
 
-/* Palavras do Dueto (Segunda Voz) - Destaque Mentolado */
+
 .lyrics-syllable.duet-word {
     background: linear-gradient(to right, #6EE7B7 var(--word-progress, 0%), rgba(255, 255, 255, 0.25) var(--word-progress, 0%));
     -webkit-background-clip: text;
@@ -306,14 +310,14 @@ body, html {
     filter: drop-shadow(0 0 6px rgba(110, 231, 183, 0.75)) !important;
 }
 
-/* As palavras fluem na ordem e linha natural definida no LRC original */
 
-/* Custom Scrollbar */
+
+
 .custom-scrollbar::-webkit-scrollbar {
     width: 0px;
 }
 
-/* AnimaÃ§Ã£o do Indicador de Escuta com MÃºltiplos CÃ­rculos (Ripples) */
+
 .listening-indicator {
     position: relative;
     z-index: 1;
@@ -352,7 +356,7 @@ body, html {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Efeito de TÃ­tulo Longo Deslizante (Marquee Spotify Style) */
+
 .marquee-text {
     display: inline-block;
     white-space: nowrap;
@@ -366,7 +370,7 @@ body, html {
     100% { transform: translateX(0); }
 }
 
-/* BotÃ£o Conectar Spotify Customizado */
+
 .btn-spotify {
     background-color: #1DB954;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -378,12 +382,12 @@ body, html {
     box-shadow: 0 10px 20px -5px rgba(29, 185, 84, 0.4);
 }
 
-/* Ajustes de layout para telas pequenas */
+
 @media (max-width: 768px) {
-    /* Fontes agora são fluidas e adaptativas via clamp(), não é mais necessário sobrescrever aqui */
+    
 }
 
-/* Sistema de NotificaÃ§Ã£o Personalizado (Toasts) */
+
 .toast-notification {
     background: rgba(18, 18, 24, 0.75);
     backdrop-filter: blur(16px);
@@ -415,17 +419,17 @@ body, html {
 }
 
 .toast-success .toast-type-indicator {
-    background-color: #10b981; /* Verde esmeralda */
+    background-color: #10b981; 
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
 .toast-error .toast-type-indicator {
-    background-color: #ef4444; /* Vermelho */
+    background-color: #ef4444; 
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
 .toast-info .toast-type-indicator {
-    background-color: #3b82f6; /* Azul */
+    background-color: #3b82f6; 
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
@@ -451,13 +455,13 @@ body, html {
     }
 }
 
-/* Foco de Input Uniforme */
+
 input:focus {
     border-color: rgba(52, 211, 153, 0.4) !important;
     box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
 }
 
-/* Scrollbar Personalizada Premium (Fina, discreta e escura) */
+
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -479,13 +483,13 @@ input:focus {
     background: rgba(255, 255, 255, 0.25);
 }
 
-/* Garante que o contÃªiner de letras nÃ£o mostre scrollbar */
+
 .lyrics-container::-webkit-scrollbar {
     width: 0px;
     background: transparent;
 }
 
-/* RodapÃ© de Letras (Seletor de TraduÃ§Ã£o, RomanizaÃ§Ã£o e Fonte) */
+
 .lyrics-footer {
     display: flex;
     flex-direction: column;
@@ -536,7 +540,7 @@ input:focus {
     box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
 }
 
-/* Estilo EstÃ©tico Premium para Backing Vocals / Duetos */
+
 .word.backing-vocal {
     font-style: italic;
     background: linear-gradient(to right, rgba(255, 255, 255, 0.75) var(--word-progress, 0%), rgba(255, 255, 255, 0.15) var(--word-progress, 0%));
@@ -550,7 +554,7 @@ input:focus {
     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.45));
 }
 
-/* Wrapper de Controles Flutuantes (Menu de OpÃ§Ãµes + BotÃ£o Recenter) */
+
 #floating-controls-wrapper {
     position: fixed;
     top: 5.5rem;
@@ -567,13 +571,13 @@ input:focus {
     display: none;
 }
 
-/* Garante que btn-recenter use flex quando visÃ­vel */
+
 #btn-recenter:not(.hidden) {
     display: flex;
     align-items: center;
 }
 
-/* Alinhamento vertical dos controles flutuantes */
+
 #floating-controls-wrapper > * {
     align-self: center;
     margin-top: 0;
@@ -613,24 +617,25 @@ input:focus {
 
 
 
-/* Hack para evitar que o navegador perca o backdrop-filter (blur) durante as transiÃ§Ãµes de max-width dos pais */
+
 #btn-floating-toggle, #floating-menu-content, #btn-recenter {
     will-change: transform, backdrop-filter;
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
 }
-/* Estilos específicos para Picture-in-Picture */
+
 .pip-mode .lyric-line {
     padding-top: 0.25rem !important;
     padding-bottom: 0.25rem !important;
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;
     
-    /* Tamanho de fonte base unificado no PiP */
+    
     font-size: clamp(1.5rem, 5vw, 2.5rem) !important;
 }
 
 .pip-mode .lyrics-syllable.instrumental-icon {
     font-size: clamp(1.5rem, 5vw, 2.5rem) !important;
 }
+
