@@ -831,11 +831,15 @@ class LySincApp {
         const renderPipCanvas = () => {
             if (!pipCanvas || !pipCtx) return;
             
-            pipCtx.fillStyle = '#121212';
+            pipCtx.fillStyle = this.currentAlbumColor || '#121212';
             pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
             
-            if (this.activeLineId) {
-                const activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
+            if (this.lyrics && this.lyrics.length > 0) {
+                let activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
+                if (activeIndex === -1) {
+                    activeIndex = this.lyrics.findIndex(l => l.timestamp > this.progressMs);
+                }
+                
                 if (activeIndex !== -1) {
                     const currentLyric = this.lyrics[activeIndex];
                     const nextLyric = this.lyrics[activeIndex + 1];
@@ -919,17 +923,23 @@ class LySincApp {
                         pipAnimationId = requestAnimationFrame(renderPipCanvas);
                     }
                     
-                    const mainContent = document.getElementById('lyrics-container');
-                    const topMenu = document.getElementById('lyrics-top-menu');
+                    const lyricsContainer = document.getElementById('lyrics-container');
+                    const tabsContainer = document.getElementById('lyrics-tabs-container');
                     const floatingControls = document.getElementById('floating-controls-wrapper');
                     
-                    if (mainContent) mainContent.style.display = 'none';
-                    if (topMenu) topMenu.style.display = 'none';
+                    if (lyricsContainer) {
+                        lyricsContainer.style.visibility = 'hidden';
+                        lyricsContainer.style.opacity = '0';
+                    }
+                    if (tabsContainer) {
+                        tabsContainer.style.visibility = 'hidden';
+                        tabsContainer.style.opacity = '0';
+                    }
                     if (floatingControls) floatingControls.style.display = 'none';
 
                     const placeholder = document.createElement('div');
                     placeholder.id = 'mobile-pip-placeholder';
-                    placeholder.className = 'flex-1 flex flex-col items-center justify-center text-white/70 text-center px-4 h-full absolute inset-0 z-[100]';
+                    placeholder.className = 'flex-1 flex flex-col items-center justify-center text-white/70 text-center px-4 pt-10 pb-10';
                     placeholder.innerHTML = `
                         <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
@@ -940,7 +950,12 @@ class LySincApp {
                             Voltar para cá
                         </button>
                     `;
-                    document.body.appendChild(placeholder);
+                    
+                    if (lyricsContainer && lyricsContainer.parentNode) {
+                        lyricsContainer.parentNode.insertBefore(placeholder, lyricsContainer);
+                    } else {
+                        document.body.appendChild(placeholder);
+                    }
                     
                     document.getElementById('btn-mobile-pip-return').addEventListener('click', () => {
                         if (document.pictureInPictureElement) {
@@ -955,16 +970,24 @@ class LySincApp {
                         pipAnimationId = null;
                     }
                     
-                    const mainContent = document.getElementById('lyrics-container');
-                    const topMenu = document.getElementById('lyrics-top-menu');
+                    const lyricsContainer = document.getElementById('lyrics-container');
+                    const tabsContainer = document.getElementById('lyrics-tabs-container');
                     const floatingControls = document.getElementById('floating-controls-wrapper');
                     
-                    if (mainContent) mainContent.style.display = '';
-                    if (topMenu) topMenu.style.display = '';
+                    if (lyricsContainer) {
+                        lyricsContainer.style.visibility = '';
+                        lyricsContainer.style.opacity = '';
+                    }
+                    if (tabsContainer) {
+                        tabsContainer.style.visibility = '';
+                        tabsContainer.style.opacity = '';
+                    }
                     if (floatingControls) floatingControls.style.display = '';
 
                     const placeholder = document.getElementById('mobile-pip-placeholder');
                     if (placeholder) placeholder.remove();
+                    
+                    this.currentActiveIdsKey = '';
                 });
             }
 
@@ -1341,9 +1364,40 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
                 if (pipBlur) pipBlur.style.backgroundImage = `url('${state.albumArtUrl}')`;
             }
+            
+            this.currentAlbumColor = '#121212';
+            try {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    canvas.width = img.width || 64;
+                    canvas.height = img.height || 64;
+                    ctx.drawImage(img, 0, 0);
+                    try {
+                        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        let r = 0, g = 0, b = 0, count = 0;
+                        for (let i = 0; i < data.data.length; i += 20) {
+                            r += data.data[i];
+                            g += data.data[i+1];
+                            b += data.data[i+2];
+                            count++;
+                        }
+                        if (count > 0) {
+                            r = Math.floor((r/count) * 0.4);
+                            g = Math.floor((g/count) * 0.4);
+                            b = Math.floor((b/count) * 0.4);
+                            this.currentAlbumColor = `rgb(${r}, ${g}, ${b})`;
+                        }
+                    } catch(e) {}
+                };
+                img.src = state.albumArtUrl;
+            } catch(e) {}
         } else {
             this.albumArt.src = '';
             this.albumArtBlur.style.backgroundImage = 'none';
+            this.currentAlbumColor = '#121212';
             if (this.pipWindow) {
                 const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
                 if (pipBlur) pipBlur.style.backgroundImage = 'none';
