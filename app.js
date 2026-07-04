@@ -854,59 +854,96 @@ class LySincApp {
                     }
                     
                     if (activeIndex !== -1) {
-                        const currentLyric = this.lyrics[activeIndex];
-                        const nextLyric = this.lyrics[activeIndex + 1];
-
                         const mode = this.currentLyricsMode;
-                        const currentText = getLineText(currentLyric, mode);
-                        const nextText = getLineText(nextLyric, mode);
+                        const scale = pipCanvas.width / 1080;
+                        const maxWidth = pipCanvas.width * 0.95;
 
-                        const baseWidth = 1080;
-                        const scale = pipCanvas.width / baseWidth;
+                        // 1. Prepare and wrap the active line (indexOffset = 0)
+                        const activeLyric = this.lyrics[activeIndex];
+                        const activeText = getLineText(activeLyric, mode);
+                        const activeFontSize = Math.round(110 * scale);
+                        const activeLineHeight = Math.round(140 * scale);
+                        const activeSpacing = Math.round(60 * scale);
 
-                        const currentFontSize = Math.round(80 * scale);
-                        const nextFontSize = Math.round(50 * scale);
-                        const currentLineHeight = Math.round(100 * scale);
-                        const nextLineHeight = Math.round(70 * scale);
-                        const spacing = Math.round(60 * scale);
-
-                        const maxWidth = pipCanvas.width * 0.9;
-                        
-                        pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
+                        pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
                         pipCtx.fillStyle = '#ffffff';
                         pipCtx.textAlign = 'center';
                         pipCtx.textBaseline = 'middle';
-                        const currentLines = wrapText(pipCtx, currentText, maxWidth);
-                        
-                        pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
-                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        const nextLines = nextText ? wrapText(pipCtx, nextText, maxWidth) : [];
-                        
-                        const totalHeight = (currentLines.length * currentLineHeight) + 
-                                          (nextLines.length > 0 ? spacing + (nextLines.length * nextLineHeight) : 0);
-                                          
-                        let startY = (pipCanvas.height - totalHeight) / 2 + (currentLineHeight / 2);
+                        const activeLines = wrapText(pipCtx, activeText, maxWidth);
+                        const activeHeight = activeLines.length * activeLineHeight;
 
-                        pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
-                        pipCtx.fillStyle = '#ffffff';
-                        currentLines.forEach(line => {
-                            pipCtx.fillText(line, pipCanvas.width / 2, startY);
-                            startY += currentLineHeight;
+                        // Center Y of active line block
+                        const centerY = pipCanvas.height / 2;
+                        let activeStartY = centerY - (activeHeight / 2) + (activeLineHeight / 2);
+
+                        // Draw active line
+                        activeLines.forEach(line => {
+                            pipCtx.fillText(line, pipCanvas.width / 2, activeStartY);
+                            activeStartY += activeLineHeight;
                         });
 
-                        if (nextLines.length > 0) {
-                            startY += spacing - currentLineHeight + (nextLineHeight / 2);
-                            pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
-                            pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                            nextLines.forEach(line => {
-                                pipCtx.fillText(line, pipCanvas.width / 2, startY);
-                                startY += nextLineHeight;
+                        // 2. Draw upcoming lines (below)
+                        let currentYBelow = centerY + (activeHeight / 2) + activeSpacing;
+                        
+                        const drawUpcoming = (offset, fontSizeVal, lineHeightVal, opacityVal, spacingVal) => {
+                            const lyric = this.lyrics[activeIndex + offset];
+                            if (!lyric) return;
+                            const text = getLineText(lyric, mode);
+                            if (!text) return;
+
+                            const fontSize = Math.round(fontSizeVal * scale);
+                            const lineHeight = Math.round(lineHeightVal * scale);
+                            const spacing = Math.round(spacingVal * scale);
+
+                            pipCtx.font = `bold ${fontSize}px Satoshi, Inter, sans-serif`;
+                            pipCtx.fillStyle = `rgba(255, 255, 255, ${opacityVal})`;
+                            const wrappedLines = wrapText(pipCtx, text, maxWidth);
+                            
+                            wrappedLines.forEach(line => {
+                                pipCtx.fillText(line, pipCanvas.width / 2, currentYBelow + (lineHeight / 2));
+                                currentYBelow += lineHeight;
                             });
-                        }
+                            currentYBelow += spacing;
+                        };
+
+                        drawUpcoming(1, 70, 95, 0.55, 50);
+                        drawUpcoming(2, 50, 70, 0.20, 40);
+
+                        // 3. Draw previous lines (above)
+                        let currentYAbove = centerY - (activeHeight / 2) - activeSpacing;
+
+                        const drawPrevious = (offset, fontSizeVal, lineHeightVal, opacityVal, spacingVal) => {
+                            const lyric = this.lyrics[activeIndex + offset];
+                            if (!lyric) return;
+                            const text = getLineText(lyric, mode);
+                            if (!text) return;
+
+                            const fontSize = Math.round(fontSizeVal * scale);
+                            const lineHeight = Math.round(lineHeightVal * scale);
+                            const spacing = Math.round(spacingVal * scale);
+
+                            pipCtx.font = `bold ${fontSize}px Satoshi, Inter, sans-serif`;
+                            pipCtx.fillStyle = `rgba(255, 255, 255, ${opacityVal})`;
+                            const wrappedLines = wrapText(pipCtx, text, maxWidth);
+                            
+                            const height = wrappedLines.length * lineHeight;
+                            currentYAbove -= height;
+
+                            let tempY = currentYAbove + (lineHeight / 2);
+                            wrappedLines.forEach(line => {
+                                pipCtx.fillText(line, pipCanvas.width / 2, tempY);
+                                tempY += lineHeight;
+                            });
+                            currentYAbove -= spacing;
+                        };
+
+                        drawPrevious(-1, 70, 95, 0.45, 50);
+                        drawPrevious(-2, 50, 70, 0.15, 40);
+
                     } else {
                         const scale = pipCanvas.width / 1080;
                         const fontSize = Math.round(40 * scale);
-                        pipCtx.font = `bold ${fontSize}px Inter, sans-serif`;
+                        pipCtx.font = `bold ${fontSize}px Satoshi, Inter, sans-serif`;
                         pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                         pipCtx.textAlign = 'center';
                         pipCtx.textBaseline = 'middle';
@@ -915,7 +952,7 @@ class LySincApp {
                 } else {
                     const scale = pipCanvas.width / 1080;
                     const fontSize = Math.round(50 * scale);
-                    pipCtx.font = `bold ${fontSize}px Inter, sans-serif`;
+                    pipCtx.font = `bold ${fontSize}px Satoshi, Inter, sans-serif`;
                     pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                     pipCtx.textAlign = 'center';
                     pipCtx.textBaseline = 'middle';
@@ -957,8 +994,8 @@ class LySincApp {
                 pipVideo.style.position = 'fixed';
                 pipVideo.style.top = '0';
                 pipVideo.style.left = '0';
-                pipVideo.style.width = '108px';
-                pipVideo.style.height = '137px';
+                pipVideo.style.width = '540px';
+                pipVideo.style.height = '689px';
                 pipVideo.style.opacity = '0.001';
                 pipVideo.style.pointerEvents = 'none';
                 pipVideo.style.zIndex = '-9999';
