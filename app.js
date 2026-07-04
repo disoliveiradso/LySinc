@@ -1396,7 +1396,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
             
-            let lineClass = 'lyric-line py-3 my-2 transition-all duration-300';
+            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2 transition-all duration-300';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
             } else {

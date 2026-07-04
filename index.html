@@ -211,7 +211,7 @@
 
             
             <div id="lyrics-container"
-                class="lyrics-container flex-1 flex flex-col space-y-3 px-2">
+                class="lyrics-container flex-1 flex flex-col max-md:space-y-1 md:space-y-3 px-2">
                 
             </div>
 
@@ -220,11 +220,8 @@
                 class="hidden fixed z-40 pointer-events-none opacity-0 transition-opacity duration-300 flex items-center">
                 <div id="floating-lyrics-menu" class="flex items-center relative pointer-events-auto h-10">
                     
-                    <button id="btn-floating-toggle"
+                    <button id="btn-floating-toggle" title="Opções das Letras"
                         class="group hidden opacity-0 scale-95 w-10 h-10 mr-3 shrink-0 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20 relative">
-                        <div class="hidden md:block absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-[#2a2a2a] border border-white/10 text-white/90 font-medium text-[13px] px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-2xl pointer-events-none opacity-0 transition-opacity duration-300 delay-0 group-hover:delay-[1500ms] group-hover:opacity-100">
-                            Opções das Letras
-                        </div>
                         <svg id="icon-floating-toggle-mobile" class="w-5 h-5 transition-transform duration-300 md:hidden" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
@@ -238,7 +235,7 @@
                     <div id="floating-menu-content"
                         class="menu-drawer closed max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 md:relative md:mr-3 flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:h-10 max-md:py-3 max-md:space-y-3 md:space-x-2 max-md:px-4 md:px-3 min-w-0 origin-left">
                         
-                        <div class="flex items-center space-x-1 md:pl-2">
+                        <div class="flex items-center gap-1 md:pl-2 max-md:justify-center">
                             <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" /></svg></button>
                             <button id="btn-floating-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
                                 <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
@@ -249,7 +246,7 @@
 
                         <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20"></div>
 
-                        <div class="flex items-center space-x-1">
+                        <div class="flex flex-wrap items-center justify-center gap-1.5">
                             <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
                             <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
                             <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
@@ -257,7 +254,7 @@
 
                         <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20"></div>
 
-                        <div class="flex items-center space-x-1">
+                        <div class="flex items-center gap-1 max-md:justify-center">
                             <button id="btn-floating-restart" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Reiniciar Música"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" /></svg></button>
                             <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
                         </div>
