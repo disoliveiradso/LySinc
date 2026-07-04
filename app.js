@@ -215,6 +215,15 @@ class LySincApp {
     }
 
     setupEventListeners() {
+        document.addEventListener('click', (e) => {
+            if (window.matchMedia("(hover: none)").matches) {
+                const btn = e.target.closest('button');
+                if (btn) {
+                    setTimeout(() => btn.blur(), 50);
+                }
+            }
+        });
+
         this.btnConnect.addEventListener('click', () => SpotifyService.login());
 
         if (this.btnClearCache) {
