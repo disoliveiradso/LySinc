@@ -479,6 +479,7 @@ class LySincApp {
         document.addEventListener('mousemove', resetMousePointer);
         document.addEventListener('wheel', handleScrollAction, { passive: true });
         document.addEventListener('touchmove', handleScrollAction, { passive: true });
+        document.addEventListener('scroll', handleScrollAction, { passive: true });
         
         const iconFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>`;
         const iconExitFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h4V4m12 4h-4V4M4 16h4v4m12-4h-4v4" /></svg>`;
@@ -1435,7 +1436,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 mainVocal.appendChild(sylSpan);
             } else {
                 let currentWordWrapper = document.createElement('span');
-                currentWordWrapper.className = 'inline-block whitespace-nowrap';
+                currentWordWrapper.className = 'inline-block max-w-full break-words';
 
                 line.text.forEach((syl, idx) => {
                     const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
@@ -1458,7 +1459,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                         
                         if (idx < line.text.length - 1) {
                             currentWordWrapper = document.createElement('span');
-                            currentWordWrapper.className = 'inline-block whitespace-nowrap';
+                            currentWordWrapper.className = 'inline-block max-w-full break-words';
                         }
                     }
                 });
@@ -1470,7 +1471,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 bgVocal.className = 'background-vocal-container';
                 
                 let bgWordWrapper = document.createElement('span');
-                bgWordWrapper.className = 'inline-block whitespace-nowrap';
+                bgWordWrapper.className = 'inline-block max-w-full break-words';
 
                 line.backgroundText.forEach((syl, idx) => {
                     const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
@@ -1493,7 +1494,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                         
                         if (idx < line.backgroundText.length - 1) {
                             bgWordWrapper = document.createElement('span');
-                            bgWordWrapper.className = 'inline-block whitespace-nowrap';
+                            bgWordWrapper.className = 'inline-block max-w-full break-words';
                         }
                     }
                 });
@@ -1916,13 +1917,13 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 
                 void btnFloatingToggle.offsetWidth;
                 
-                btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0');
-                btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10');
+                btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
+                btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
             }
         } else {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
-                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10');
-                btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0');
+                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
+                btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                 this.toggleFloatingMenu(false);
                 
                 if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);

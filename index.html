@@ -217,11 +217,11 @@
 
             
             <div id="floating-controls-wrapper"
-                class="hidden fixed z-40 pointer-events-none opacity-0 transition-opacity duration-300 flex items-center space-x-3">
+                class="hidden fixed z-40 pointer-events-none opacity-0 transition-opacity duration-300 flex items-center">
                 <div id="floating-lyrics-menu" class="flex items-center relative pointer-events-auto h-10">
                     
                     <button id="btn-floating-toggle"
-                        class="group hidden opacity-0 scale-95 w-10 h-10 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20 relative">
+                        class="group hidden opacity-0 scale-95 w-10 h-10 mr-3 shrink-0 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20 relative">
                         <div class="hidden md:block absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-[#2a2a2a] border border-white/10 text-white/90 font-medium text-[13px] px-3.5 py-1.5 rounded-xl whitespace-nowrap shadow-2xl pointer-events-none opacity-0 transition-opacity duration-300 delay-[1200ms] group-hover:opacity-100">
                             Opções das Letras
                         </div>
@@ -236,7 +236,7 @@
                     </button>
 
                     <div id="floating-menu-content"
-                        class="menu-drawer closed max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 md:relative md:ml-2 flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:h-10 max-md:py-3 max-md:space-y-3 md:space-x-2 max-md:px-4 md:px-3">
+                        class="menu-drawer closed max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 md:relative md:mr-3 flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:h-10 max-md:py-3 max-md:space-y-3 md:space-x-2 max-md:px-4 md:px-3 min-w-0 origin-left">
                         
                         <div class="flex items-center space-x-1 md:pl-2">
                             <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" /></svg></button>
@@ -260,21 +260,19 @@
                         <div class="flex items-center space-x-1">
                             <button id="btn-floating-restart" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Reiniciar Música"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" /></svg></button>
                             <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
-                            <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg></button>
                         </div>
                     </div>
-                </div>
 
-                
-                <button id="btn-recenter"
-                    class="hidden bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white px-5 h-10 rounded-full transition-all duration-300 ease-out shadow-2xl space-x-2 pointer-events-auto opacity-0 scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
-                </button>
+                    <button id="btn-recenter"
+                        class="hidden shrink-0 bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white px-5 h-10 rounded-full transition-all duration-300 ease-out shadow-2xl flex items-center space-x-2 pointer-events-auto opacity-0 scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
+                    </button>
+                </div>
             </div>
 
             
