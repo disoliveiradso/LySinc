@@ -329,8 +329,6 @@ body, html {
                 filter 0.3s ease;
     white-space: pre-wrap;
     font-weight: bold;
-    max-width: 100%;
-    word-break: break-word;
 }
 
 .lyrics-syllable.passed {

@@ -1435,7 +1435,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 mainVocal.appendChild(sylSpan);
             } else {
                 let currentWordWrapper = document.createElement('span');
-                currentWordWrapper.className = 'inline-block max-w-full break-words';
+                currentWordWrapper.className = 'inline-block whitespace-nowrap';
 
                 line.text.forEach((syl, idx) => {
                     const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
@@ -1458,7 +1458,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                         
                         if (idx < line.text.length - 1) {
                             currentWordWrapper = document.createElement('span');
-                            currentWordWrapper.className = 'inline-block max-w-full break-words';
+                            currentWordWrapper.className = 'inline-block whitespace-nowrap';
                         }
                     }
                 });
@@ -1470,7 +1470,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 bgVocal.className = 'background-vocal-container';
                 
                 let bgWordWrapper = document.createElement('span');
-                bgWordWrapper.className = 'inline-block max-w-full break-words';
+                bgWordWrapper.className = 'inline-block whitespace-nowrap';
 
                 line.backgroundText.forEach((syl, idx) => {
                     const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
@@ -1493,7 +1493,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                         
                         if (idx < line.backgroundText.length - 1) {
                             bgWordWrapper = document.createElement('span');
-                            bgWordWrapper.className = 'inline-block max-w-full break-words';
+                            bgWordWrapper.className = 'inline-block whitespace-nowrap';
                         }
                     }
                 });
