@@ -238,8 +238,7 @@ class LySincApp {
             } else {
                 if (window.confirm("Tem certeza que deseja sair e remover seus dados de login?")) {
                     window.localStorage.removeItem(Config.CLIENT_ID_KEY);
-                    this.btnLogout.classList.add('hidden');
-                    this.showToast('Sessão encerrada com o Spotify.', 'info');
+                    SpotifyService.logout();
                 }
             }
         });
@@ -256,10 +255,8 @@ class LySincApp {
                 window.localStorage.removeItem(Config.CLIENT_ID_KEY);
                 this.confirmLogoutModal.classList.add('hidden');
                 this.confirmLogoutModal.classList.remove('flex');
-                this.btnLogout.classList.add('hidden');
-                this.showToast('Sessão encerrada com o Spotify.', 'info');
-
-                setTimeout(() => window.location.reload(), 1500);
+                
+                SpotifyService.logout();
             });
         }
         
