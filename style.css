@@ -188,11 +188,6 @@ body, html {
     will-change: transform, opacity, filter;
     
     
-    word-break: break-word;
-    overflow-wrap: break-word;
-    text-wrap: balance;
-    
-    
     font-size: clamp(1.8rem, 4vw, 2.8rem);
 }
 
