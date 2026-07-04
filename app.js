@@ -469,8 +469,11 @@ class LySincApp {
             }
         };
 
-        const handleScrollAction = () => {
+        const handleScrollAction = (e) => {
             resetMousePointer();
+            if (e && e.type === 'scroll' && (Date.now() - this.lastAutoScrollTime < 800)) {
+                return;
+            }
             if (this.floatingMenuContent && !this.floatingMenuContent.classList.contains('closed')) {
                 this.toggleFloatingMenu(false);
             }
