@@ -828,6 +828,16 @@ class LySincApp {
             return lines;
         };
 
+        const getLineText = (line, mode) => {
+            if (!line) return '';
+            if (mode === 'translation' && line.translation) return line.translation;
+            if (mode === 'romanized' && line.romanizedText) return line.romanizedText;
+            if (Array.isArray(line.text)) {
+                return line.text.map(s => s.text).join('').trim();
+            }
+            return (line.text || '') + '';
+        };
+
         const renderPipCanvas = () => {
             if (!pipCanvas || !pipCtx) return;
             
@@ -848,8 +858,8 @@ class LySincApp {
                         const nextLyric = this.lyrics[activeIndex + 1];
 
                         const mode = this.currentLyricsMode;
-                        const currentText = (currentLyric[mode] || currentLyric.original || '') + '';
-                        const nextText = nextLyric ? ((nextLyric[mode] || nextLyric.original || '') + '') : '';
+                        const currentText = getLineText(currentLyric, mode);
+                        const nextText = getLineText(nextLyric, mode);
 
                         const baseWidth = 1080;
                         const scale = pipCanvas.width / baseWidth;
@@ -909,7 +919,7 @@ class LySincApp {
                     pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                     pipCtx.textAlign = 'center';
                     pipCtx.textBaseline = 'middle';
-                    pipCtx.fillText('LySinc PiP', pipCanvas.width / 2, pipCanvas.height / 2);
+                    pipCtx.fillText('Carregando letras...', pipCanvas.width / 2, pipCanvas.height / 2);
                 }
             } catch (err) {
                 pipCtx.fillStyle = '#ff0000';
