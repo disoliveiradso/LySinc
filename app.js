@@ -837,7 +837,9 @@ class LySincApp {
             if (this.lyrics && this.lyrics.length > 0) {
                 let activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
                 if (activeIndex === -1) {
-                    activeIndex = this.lyrics.findIndex(l => l.timestamp > this.progressMs);
+                    const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                    const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
+                    activeIndex = this.lyrics.findIndex(l => l.timestamp > smoothProgress);
                 }
                 
                 if (activeIndex !== -1) {
@@ -845,8 +847,8 @@ class LySincApp {
                     const nextLyric = this.lyrics[activeIndex + 1];
 
                     const mode = this.currentLyricsMode;
-                    const currentText = currentLyric[mode] || currentLyric.original;
-                    const nextText = nextLyric ? (nextLyric[mode] || nextLyric.original) : '';
+                    const currentText = (currentLyric[mode] || currentLyric.original || '') + '';
+                    const nextText = nextLyric ? ((nextLyric[mode] || nextLyric.original || '') + '') : '';
 
                     const baseWidth = 1080;
                     const scale = pipCanvas.width / baseWidth;
@@ -923,14 +925,10 @@ class LySincApp {
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
-                    const tabsContainer = document.getElementById('lyrics-tabs-container');
                     const floatingControls = document.getElementById('floating-controls-wrapper');
                     
                     if (lyricsContainer) {
                         lyricsContainer.style.display = 'none';
-                    }
-                    if (tabsContainer) {
-                        tabsContainer.style.display = 'none';
                     }
                     if (floatingControls) floatingControls.style.display = 'none';
 
@@ -968,14 +966,10 @@ class LySincApp {
                     }
                     
                     const lyricsContainer = document.getElementById('lyrics-container');
-                    const tabsContainer = document.getElementById('lyrics-tabs-container');
                     const floatingControls = document.getElementById('floating-controls-wrapper');
                     
                     if (lyricsContainer) {
                         lyricsContainer.style.display = '';
-                    }
-                    if (tabsContainer) {
-                        tabsContainer.style.display = '';
                     }
                     if (floatingControls) floatingControls.style.display = '';
 
@@ -984,8 +978,11 @@ class LySincApp {
                     
                     this.currentActiveIdsKey = '';
                     setTimeout(() => {
+                        this.isUserInteracting = false;
+                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                        if (this.btnRecenter) this.btnRecenter.classList.add('hidden');
                         this.updateLyricsSync(this.progressMs);
-                    }, 50);
+                    }, 150);
                 });
             }
 
