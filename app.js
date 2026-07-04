@@ -383,8 +383,8 @@ class LySincApp {
             if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('closed')) {
                 this.headerControlsContainer.classList.add('closed');
                 this.headerControlsContainer.classList.remove('open');
-                if (this.iconToggleControlsMobile) this.iconToggleControlsMobile.classList.remove('rotate-180');
-                if (this.iconToggleControlsDesktop) this.iconToggleControlsDesktop.classList.remove('rotate-180');
+                if (this.iconToggleControlsMobile) this.iconToggleControlsMobile.classList.remove('scale-y-[-1]');
+                if (this.iconToggleControlsDesktop) this.iconToggleControlsDesktop.classList.remove('scale-x-[-1]');
             }
         };
 
@@ -400,8 +400,8 @@ class LySincApp {
                 if (isHidden) {
                     this.headerControlsContainer.classList.remove('closed');
                     this.headerControlsContainer.classList.add('open');
-                    if (this.iconToggleControlsMobile) this.iconToggleControlsMobile.classList.add('rotate-180');
-                    if (this.iconToggleControlsDesktop) this.iconToggleControlsDesktop.classList.add('rotate-180');
+                    if (this.iconToggleControlsMobile) this.iconToggleControlsMobile.classList.add('scale-y-[-1]');
+                    if (this.iconToggleControlsDesktop) this.iconToggleControlsDesktop.classList.add('scale-x-[-1]');
                     resetControlsTimeout();
                 } else {
                     closeControls();
@@ -469,9 +469,17 @@ class LySincApp {
             }
         };
 
+        const handleScrollAction = () => {
+            resetMousePointer();
+            if (this.floatingMenuContent && !this.floatingMenuContent.classList.contains('closed')) {
+                this.toggleFloatingMenu(false);
+            }
+        };
+
         document.addEventListener('mousemove', resetMousePointer);
-        document.addEventListener('wheel', resetMousePointer, { passive: true });
-        document.addEventListener('touchmove', resetMousePointer, { passive: true });
+        document.addEventListener('wheel', handleScrollAction, { passive: true });
+        document.addEventListener('touchmove', handleScrollAction, { passive: true });
+        document.addEventListener('scroll', handleScrollAction, { passive: true });
         
         const iconFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>`;
         const iconExitFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h4V4m12 4h-4V4M4 16h4v4m12-4h-4v4" /></svg>`;
@@ -1431,22 +1439,27 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 currentWordWrapper.className = 'inline-block whitespace-nowrap';
 
                 line.text.forEach((syl, idx) => {
+                    const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
+                    const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
+
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable';
                     sylSpan.id = `word-${line.id}-${idx}`;
-                    sylSpan.textContent = syl.text;
+                    sylSpan.textContent = cleanText;
                     currentWordWrapper.appendChild(sylSpan);
                     
                     const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.text.length - 1;
-                    const isNearEnd = idx >= line.text.length - 4;
                     
                     if (isWordEnd) {
-                        if (!isNearEnd || idx === line.text.length - 1) {
-                            mainVocal.appendChild(currentWordWrapper);
-                            if (idx < line.text.length - 1) {
-                                currentWordWrapper = document.createElement('span');
-                                currentWordWrapper.className = 'inline-block whitespace-nowrap';
-                            }
+                        mainVocal.appendChild(currentWordWrapper);
+                        
+                        if (syl.text.endsWith(' ') && idx < line.text.length - 1) {
+                            mainVocal.appendChild(document.createTextNode(' '));
+                        }
+                        
+                        if (idx < line.text.length - 1) {
+                            currentWordWrapper = document.createElement('span');
+                            currentWordWrapper.className = 'inline-block whitespace-nowrap';
                         }
                     }
                 });
@@ -1461,22 +1474,27 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 bgWordWrapper.className = 'inline-block whitespace-nowrap';
 
                 line.backgroundText.forEach((syl, idx) => {
+                    const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
+                    const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
+
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable backing-vocal';
                     sylSpan.id = `bgword-${line.id}-${idx}`;
-                    sylSpan.textContent = syl.text;
+                    sylSpan.textContent = cleanText;
                     bgWordWrapper.appendChild(sylSpan);
                     
                     const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.backgroundText.length - 1;
-                    const isNearEnd = idx >= line.backgroundText.length - 4;
                     
                     if (isWordEnd) {
-                        if (!isNearEnd || idx === line.backgroundText.length - 1) {
-                            bgVocal.appendChild(bgWordWrapper);
-                            if (idx < line.backgroundText.length - 1) {
-                                bgWordWrapper = document.createElement('span');
-                                bgWordWrapper.className = 'inline-block whitespace-nowrap';
-                            }
+                        bgVocal.appendChild(bgWordWrapper);
+                        
+                        if (syl.text.endsWith(' ') && idx < line.backgroundText.length - 1) {
+                            bgVocal.appendChild(document.createTextNode(' '));
+                        }
+                        
+                        if (idx < line.backgroundText.length - 1) {
+                            bgWordWrapper = document.createElement('span');
+                            bgWordWrapper.className = 'inline-block whitespace-nowrap';
                         }
                     }
                 });
@@ -1926,13 +1944,13 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (show) {
             this.floatingMenuContent.classList.add('open');
             this.floatingMenuContent.classList.remove('closed');
-            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('rotate-180');
-            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('rotate-180');
+            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('scale-y-[-1]');
+            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('scale-x-[-1]');
         } else {
             this.floatingMenuContent.classList.remove('open');
             this.floatingMenuContent.classList.add('closed');
-            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('rotate-180');
-            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('rotate-180');
+            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('scale-y-[-1]');
+            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
         }
     }
 
