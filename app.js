@@ -844,28 +844,33 @@ class LySincApp {
                     const currentText = currentLyric[mode] || currentLyric.original;
                     const nextText = nextLyric ? (nextLyric[mode] || nextLyric.original) : '';
 
+                    const baseWidth = 1080;
+                    const scale = pipCanvas.width / baseWidth;
+
+                    const currentFontSize = Math.round(80 * scale);
+                    const nextFontSize = Math.round(50 * scale);
+                    const currentLineHeight = Math.round(100 * scale);
+                    const nextLineHeight = Math.round(70 * scale);
+                    const spacing = Math.round(60 * scale);
+
                     const maxWidth = pipCanvas.width * 0.9;
                     
-                    pipCtx.font = 'bold 80px Inter, sans-serif';
+                    pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
                     pipCtx.fillStyle = '#ffffff';
                     pipCtx.textAlign = 'center';
                     pipCtx.textBaseline = 'middle';
                     const currentLines = wrapText(pipCtx, currentText, maxWidth);
                     
-                    pipCtx.font = 'bold 50px Inter, sans-serif';
+                    pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
                     pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                     const nextLines = nextText ? wrapText(pipCtx, nextText, maxWidth) : [];
-
-                    const currentLineHeight = 100;
-                    const nextLineHeight = 70;
-                    const spacing = 60;
                     
                     const totalHeight = (currentLines.length * currentLineHeight) + 
                                       (nextLines.length > 0 ? spacing + (nextLines.length * nextLineHeight) : 0);
                                       
                     let startY = (pipCanvas.height - totalHeight) / 2 + (currentLineHeight / 2);
 
-                    pipCtx.font = 'bold 80px Inter, sans-serif';
+                    pipCtx.font = `bold ${currentFontSize}px Inter, sans-serif`;
                     pipCtx.fillStyle = '#ffffff';
                     currentLines.forEach(line => {
                         pipCtx.fillText(line, pipCanvas.width / 2, startY);
@@ -874,7 +879,7 @@ class LySincApp {
 
                     if (nextLines.length > 0) {
                         startY += spacing - currentLineHeight + (nextLineHeight / 2);
-                        pipCtx.font = 'bold 50px Inter, sans-serif';
+                        pipCtx.font = `bold ${nextFontSize}px Inter, sans-serif`;
                         pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                         nextLines.forEach(line => {
                             pipCtx.fillText(line, pipCanvas.width / 2, startY);
@@ -883,7 +888,9 @@ class LySincApp {
                     }
                 }
             } else {
-                pipCtx.font = 'bold 40px Inter, sans-serif';
+                const scale = pipCanvas.width / 1080;
+                const fontSize = Math.round(50 * scale);
+                pipCtx.font = `bold ${fontSize}px Inter, sans-serif`;
                 pipCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 pipCtx.textAlign = 'center';
                 pipCtx.textBaseline = 'middle';
@@ -896,8 +903,9 @@ class LySincApp {
         const startCanvasPip = async () => {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
-                pipCanvas.width = 1080;
-                pipCanvas.height = 1379;
+                const pixelRatio = window.devicePixelRatio || 1;
+                pipCanvas.width = window.innerWidth * pixelRatio;
+                pipCanvas.height = window.innerHeight * pixelRatio;
                 pipCtx = pipCanvas.getContext('2d');
 
                 pipVideo = document.createElement('video');
