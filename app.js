@@ -866,10 +866,35 @@ class LySincApp {
                         const activeSpacing = Math.round(60 * scale);
 
                         pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
-                        pipCtx.fillStyle = '#ffffff';
-                        pipCtx.textAlign = 'center';
                         pipCtx.textBaseline = 'middle';
-                        const activeLines = wrapText(pipCtx, activeText, maxWidth);
+
+                        const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                        const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
+
+                        // Check if word synced & in original mode
+                        let activeLines = [];
+                        if (activeLyric.isWordSynced && Array.isArray(activeLyric.text) && mode === 'original') {
+                            const syllables = activeLyric.text;
+                            let currentLine = [];
+                            let currentWidth = 0;
+                            
+                            syllables.forEach(syl => {
+                                const sylWidth = pipCtx.measureText(syl.text).width;
+                                if (currentWidth + sylWidth < maxWidth || currentLine.length === 0) {
+                                    currentLine.push({ ...syl, width: sylWidth });
+                                    currentWidth += sylWidth;
+                                } else {
+                                    activeLines.push(currentLine);
+                                    currentLine = [{ ...syl, width: sylWidth }];
+                                    currentWidth = sylWidth;
+                                }
+                            });
+                            activeLines.push(currentLine);
+                        } else {
+                            const wrapped = wrapText(pipCtx, activeText, maxWidth);
+                            activeLines = wrapped.map(str => [{ text: str, width: pipCtx.measureText(str).width }]);
+                        }
+
                         const activeHeight = activeLines.length * activeLineHeight;
 
                         // Center Y of active line block
@@ -877,8 +902,34 @@ class LySincApp {
                         let activeStartY = centerY - (activeHeight / 2) + (activeLineHeight / 2);
 
                         // Draw active line
-                        activeLines.forEach(line => {
-                            pipCtx.fillText(line, pipCanvas.width / 2, activeStartY);
+                        activeLines.forEach(lineSyls => {
+                            const lineWidth = lineSyls.reduce((sum, s) => sum + s.width, 0);
+                            let startX = (pipCanvas.width - lineWidth) / 2;
+                            
+                            lineSyls.forEach(syl => {
+                                pipCtx.textAlign = 'left';
+                                
+                                if (activeLyric.isWordSynced && mode === 'original' && syl.timestamp !== undefined) {
+                                    if (smoothProgress >= syl.endtime) {
+                                        pipCtx.fillStyle = '#ffffff';
+                                    } else if (smoothProgress < syl.timestamp) {
+                                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                                    } else {
+                                        const pct = Math.max(0, Math.min(1, (smoothProgress - syl.timestamp) / (syl.endtime - syl.timestamp)));
+                                        const grad = pipCtx.createLinearGradient(startX, 0, startX + syl.width, 0);
+                                        grad.addColorStop(0, '#ffffff');
+                                        grad.addColorStop(pct, '#ffffff');
+                                        grad.addColorStop(pct, 'rgba(255, 255, 255, 0.4)');
+                                        grad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                                        pipCtx.fillStyle = grad;
+                                    }
+                                } else {
+                                    pipCtx.fillStyle = '#ffffff';
+                                }
+                                
+                                pipCtx.fillText(syl.text, startX, activeStartY);
+                                startX += syl.width;
+                            });
                             activeStartY += activeLineHeight;
                         });
 
@@ -897,6 +948,7 @@ class LySincApp {
 
                             pipCtx.font = `bold ${fontSize}px Satoshi, Inter, sans-serif`;
                             pipCtx.fillStyle = `rgba(255, 255, 255, ${opacityVal})`;
+                            pipCtx.textAlign = 'center';
                             const wrappedLines = wrapText(pipCtx, text, maxWidth);
                             
                             wrappedLines.forEach(line => {
@@ -906,8 +958,8 @@ class LySincApp {
                             currentYBelow += spacing;
                         };
 
-                        drawUpcoming(1, 70, 95, 0.55, 50);
-                        drawUpcoming(2, 50, 70, 0.20, 40);
+                        drawUpcoming(1, 70, 95, 0.75, 50);
+                        drawUpcoming(2, 50, 70, 0.45, 40);
 
                         // 3. Draw previous lines (above)
                         let currentYAbove = centerY - (activeHeight / 2) - activeSpacing;
@@ -924,6 +976,7 @@ class LySincApp {
 
                             pipCtx.font = `bold ${fontSize}px Satoshi, Inter, sans-serif`;
                             pipCtx.fillStyle = `rgba(255, 255, 255, ${opacityVal})`;
+                            pipCtx.textAlign = 'center';
                             const wrappedLines = wrapText(pipCtx, text, maxWidth);
                             
                             const height = wrappedLines.length * lineHeight;
@@ -937,8 +990,8 @@ class LySincApp {
                             currentYAbove -= spacing;
                         };
 
-                        drawPrevious(-1, 70, 95, 0.45, 50);
-                        drawPrevious(-2, 50, 70, 0.15, 40);
+                        drawPrevious(-1, 70, 95, 0.75, 50);
+                        drawPrevious(-2, 50, 70, 0.45, 40);
 
                     } else {
                         const scale = pipCanvas.width / 1080;
