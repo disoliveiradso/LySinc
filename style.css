@@ -403,6 +403,23 @@ body, html {
     }
 }
 
+.tabs-scrollbar::-webkit-scrollbar {
+    height: 4px;
+}
+.tabs-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0 16px;
+}
+.tabs-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 99px;
+}
+@media (hover: hover) {
+    .tabs-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+}
+
 
 .listening-indicator {
     position: relative;
