@@ -914,14 +914,21 @@ class LySincApp {
                 pipCanvas.style.position = 'fixed';
                 pipCanvas.style.top = '-9999px';
                 pipCanvas.style.left = '-9999px';
-                pipCanvas.style.visibility = 'hidden';
+                pipCanvas.style.opacity = '0.01';
+                pipCanvas.style.pointerEvents = 'none';
                 document.body.appendChild(pipCanvas);
                 pipCtx = pipCanvas.getContext('2d');
 
                 pipVideo = document.createElement('video');
                 pipVideo.muted = true;
                 pipVideo.playsInline = true;
-                pipVideo.style.display = 'none';
+                pipVideo.style.position = 'fixed';
+                pipVideo.style.top = '-9999px';
+                pipVideo.style.left = '-9999px';
+                pipVideo.style.width = '10px';
+                pipVideo.style.height = '10px';
+                pipVideo.style.opacity = '0.01';
+                pipVideo.style.pointerEvents = 'none';
                 document.body.appendChild(pipVideo);
 
                 pipVideo.addEventListener('enterpictureinpicture', () => {
@@ -1004,6 +1011,8 @@ class LySincApp {
             if (!pipAnimationId) {
                 pipAnimationId = setInterval(renderPipCanvas, 1000 / 30);
             }
+            
+            renderPipCanvas();
 
             const stream = pipCanvas.captureStream(30);
             pipVideo.srcObject = stream;
