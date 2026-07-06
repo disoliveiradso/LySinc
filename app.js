@@ -1024,7 +1024,8 @@ class LySincApp {
                         this.pipLastFrameTime = now;
                         const clampedDelta = Math.min(deltaTime, 1.0);
 
-                        if (this.pipActiveIndexSmooth === undefined || isNaN(this.pipActiveIndexSmooth)) {
+                        const isLightMode = document.body.classList.contains('light-mode');
+                        if (this.pipActiveIndexSmooth === undefined || isNaN(this.pipActiveIndexSmooth) || isLightMode) {
                             this.pipActiveIndexSmooth = activeIndex;
                         } else {
                             const k = 6.0; // scrolling speed factor
@@ -1170,9 +1171,9 @@ class LySincApp {
                             const distance = Math.abs(item.index - this.pipActiveIndexSmooth);
                             const isItemActive = activeLineIndices.has(item.index);
                             
-                            // Smoothly animate scale down transition when active lines end
-                            const targetScaleMult = isItemActive ? 1.0 : 0.72;
-                            if (item.lyric._scaleMult === undefined) {
+                            // Smoothly animate scale down transition when active lines end (except in light mode)
+                            const targetScaleMult = (isItemActive || isLightMode) ? 1.0 : 0.72;
+                            if (item.lyric._scaleMult === undefined || isLightMode) {
                                 item.lyric._scaleMult = targetScaleMult;
                             } else {
                                 const lerpVal = 1 - Math.exp(-10 * clampedDelta);
