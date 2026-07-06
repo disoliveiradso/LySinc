@@ -113,6 +113,8 @@ class LySincApp {
         this.albumArtBlur = document.getElementById('album-art-blur');
         this.trackName = document.getElementById('track-name');
         this.trackArtists = document.getElementById('track-artists');
+        this.explicitIconHeader = document.getElementById('explicit-icon-header');
+        this.footerExplicit = document.getElementById('footer-explicit');
         this.lyricsContainer = document.getElementById('lyrics-container');
         this.progressBar = document.getElementById('progress-bar');
 
@@ -1299,13 +1301,35 @@ class LySincApp {
                                         
                                         pipCtx.save();
                                         pipCtx.fillStyle = grad;
-                                        // Bright, centered glowing shadow on active text
-                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
-                                        pipCtx.shadowBlur = 24 * scale;
-                                        pipCtx.shadowOffsetX = 0;
-                                        pipCtx.shadowOffsetY = 0;
                                         
-                                        pipCtx.fillText(lineStr, startX, startY);
+                                        const isLightMode = document.body.classList.contains('light-mode');
+                                        if (!isLightMode) {
+                                            // Bright, centered glowing shadow on active text
+                                            pipCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
+                                            pipCtx.shadowBlur = 24 * scale;
+                                            pipCtx.shadowOffsetX = 0;
+                                            pipCtx.shadowOffsetY = 0;
+                                        }
+                                        
+                                        let currentX = alignRight ? startX - totalLineWidth : startX;
+                                        lineSyls.forEach(syl => {
+                                            const sylWidth = pipCtx.measureText(syl.text).width;
+                                            const isActiveWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
+                                            const isLightMode = document.body.classList.contains('light-mode');
+                                            
+                                            pipCtx.save();
+                                            if (isActiveWord && !isLightMode) {
+                                                const centerX = currentX + sylWidth / 2;
+                                                pipCtx.translate(centerX, startY);
+                                                pipCtx.scale(1.05, 1.05);
+                                                pipCtx.translate(-centerX, -startY);
+                                                pipCtx.fillText(syl.text, currentX, startY - 2 * scale);
+                                            } else {
+                                                pipCtx.fillText(syl.text, currentX, startY);
+                                            }
+                                            pipCtx.restore();
+                                            currentX += sylWidth;
+                                        });
                                         pipCtx.restore();
                                         
                                         startY += activeLineHeight;
@@ -1404,11 +1428,33 @@ class LySincApp {
                                             pipCtx.save();
                                             pipCtx.globalAlpha = op * item.bgOpacity;
                                             pipCtx.fillStyle = bgGrad;
-                                            pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
-                                            pipCtx.shadowBlur = 14 * scale;
-                                            pipCtx.shadowOffsetX = 0;
-                                            pipCtx.shadowOffsetY = 0;
-                                            pipCtx.fillText(bgLineStr, startX, bgStartY);
+                                            
+                                            const isLightMode = document.body.classList.contains('light-mode');
+                                            if (!isLightMode) {
+                                                pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+                                                pipCtx.shadowBlur = 14 * scale;
+                                                pipCtx.shadowOffsetX = 0;
+                                                pipCtx.shadowOffsetY = 0;
+                                            }
+                                            
+                                            let currentBgX = alignRight ? startX - totalBgLineWidth : startX;
+                                            bgLineSyls.forEach(syl => {
+                                                const sylWidth = pipCtx.measureText(syl.text).width;
+                                                const isActiveWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
+                                                
+                                                pipCtx.save();
+                                                if (isActiveWord && !isLightMode) {
+                                                    const centerX = currentBgX + sylWidth / 2;
+                                                    pipCtx.translate(centerX, bgStartY);
+                                                    pipCtx.scale(1.05, 1.05);
+                                                    pipCtx.translate(-centerX, -bgStartY);
+                                                    pipCtx.fillText(syl.text, currentBgX, bgStartY - 1.5 * scale);
+                                                } else {
+                                                    pipCtx.fillText(syl.text, currentBgX, bgStartY);
+                                                }
+                                                pipCtx.restore();
+                                                currentBgX += sylWidth;
+                                            });
                                             pipCtx.restore();
                                             
                                             bgStartY += activeLineHeight * 0.65;
@@ -2022,6 +2068,18 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     updateTrackDetails(state) {
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
+
+        if (this.explicitIconHeader && this.footerExplicit) {
+            if (state.explicit) {
+                this.explicitIconHeader.classList.remove('hidden');
+                this.footerExplicit.classList.remove('hidden');
+                this.footerExplicit.classList.add('flex');
+            } else {
+                this.explicitIconHeader.classList.add('hidden');
+                this.footerExplicit.classList.add('hidden');
+                this.footerExplicit.classList.remove('flex');
+            }
+        }
 
         setTimeout(() => {
             this.setupMarquee(this.trackName);

@@ -244,7 +244,8 @@ const SpotifyService = {
                 albumName: data.item?.album?.name,
                 albumArtUrl: data.item?.album?.images[0]?.url || '',
                 durationMs: data.item?.duration_ms,
-                isrc: data.item?.external_ids?.isrc
+                isrc: data.item?.external_ids?.isrc,
+                explicit: data.item?.explicit
             };
         } catch (error) {
             console.error('Erro ao buscar atualmente tocando:', error);
