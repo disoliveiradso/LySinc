@@ -727,18 +727,18 @@ input:focus {
 .light-mode * {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    transition: none !important;
+    animation: none !important;
 }
 
-/* Abafe e desacelere transições e animações de botões, gavetas, painéis e janelas */
-.light-mode button,
-.light-mode .menu-drawer,
+/* Make glass buttons/panels solid with a slight transparency for visibility */
+.light-mode .backdrop-blur-md,
+.light-mode .backdrop-blur-sm,
+.light-mode .bg-white\/10,
 .light-mode .glass-panel,
-.light-mode #settings-modal,
-.light-mode #confirm-logout-modal,
-.light-mode #floating-controls-wrapper,
-.light-mode #floating-menu-content {
-    transition-duration: 0.8s !important;
-    animation-duration: 0.8s !important;
+.light-mode .menu-drawer {
+    background-color: rgba(20, 20, 20, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Destaque para o botão de modo light ativo */
