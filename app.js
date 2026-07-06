@@ -838,9 +838,13 @@ class LySincApp {
                     const prevLine = lines[lines.length - 2];
                     const prevLineWords = prevLine.trim().split(/\s+/);
                     if (prevLineWords.length > 1) {
-                        const lastWordOfPrev = prevLineWords.pop();
-                        lines[lines.length - 2] = prevLineWords.join(' ');
-                        lines[lines.length - 1] = lastWordOfPrev + ' ' + lastLine;
+                        const lastWordOfPrev = prevLineWords[prevLineWords.length - 1];
+                        const combinedWidth = ctx.measureText(lastWordOfPrev + ' ' + lastLine).width;
+                        if (combinedWidth < maxWidth) {
+                            prevLineWords.pop();
+                            lines[lines.length - 2] = prevLineWords.join(' ');
+                            lines[lines.length - 1] = lastWordOfPrev + ' ' + lastLine;
+                        }
                     }
                 }
             }
@@ -918,13 +922,10 @@ class LySincApp {
 
                     // Support multiple active lines (duets, overlapping vocals, backing vocals)
                     const activeLines = this.lyrics.filter(line => smoothProgress >= line.timestamp && smoothProgress < line.endtime);
-                    const activeLineIndices = new Set(activeLines.map(line => this.lyrics.indexOf(line)));
-
-                    let activeIndex = -1;
-                    if (activeLines.length > 0) {
-                        activeIndex = this.lyrics.indexOf(activeLines[0]);
-                    } else {
-                        activeIndex = this.lyrics.findIndex(l => l.timestamp > smoothProgress);
+                    const activeLineIndices = new Set(activeLines.map(line => this.lyrics.indexOf(line)));                    // Keep scrolling focus on the last line that has started, so it stays centered until the next line timestamp
+                    let activeIndex = this.lyrics.findLastIndex(l => smoothProgress >= l.timestamp);
+                    if (activeIndex === -1) {
+                        activeIndex = 0;
                     }
                     
                     if (activeIndex !== -1) {
@@ -958,9 +959,34 @@ class LySincApp {
                             if (lyric._wrapCache && lyric._wrapCache.key === cacheKey) {
                                 return lyric._wrapCache.lines;
                             }
-                            const text = getLineText(lyric, mode);
+                            
+                            let lines = [];
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
-                            const lines = wrapText(pipCtx, text, maxWidth);
+                            
+                            if (mode === 'original' && Array.isArray(lyric.text) && lyric.isWordSynced) {
+                                // Syllable-by-syllable wrapping for word-synced original lyrics (syllabic break system)
+                                let currentLine = '';
+                                for (let i = 0; i < lyric.text.length; i++) {
+                                    const syl = lyric.text[i];
+                                    const testLine = currentLine + syl.text;
+                                    const width = pipCtx.measureText(testLine).width;
+                                    if (width < maxWidth || currentLine === '') {
+                                        currentLine += syl.text;
+                                    } else {
+                                        lines.push(currentLine);
+                                        currentLine = syl.text;
+                                    }
+                                }
+                                if (currentLine) {
+                                    lines.push(currentLine);
+                                }
+                                lines = lines.map(l => l.trim());
+                            } else {
+                                // Word-by-word wrapping for translation, romanized, or line-synced lyrics
+                                const text = getLineText(lyric, mode);
+                                lines = wrapText(pipCtx, text, maxWidth);
+                            }
+                            
                             lyric._wrapCache = { key: cacheKey, lines: lines };
                             return lines;
                         };
@@ -1126,20 +1152,36 @@ class LySincApp {
                                         }
                                         
                                         // 2. Draw using Linear Gradient for soft feathered color transition
-                                        const grad = pipCtx.createLinearGradient(
-                                            alignRight ? startX - totalLineWidth : startX,
-                                            0,
-                                            alignRight ? startX : startX + totalLineWidth,
-                                            0
-                                        );
-                                        grad.addColorStop(0, '#ffffff');
+                                        let grad;
+                                        const completedPct = completedW / totalLineWidth;
+                                        const isInstrumental = item.lyric.isInstrumental || (lineStr.trim() === '♪' || lineStr.trim() === 'Fim');
                                         
-                                        // 15% soft transition zone (feathered highlight edge)
-                                        const transitionStart = Math.max(0, (completedW - 15 * scale) / totalLineWidth);
-                                        const transitionEnd = Math.min(1, completedW / totalLineWidth);
-                                        grad.addColorStop(transitionStart, '#ffffff');
-                                        grad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.4)');
-                                        grad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                                        if (isInstrumental) {
+                                            // Vertical gradient (to bottom / de cima para baixo) for instrumental notes
+                                            grad = pipCtx.createLinearGradient(0, startY - activeFontSize * 0.45, 0, startY + activeFontSize * 0.45);
+                                            grad.addColorStop(0, '#ffffff');
+                                            const transitionStart = Math.max(0, completedPct - 0.10);
+                                            const transitionEnd = Math.min(1, completedPct);
+                                            grad.addColorStop(transitionStart, '#ffffff');
+                                            grad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.45)');
+                                            grad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
+                                        } else {
+                                            // Horizontal gradient (to right) for standard lyrics
+                                            grad = pipCtx.createLinearGradient(
+                                                alignRight ? startX - totalLineWidth : startX,
+                                                0,
+                                                alignRight ? startX : startX + totalLineWidth,
+                                                0
+                                            );
+                                            grad.addColorStop(0, '#ffffff');
+                                            
+                                            // 15% soft transition zone (feathered highlight edge)
+                                            const transitionStart = Math.max(0, (completedW - 15 * scale) / totalLineWidth);
+                                            const transitionEnd = Math.min(1, completedW / totalLineWidth);
+                                            grad.addColorStop(transitionStart, '#ffffff');
+                                            grad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.45)');
+                                            grad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
+                                        }
                                         
                                         pipCtx.save();
                                         pipCtx.fillStyle = grad;
@@ -1170,7 +1212,13 @@ class LySincApp {
                                 }
                             } else {
                                 // Draw static non-active main lyrics (translucent gray, no glow)
-                                pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                                if (item.index < activeIndex) {
+                                    // Passed lines: darker gray
+                                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                                } else {
+                                    // Future lines: medium gray
+                                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                                }
                                 pipCtx.shadowBlur = 0;
                                 
                                 item.wrapped.forEach(lineStr => {
@@ -1224,8 +1272,8 @@ class LySincApp {
                                             const transitionStart = Math.max(0, (completedBgW - 15 * scale) / totalBgLineWidth);
                                             const transitionEnd = Math.min(1, completedBgW / totalBgLineWidth);
                                             bgGrad.addColorStop(transitionStart, '#ffffff');
-                                            bgGrad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.4)');
-                                            bgGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                                            bgGrad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.45)');
+                                            bgGrad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
                                             
                                             pipCtx.save();
                                             pipCtx.globalAlpha = op * item.bgOpacity;
@@ -1256,7 +1304,11 @@ class LySincApp {
                                     }
                                 } else {
                                     // Static translucent background vocal
-                                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                                    if (item.index < activeIndex) {
+                                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                                    } else {
+                                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                                    }
                                     pipCtx.shadowBlur = 0;
                                     
                                     item.bgWrapped.forEach(bgLineStr => {
