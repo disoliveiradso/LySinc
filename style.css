@@ -158,22 +158,23 @@ body, html {
 /* Desktop: Horizontal Drawer */
 @media (min-width: 768px) {
     .menu-drawer {
+        transform-origin: left center;
+    }
+    /* Header controls: button on right, so drawer slides in from the right */
+    #header-controls-container.menu-drawer {
         transform-origin: right center;
     }
-    /* Header controls: drawer sits left of toggle, slides in from the right */
     #header-controls-container.menu-drawer.closed {
         transform: translateX(20px) scale(0.95);
     }
-    #header-controls-container.menu-drawer.open {
-        transform: translateX(0) scale(1);
-    }
-    /* Floating controls: drawer sits right of toggle, slides in from the left */
-    #floating-menu-content {
+    /* Floating controls: button on left, so drawer slides in from the left */
+    #floating-menu-content.menu-drawer {
         transform-origin: left center;
     }
     #floating-menu-content.menu-drawer.closed {
         transform: translateX(-20px) scale(0.95);
     }
+    #header-controls-container.menu-drawer.open,
     #floating-menu-content.menu-drawer.open {
         transform: translateX(0) scale(1);
     }
@@ -331,8 +332,9 @@ body, html {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                filter 0.3s ease;
+    transition: filter 0.3s ease;
+    transform: translateY(calc(-4px * var(--wave-progress, 0))) scale(calc(1 + 0.05 * var(--wave-progress, 0)));
+    will-change: transform;
     white-space: pre-wrap;
     font-weight: bold;
 }
@@ -371,15 +373,6 @@ body, html {
 
 .lyrics-syllable.current {
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75));
-    will-change: transform;
-}
-
-.lyrics-syllable.current .char {
-    display: inline-block;
-    --char-p: max(0, min(1, calc(var(--word-progress-raw, 0) * var(--char-total, 1) - var(--char-idx, 0))));
-    --wave: calc(var(--char-p) * (1 - var(--char-p)) * 4);
-    transform: translateY(calc(var(--wave) * -4px)) scale(calc(1 + var(--wave) * 0.15));
-    will-change: transform;
 }
 
 
@@ -768,8 +761,7 @@ input:focus {
     transform: none !important;
 }
 
-.light-mode .lyrics-syllable.current,
-.light-mode .lyrics-syllable.current .char {
+.light-mode .lyrics-syllable.current {
     filter: none !important;
     transform: none !important;
 }

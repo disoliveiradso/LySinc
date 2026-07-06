@@ -1319,11 +1319,18 @@ class LySincApp {
                                             
                                             pipCtx.save();
                                             if (isActiveWord && !isLightMode) {
+                                                const duration = syl.endtime - syl.timestamp;
+                                                const elapsed = smoothProgress - syl.timestamp;
+                                                const wave = duration > 0 ? Math.sin((elapsed / duration) * Math.PI) : 0;
+                                                
+                                                const popScale = 1 + 0.05 * wave;
+                                                const popY = -4 * wave * scale;
+                                                
                                                 const centerX = currentX + sylWidth / 2;
                                                 pipCtx.translate(centerX, startY);
-                                                pipCtx.scale(1.05, 1.05);
+                                                pipCtx.scale(popScale, popScale);
                                                 pipCtx.translate(-centerX, -startY);
-                                                pipCtx.fillText(syl.text, currentX, startY - 2 * scale);
+                                                pipCtx.fillText(syl.text, currentX, startY + popY);
                                             } else {
                                                 pipCtx.fillText(syl.text, currentX, startY);
                                             }
@@ -1444,11 +1451,18 @@ class LySincApp {
                                                 
                                                 pipCtx.save();
                                                 if (isActiveWord && !isLightMode) {
+                                                    const duration = syl.endtime - syl.timestamp;
+                                                    const elapsed = smoothProgress - syl.timestamp;
+                                                    const wave = duration > 0 ? Math.sin((elapsed / duration) * Math.PI) : 0;
+                                                    
+                                                    const popScale = 1 + 0.05 * wave;
+                                                    const popY = -4 * wave * scale;
+                                                    
                                                     const centerX = currentBgX + sylWidth / 2;
                                                     pipCtx.translate(centerX, bgStartY);
-                                                    pipCtx.scale(1.05, 1.05);
+                                                    pipCtx.scale(popScale, popScale);
                                                     pipCtx.translate(-centerX, -bgStartY);
-                                                    pipCtx.fillText(syl.text, currentBgX, bgStartY - 1.5 * scale);
+                                                    pipCtx.fillText(syl.text, currentBgX, bgStartY + popY);
                                                 } else {
                                                     pipCtx.fillText(syl.text, currentBgX, bgStartY);
                                                 }
@@ -2442,20 +2456,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable';
                     sylSpan.id = `word-${line.id}-${idx}`;
-                    
-                    if (line.isWordSynced) {
-                        const chars = cleanText.split('');
-                        chars.forEach((char, charIdx) => {
-                            const charSpan = document.createElement('span');
-                            charSpan.className = 'char';
-                            charSpan.textContent = char;
-                            charSpan.style.setProperty('--char-idx', charIdx);
-                            charSpan.style.setProperty('--char-total', chars.length);
-                            sylSpan.appendChild(charSpan);
-                        });
-                    } else {
-                        sylSpan.textContent = cleanText;
-                    }
+                    sylSpan.textContent = cleanText;
                     currentWordWrapper.appendChild(sylSpan);
                     
                     const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.text.length - 1;
@@ -2490,20 +2491,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     const sylSpan = document.createElement('span');
                     sylSpan.className = 'lyrics-syllable backing-vocal';
                     sylSpan.id = `bgword-${line.id}-${idx}`;
-                    
-                    if (line.isWordSynced) {
-                        const chars = cleanText.split('');
-                        chars.forEach((char, charIdx) => {
-                            const charSpan = document.createElement('span');
-                            charSpan.className = 'char';
-                            charSpan.textContent = char;
-                            charSpan.style.setProperty('--char-idx', charIdx);
-                            charSpan.style.setProperty('--char-total', chars.length);
-                            sylSpan.appendChild(charSpan);
-                        });
-                    } else {
-                        sylSpan.textContent = cleanText;
-                    }
+                    sylSpan.textContent = cleanText;
                     bgWordWrapper.appendChild(sylSpan);
                     
                     const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.backgroundText.length - 1;
@@ -2722,20 +2710,24 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 if (wordEl) {
                     if (isPassed || currentProgressMs >= syl.endtime) {
                         wordEl.style.setProperty('--word-progress', '100%');
-                        wordEl.style.setProperty('--word-progress-raw', '1');
                         wordEl.classList.add('passed');
                         wordEl.classList.remove('current');
                     } else if (currentProgressMs < syl.timestamp) {
                         wordEl.style.setProperty('--word-progress', '0%');
-                        wordEl.style.setProperty('--word-progress-raw', '0');
                         wordEl.classList.remove('passed', 'current');
                     } else {
+
                         const duration = syl.endtime - syl.timestamp;
                         const elapsed = currentProgressMs - syl.timestamp;
-                        const rawProgress = duration > 0 ? (elapsed / duration) : 0;
-                        const progress = rawProgress * 100;
+                        const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
                         wordEl.style.setProperty('--word-progress', `${progress}%`);
-                        wordEl.style.setProperty('--word-progress-raw', rawProgress);
+                        if (line.isWordSynced) {
+                            const pct = duration > 0 ? (elapsed / duration) : 0;
+                            const wave = Math.sin(pct * Math.PI);
+                            wordEl.style.setProperty('--wave-progress', wave);
+                        } else {
+                            wordEl.style.setProperty('--wave-progress', 0);
+                        }
                         wordEl.classList.add('current');
                         wordEl.classList.remove('passed');
                     }
@@ -2748,20 +2740,23 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     if (wordEl) {
                         if (isPassed || currentProgressMs >= syl.endtime) {
                             wordEl.style.setProperty('--word-progress', '100%');
-                            wordEl.style.setProperty('--word-progress-raw', '1');
                             wordEl.classList.add('passed');
                             wordEl.classList.remove('current');
                         } else if (currentProgressMs < syl.timestamp) {
                             wordEl.style.setProperty('--word-progress', '0%');
-                            wordEl.style.setProperty('--word-progress-raw', '0');
                             wordEl.classList.remove('passed', 'current');
                         } else {
                             const duration = syl.endtime - syl.timestamp;
                             const elapsed = currentProgressMs - syl.timestamp;
-                            const rawProgress = duration > 0 ? (elapsed / duration) : 0;
-                            const progress = rawProgress * 100;
+                            const progress = duration > 0 ? (elapsed / duration) * 100 : 0;
                             wordEl.style.setProperty('--word-progress', `${progress}%`);
-                            wordEl.style.setProperty('--word-progress-raw', rawProgress);
+                            if (line.isWordSynced) {
+                                const pct = duration > 0 ? (elapsed / duration) : 0;
+                                const wave = Math.sin(pct * Math.PI);
+                                wordEl.style.setProperty('--wave-progress', wave);
+                            } else {
+                                wordEl.style.setProperty('--wave-progress', 0);
+                            }
                             wordEl.classList.add('current');
                             wordEl.classList.remove('passed');
                         }
@@ -2816,7 +2811,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const wordEl = document.getElementById(`word-${line.id}-${idx}`);
                 if (wordEl) {
                     wordEl.style.removeProperty('--word-progress');
-                    wordEl.style.removeProperty('--word-progress-raw');
                     wordEl.classList.remove('passed', 'current');
                 }
             });
@@ -2826,7 +2820,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     const wordEl = document.getElementById(`bgword-${line.id}-${idx}`);
                     if (wordEl) {
                         wordEl.style.removeProperty('--word-progress');
-                        wordEl.style.removeProperty('--word-progress-raw');
                         wordEl.classList.remove('passed', 'current');
                     }
                 });
