@@ -2054,6 +2054,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
 
+        this.isExplicit = !!state.explicit;
+        
         if (this.explicitIconHeader && this.footerExplicit) {
             if (state.explicit) {
                 this.explicitIconHeader.classList.remove('hidden');
@@ -2630,6 +2632,18 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     <span class="font-medium">${this.currentTrackArtists || 'Desconhecido'}</span>
                 `;
                 creditsBlock.appendChild(artistInfo);
+            }
+
+            if (this.isExplicit) {
+                const explicitInfo = document.createElement('div');
+                explicitInfo.className = 'flex items-center bg-white/5 border border-white/10 rounded-full pl-1.5 pr-4 py-1.5 text-sm text-white/80';
+                explicitInfo.innerHTML = `
+                    <div class="w-5 h-5 rounded-[3px] bg-white/20 flex items-center justify-center text-white text-[11px] font-bold">
+                        E
+                    </div>
+                    <span class="font-medium uppercase tracking-wider text-[11px] ml-2 mt-[1px]">Explícita</span>
+                `;
+                creditsBlock.appendChild(explicitInfo);
             }
 
             const providerText = this.lyricsData?.source || 'Desconhecida';
