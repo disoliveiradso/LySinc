@@ -813,6 +813,8 @@ class LySincApp {
 
         const wrapText = (ctx, text, maxWidth) => {
             const words = text.split(' ');
+            if (words.length <= 1) return [text];
+            
             let lines = [];
             let currentLine = words[0];
 
@@ -827,6 +829,22 @@ class LySincApp {
                 }
             }
             lines.push(currentLine);
+            
+            // Prevent typographic orphans (single word on the last line)
+            if (lines.length > 1) {
+                const lastLine = lines[lines.length - 1];
+                const lastLineWords = lastLine.trim().split(/\s+/);
+                if (lastLineWords.length === 1) {
+                    const prevLine = lines[lines.length - 2];
+                    const prevLineWords = prevLine.trim().split(/\s+/);
+                    if (prevLineWords.length > 1) {
+                        const lastWordOfPrev = prevLineWords.pop();
+                        lines[lines.length - 2] = prevLineWords.join(' ');
+                        lines[lines.length - 1] = lastWordOfPrev + ' ' + lastLine;
+                    }
+                }
+            }
+            
             return lines;
         };        const getLineText = (line, mode) => {
             if (!line) return '';
@@ -895,10 +913,17 @@ class LySincApp {
                 const activeSpacing = Math.round(60 * scale);
                 
                 if (this.lyrics && this.lyrics.length > 0) {
-                    let activeIndex = this.lyrics.findIndex(l => l.id === this.activeLineId);
-                    if (activeIndex === -1) {
-                        const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-                        const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
+                    const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                    const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
+
+                    // Support multiple active lines (duets, overlapping vocals, backing vocals)
+                    const activeLines = this.lyrics.filter(line => smoothProgress >= line.timestamp && smoothProgress < line.endtime);
+                    const activeLineIndices = new Set(activeLines.map(line => this.lyrics.indexOf(line)));
+
+                    let activeIndex = -1;
+                    if (activeLines.length > 0) {
+                        activeIndex = this.lyrics.indexOf(activeLines[0]);
+                    } else {
                         activeIndex = this.lyrics.findIndex(l => l.timestamp > smoothProgress);
                     }
                     
@@ -925,13 +950,19 @@ class LySincApp {
                         const baseIndex = Math.floor(this.pipActiveIndexSmooth);
                         const centerY = pipCanvas.height / 2;
                         
-                        // Pre-calculate wrapped lines and active-scale heights for nearby lines
+                        // Pre-calculate wrapped lines and active-scale heights for nearby lines (with layout caching to prevent stutters)
                         const linesToDraw = [];
                         const getWrapped = (lyric) => {
                             if (!lyric) return [];
+                            const cacheKey = `${mode}_${maxWidth}_${activeFontSize}`;
+                            if (lyric._wrapCache && lyric._wrapCache.key === cacheKey) {
+                                return lyric._wrapCache.lines;
+                            }
                             const text = getLineText(lyric, mode);
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
-                            return wrapText(pipCtx, text, maxWidth);
+                            const lines = wrapText(pipCtx, text, maxWidth);
+                            lyric._wrapCache = { key: cacheKey, lines: lines };
+                            return lines;
                         };
 
                         for (let i = baseIndex - 3; i <= baseIndex + 3; i++) {
@@ -946,13 +977,34 @@ class LySincApp {
                                 let bgOpacity = 0;
                                 
                                 if (lyric.background && lyric.backgroundText && lyric.backgroundText.length > 0) {
-                                    const bgText = getBgText(lyric);
-                                    pipCtx.font = `italic bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
-                                    bgWrapped = wrapText(pipCtx, bgText, maxWidth);
+                                    const bgCacheKey = `bg_${mode}_${maxWidth}_${activeFontSize}`;
+                                    if (lyric._bgWrapCache && lyric._bgWrapCache.key === bgCacheKey) {
+                                        bgWrapped = lyric._bgWrapCache.lines;
+                                    } else {
+                                        const bgText = getBgText(lyric);
+                                        pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
+                                        bgWrapped = wrapText(pipCtx, bgText, maxWidth);
+                                        lyric._bgWrapCache = { key: bgCacheKey, lines: bgWrapped };
+                                    }
                                     
                                     const bgFullHeight = bgWrapped.length * (activeLineHeight * 0.65) + activeSpacing * 0.25;
-                                    const distance = Math.abs(i - this.pipActiveIndexSmooth);
-                                    const bgFactor = Math.max(0, 1.0 - distance); // expands as it gets active
+                                    
+                                    // Background vocals should ONLY appear when their exact time window is active
+                                    let bgFactor = 0;
+                                    if (i === activeIndex) {
+                                        const bgStart = lyric.backgroundText[0].timestamp;
+                                        const bgEnd = lyric.backgroundText[lyric.backgroundText.length - 1].endtime;
+                                        if (smoothProgress >= bgStart && smoothProgress <= bgEnd) {
+                                            const fadeDur = Math.min(300, (bgEnd - bgStart) / 2);
+                                            if (smoothProgress < bgStart + fadeDur) {
+                                                bgFactor = (smoothProgress - bgStart) / fadeDur;
+                                            } else if (smoothProgress > bgEnd - fadeDur) {
+                                                bgFactor = (bgEnd - smoothProgress) / fadeDur;
+                                            } else {
+                                                bgFactor = 1.0;
+                                            }
+                                        }
+                                    }
                                     
                                     bgHeight = bgFullHeight * bgFactor;
                                     bgOpacity = bgFactor;
@@ -971,7 +1023,7 @@ class LySincApp {
                             }
                         }
 
-                        // Calculate stackY positions in virtual stack
+                        // Calculate Y positions relative to each other in a virtual stack
                         if (linesToDraw.length > 0) {
                             linesToDraw[0].stackY = 0;
                             for (let j = 1; j < linesToDraw.length; j++) {
@@ -1001,9 +1053,10 @@ class LySincApp {
                             return 0;
                         };
 
-                        const scrollY = getInterpolatedStackY(this.pipActiveIndexSmooth);
-                        const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-                        const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
+                        // Clamp scrollY so that the first lyric line starts near the top of the canvas, preventing the initial huge empty gap
+                        const rawScrollY = getInterpolatedStackY(this.pipActiveIndexSmooth);
+                        const minScrollY = centerY - activeLineHeight * 1.5;
+                        const scrollY = Math.max(minScrollY, rawScrollY);
 
                         // Draw each line in range
                         linesToDraw.forEach(item => {
@@ -1033,7 +1086,7 @@ class LySincApp {
                             }
                             pipCtx.textBaseline = 'middle';
                             
-                            const isItemActive = (item.index === activeIndex);
+                            const isItemActive = activeLineIndices.has(item.index);
                             const mainHeight = item.mainHeight;
                             const bgHeight = item.bgHeight;
                             
@@ -1126,10 +1179,10 @@ class LySincApp {
                                 });
                             }
                             
-                            // Draw background vocals (backing vocals) if present
-                            if (item.bgWrapped.length > 0) {
+                            // Draw background vocals (backing vocals) if present (in regular style, not italic, animated on timeline)
+                            if (item.bgWrapped.length > 0 && item.bgHeight > 0) {
                                 let bgStartY = mainHeight / 2 + (activeLineHeight * 0.65 / 2);
-                                pipCtx.font = `italic bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
+                                pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
                                 
                                 if (isItemActive) {
                                     // Word-synced background vocal check
@@ -1235,13 +1288,13 @@ class LySincApp {
                     pipCtx.fillText('Carregando letras...', pipCanvas.width / 2, pipCanvas.height / 2);
                 }
                 
-                // Draw large resize handle in bottom-left corner
+                // Draw single large L resize handle in bottom-left corner
                 pipCtx.save();
                 pipCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                pipCtx.lineWidth = Math.round(6 * scale);
+                pipCtx.lineWidth = Math.round(8 * scale); // thicker line
                 pipCtx.lineCap = 'round';
                 
-                const handleSize = Math.round(50 * scale);
+                const handleSize = Math.round(75 * scale); // larger size
                 const pad = Math.round(30 * scale);
                 const blX = pad;
                 const blY = pipCanvas.height - pad;
@@ -1251,14 +1304,6 @@ class LySincApp {
                 pipCtx.moveTo(blX, blY - handleSize);
                 pipCtx.lineTo(blX, blY);
                 pipCtx.lineTo(blX + handleSize, blY);
-                pipCtx.stroke();
-                
-                // Inner parallel angle
-                const offset = Math.round(12 * scale);
-                pipCtx.beginPath();
-                pipCtx.moveTo(blX + offset, blY - handleSize + offset);
-                pipCtx.lineTo(blX + offset, blY - offset);
-                pipCtx.lineTo(blX + handleSize - offset, blY - offset);
                 pipCtx.stroke();
                 
                 pipCtx.restore();
