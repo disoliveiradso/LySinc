@@ -353,7 +353,7 @@ body, html {
 
 .lyric-word {
     display: inline-block;
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .lyric-word:has(.lyrics-syllable.current) {
     transform: translateX(4px);
