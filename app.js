@@ -968,7 +968,7 @@ class LySincApp {
         let pipIntervalId = null;
         let silentAudio = null;
 
-        const renderPipCanvas = () => {=> {
+        const renderPipCanvas = () => {
             if (!pipCanvas || !pipCtx) return;
             
             try {
