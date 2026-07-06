@@ -809,6 +809,7 @@ class LySincApp {
         let pipCtx = null;
         let pipAnimationId = null;
         let pipIntervalId = null;
+        let silentAudio = null;
 
         const wrapText = (ctx, text, maxWidth) => {
             const words = text.split(' ');
@@ -827,9 +828,7 @@ class LySincApp {
             }
             lines.push(currentLine);
             return lines;
-        };
-
-        const getLineText = (line, mode) => {
+        };        const getLineText = (line, mode) => {
             if (!line) return '';
             if (mode === 'translation' && line.translation) return line.translation;
             if (mode === 'romanized' && line.romanizedText) return line.romanizedText;
@@ -837,6 +836,14 @@ class LySincApp {
                 return line.text.map(s => s.text).join('').trim();
             }
             return (line.text || '') + '';
+        };
+
+        const getBgText = (line) => {
+            if (!line) return '';
+            if (Array.isArray(line.backgroundText)) {
+                return line.backgroundText.map(s => s.text).join('').trim();
+            }
+            return (line.backgroundText || '') + '';
         };
 
         const groupSyllablesByLines = (syllables, wrappedStrings) => {
@@ -881,7 +888,8 @@ class LySincApp {
                 pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
                 
                 const scale = pipCanvas.width / 1080;
-                const maxWidth = pipCanvas.width * 0.95;
+                // Wider margin space (88% width, 6% each side)
+                const maxWidth = pipCanvas.width * 0.88;
                 const activeFontSize = Math.round(110 * scale);
                 const activeLineHeight = Math.round(140 * scale);
                 const activeSpacing = Math.round(60 * scale);
@@ -930,17 +938,40 @@ class LySincApp {
                             if (i >= 0 && i < this.lyrics.length) {
                                 const lyric = this.lyrics[i];
                                 const wrapped = getWrapped(lyric);
-                                const height = wrapped.length * activeLineHeight;
+                                const mainHeight = wrapped.length * activeLineHeight;
+                                
+                                // Calculate background vocals (backing vocals) height and layout info
+                                let bgWrapped = [];
+                                let bgHeight = 0;
+                                let bgOpacity = 0;
+                                
+                                if (lyric.background && lyric.backgroundText && lyric.backgroundText.length > 0) {
+                                    const bgText = getBgText(lyric);
+                                    pipCtx.font = `italic bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
+                                    bgWrapped = wrapText(pipCtx, bgText, maxWidth);
+                                    
+                                    const bgFullHeight = bgWrapped.length * (activeLineHeight * 0.65) + activeSpacing * 0.25;
+                                    const distance = Math.abs(i - this.pipActiveIndexSmooth);
+                                    const bgFactor = Math.max(0, 1.0 - distance); // expands as it gets active
+                                    
+                                    bgHeight = bgFullHeight * bgFactor;
+                                    bgOpacity = bgFactor;
+                                }
+                                
                                 linesToDraw.push({
                                     index: i,
                                     lyric: lyric,
                                     wrapped: wrapped,
-                                    height: height
+                                    height: mainHeight + bgHeight,
+                                    mainHeight: mainHeight,
+                                    bgWrapped: bgWrapped,
+                                    bgHeight: bgHeight,
+                                    bgOpacity: bgOpacity
                                 });
                             }
                         }
 
-                        // Calculate Y positions relative to each other in a virtual stack
+                        // Calculate stackY positions in virtual stack
                         if (linesToDraw.length > 0) {
                             linesToDraw[0].stackY = 0;
                             for (let j = 1; j < linesToDraw.length; j++) {
@@ -980,7 +1011,6 @@ class LySincApp {
                             const s = Math.max(0.45, 1.0 - distance * 0.25);
                             const op = Math.max(0.15, 1.0 - distance * 0.30);
                             
-                            // NO optical blur filter on background lines, just opacity
                             pipCtx.save();
                             pipCtx.globalAlpha = op;
                             
@@ -990,7 +1020,8 @@ class LySincApp {
                             
                             // Align LEFT by default, align RIGHT only for opposite voice turn / end alignment
                             const alignRight = item.lyric.oppositeTurn || item.lyric.alignment === 'end';
-                            const halfWidth = (pipCanvas.width * 0.475) / s;
+                            // 88% width means half-width is 44%
+                            const halfWidth = (pipCanvas.width * 0.44) / s;
                             
                             let startX;
                             if (alignRight) {
@@ -1001,31 +1032,28 @@ class LySincApp {
                                 startX = -halfWidth;
                             }
                             pipCtx.textBaseline = 'middle';
-                            pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
                             
                             const isItemActive = (item.index === activeIndex);
+                            const mainHeight = item.mainHeight;
+                            const bgHeight = item.bgHeight;
+                            
+                            // Main Vocal start Y centered relative to the combined block
+                            let startY = -bgHeight / 2 - (mainHeight / 2) + (activeLineHeight / 2);
+                            
+                            pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
                             
                             if (isItemActive) {
-                                // Realize active line (word-synced or line-synced)
+                                // Draw active main lyrics (word-synced or line-synced)
                                 if (item.lyric.isWordSynced && Array.isArray(item.lyric.text) && mode === 'original') {
                                     const syllables = item.lyric.text;
                                     const wrappedStrings = item.wrapped;
                                     const wrappedSyllableLines = groupSyllablesByLines(syllables, wrappedStrings);
                                     
-                                    let startY = -(wrappedStrings.length * activeLineHeight) / 2 + (activeLineHeight / 2);
-                                    
                                     wrappedStrings.forEach((lineStr, r) => {
                                         const lineSyls = wrappedSyllableLines[r] || [];
                                         const totalLineWidth = pipCtx.measureText(lineStr).width;
                                         
-                                        // 1. Draw entire line string in inactive translucent gray (Pass 1)
-                                        pipCtx.save();
-                                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                                        pipCtx.shadowBlur = 0;
-                                        pipCtx.fillText(lineStr, startX, startY);
-                                        pipCtx.restore();
-                                        
-                                        // 2. Measure completed syllable width
+                                        // 1. Measure completed syllable progress width
                                         let completedW = 0;
                                         let sumSyllablesWidth = 0;
                                         
@@ -1044,52 +1072,150 @@ class LySincApp {
                                             completedW = completedW * (totalLineWidth / sumSyllablesWidth);
                                         }
                                         
-                                        // 3. Draw white active text with drop shadow glow, clipped to completedW (Pass 2)
-                                        if (completedW > 0) {
-                                            pipCtx.save();
-                                            pipCtx.beginPath();
-                                            let clipStartX;
-                                            if (alignRight) {
-                                                clipStartX = startX - totalLineWidth;
-                                            } else {
-                                                clipStartX = startX;
-                                            }
-                                            pipCtx.rect(clipStartX - 50 * scale, startY - 100 * scale, completedW + 50 * scale, 200 * scale);
-                                            pipCtx.clip();
-                                            
-                                            pipCtx.fillStyle = '#ffffff';
-                                            pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
-                                            pipCtx.shadowBlur = 18 * scale;
-                                            pipCtx.fillText(lineStr, startX, startY);
-                                            pipCtx.restore();
-                                        }
+                                        // 2. Draw using Linear Gradient for soft feathered color transition
+                                        const grad = pipCtx.createLinearGradient(
+                                            alignRight ? startX - totalLineWidth : startX,
+                                            0,
+                                            alignRight ? startX : startX + totalLineWidth,
+                                            0
+                                        );
+                                        grad.addColorStop(0, '#ffffff');
+                                        
+                                        // 15% soft transition zone (feathered highlight edge)
+                                        const transitionStart = Math.max(0, (completedW - 15 * scale) / totalLineWidth);
+                                        const transitionEnd = Math.min(1, completedW / totalLineWidth);
+                                        grad.addColorStop(transitionStart, '#ffffff');
+                                        grad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.4)');
+                                        grad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                                        
+                                        pipCtx.save();
+                                        pipCtx.fillStyle = grad;
+                                        // Bright, centered glowing shadow on active text
+                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
+                                        pipCtx.shadowBlur = 24 * scale;
+                                        pipCtx.shadowOffsetX = 0;
+                                        pipCtx.shadowOffsetY = 0;
+                                        
+                                        pipCtx.fillText(lineStr, startX, startY);
+                                        pipCtx.restore();
                                         
                                         startY += activeLineHeight;
                                     });
                                 } else {
-                                    // Line-synced active line: entire line string lights up white with glow (Pass 2)
-                                    let startY = -(item.wrapped.length * activeLineHeight) / 2 + (activeLineHeight / 2);
+                                    // Line-synced active main lyrics: full bright glow
                                     item.wrapped.forEach(lineStr => {
                                         pipCtx.save();
                                         pipCtx.fillStyle = '#ffffff';
-                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
-                                        pipCtx.shadowBlur = 18 * scale;
+                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
+                                        pipCtx.shadowBlur = 24 * scale;
+                                        pipCtx.shadowOffsetX = 0;
+                                        pipCtx.shadowOffsetY = 0;
                                         pipCtx.fillText(lineStr, startX, startY);
                                         pipCtx.restore();
                                         startY += activeLineHeight;
                                     });
                                 }
                             } else {
-                                // Draw static non-active line (Pass 1) in translucent gray, no glow shadow
+                                // Draw static non-active main lyrics (translucent gray, no glow)
                                 pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                                 pipCtx.shadowBlur = 0;
                                 
-                                let startY = -(item.wrapped.length * activeLineHeight) / 2 + (activeLineHeight / 2);
                                 item.wrapped.forEach(lineStr => {
                                     pipCtx.fillText(lineStr, startX, startY);
                                     startY += activeLineHeight;
                                 });
                             }
+                            
+                            // Draw background vocals (backing vocals) if present
+                            if (item.bgWrapped.length > 0) {
+                                let bgStartY = mainHeight / 2 + (activeLineHeight * 0.65 / 2);
+                                pipCtx.font = `italic bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
+                                
+                                if (isItemActive) {
+                                    // Word-synced background vocal check
+                                    if (item.lyric.backgroundText && Array.isArray(item.lyric.backgroundText) && mode === 'original') {
+                                        const bgSyllables = item.lyric.backgroundText;
+                                        const wrappedBgSyllableLines = groupSyllablesByLines(bgSyllables, item.bgWrapped);
+                                        
+                                        item.bgWrapped.forEach((bgLineStr, r) => {
+                                            const bgLineSyls = wrappedBgSyllableLines[r] || [];
+                                            const totalBgLineWidth = pipCtx.measureText(bgLineStr).width;
+                                            
+                                            // Measure completed bg progress
+                                            let completedBgW = 0;
+                                            let sumBgSyllablesWidth = 0;
+                                            
+                                            bgLineSyls.forEach(syl => {
+                                                const sylWidth = pipCtx.measureText(syl.text).width;
+                                                sumBgSyllablesWidth += sylWidth;
+                                                if (smoothProgress >= syl.endtime) {
+                                                    completedBgW += sylWidth;
+                                                } else if (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime) {
+                                                    const pct = (smoothProgress - syl.timestamp) / (syl.endtime - syl.timestamp);
+                                                    completedBgW += sylWidth * pct;
+                                                }
+                                            });
+                                            
+                                            if (sumBgSyllablesWidth > 0) {
+                                                completedBgW = completedBgW * (totalBgLineWidth / sumBgSyllablesWidth);
+                                            }
+                                            
+                                            // Linear gradient for background vocals highlight
+                                            const bgGrad = pipCtx.createLinearGradient(
+                                                alignRight ? startX - totalBgLineWidth : startX,
+                                                0,
+                                                alignRight ? startX : startX + totalBgLineWidth,
+                                                0
+                                            );
+                                            bgGrad.addColorStop(0, '#ffffff');
+                                            const transitionStart = Math.max(0, (completedBgW - 15 * scale) / totalBgLineWidth);
+                                            const transitionEnd = Math.min(1, completedBgW / totalBgLineWidth);
+                                            bgGrad.addColorStop(transitionStart, '#ffffff');
+                                            bgGrad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.4)');
+                                            bgGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                                            
+                                            pipCtx.save();
+                                            pipCtx.globalAlpha = op * item.bgOpacity;
+                                            pipCtx.fillStyle = bgGrad;
+                                            pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+                                            pipCtx.shadowBlur = 14 * scale;
+                                            pipCtx.shadowOffsetX = 0;
+                                            pipCtx.shadowOffsetY = 0;
+                                            pipCtx.fillText(bgLineStr, startX, bgStartY);
+                                            pipCtx.restore();
+                                            
+                                            bgStartY += activeLineHeight * 0.65;
+                                        });
+                                    } else {
+                                        // Line-synced background vocal
+                                        item.bgWrapped.forEach(bgLineStr => {
+                                            pipCtx.save();
+                                            pipCtx.globalAlpha = op * item.bgOpacity;
+                                            pipCtx.fillStyle = '#ffffff';
+                                            pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+                                            pipCtx.shadowBlur = 14 * scale;
+                                            pipCtx.shadowOffsetX = 0;
+                                            pipCtx.shadowOffsetY = 0;
+                                            pipCtx.fillText(bgLineStr, startX, bgStartY);
+                                            pipCtx.restore();
+                                            bgStartY += activeLineHeight * 0.65;
+                                        });
+                                    }
+                                } else {
+                                    // Static translucent background vocal
+                                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                                    pipCtx.shadowBlur = 0;
+                                    
+                                    item.bgWrapped.forEach(bgLineStr => {
+                                        pipCtx.save();
+                                        pipCtx.globalAlpha = op * item.bgOpacity;
+                                        pipCtx.fillText(bgLineStr, startX, bgStartY);
+                                        pipCtx.restore();
+                                        bgStartY += activeLineHeight * 0.65;
+                                    });
+                                }
+                            }
+                            
                             pipCtx.restore();
                         });
                     } else {
@@ -1152,6 +1278,13 @@ class LySincApp {
 
             const startLoop = () => {
                 stopLoop();
+                if (!silentAudio) {
+                    silentAudio = document.createElement('audio');
+                    silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAD';
+                    silentAudio.loop = true;
+                }
+                silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
+
                 if (document.visibilityState === 'visible') {
                     const tick = () => {
                         if (!pipAnimationId) return;
@@ -1160,7 +1293,8 @@ class LySincApp {
                     };
                     pipAnimationId = requestAnimationFrame(tick);
                 } else {
-                    pipIntervalId = setInterval(renderPipCanvas, 250); // 4 FPS in background
+                    // Full 30 FPS in background (prevented from throttling by silent audio)
+                    pipIntervalId = setInterval(renderPipCanvas, 1000 / 30);
                 }
             };
 
@@ -1172,6 +1306,9 @@ class LySincApp {
                 if (pipIntervalId) {
                     clearInterval(pipIntervalId);
                     pipIntervalId = null;
+                }
+                if (silentAudio) {
+                    silentAudio.pause();
                 }
             };
 
