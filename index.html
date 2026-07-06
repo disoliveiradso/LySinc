@@ -254,6 +254,9 @@
                         class="menu-drawer closed max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 md:relative md:mr-3 flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:h-10 max-md:py-3 max-md:space-y-3 md:space-x-2 max-md:px-4 md:pl-2 md:pr-4 min-w-0 origin-left">
                         
                         <div class="flex items-center gap-1 max-md:justify-center">
+                            <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" /></svg>
+                            </button>
                             <button id="btn-floating-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
                                 <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                                 <svg id="icon-floating-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
@@ -272,7 +275,6 @@
                         <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1 md:mx-1"></div>
 
                         <div class="flex items-center gap-1 max-md:justify-center">
-                            <button id="btn-floating-restart" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Reiniciar Música"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" /></svg></button>
                             <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
                             <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
@@ -463,7 +465,7 @@
     </div>
 
     
-    <script type="module" src="app.js?v=1.0.7"></script>
+    <script type="module" src="app.js?v=1.0.8"></script>
     <script>
         // Preenche dinamicamente a URI atual no tutorial de configuração
         document.addEventListener('DOMContentLoaded', () => {

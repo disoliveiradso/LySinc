@@ -156,7 +156,6 @@ class LySincApp {
         this.floatingMenuContent = document.getElementById('floating-menu-content');
         this.floatingToggleIconMobile = document.getElementById('icon-floating-toggle-mobile');
         this.floatingToggleIconDesktop = document.getElementById('icon-floating-toggle-desktop');
-        this.btnFloatingRestart = document.getElementById('btn-floating-restart');
 
         this.btnPipTop = document.getElementById('btn-pip-top');
         this.btnFloatingPip = document.getElementById('btn-floating-pip');
@@ -794,20 +793,11 @@ class LySincApp {
         };
 
         setupMediaEvent(this.btnTopPrev, 'prev');
+        setupMediaEvent(this.btnFloatingPrev, 'prev');
         setupMediaEvent(this.btnTopNext, 'next');
         setupMediaEvent(this.btnFloatingNext, 'next');
         setupMediaEvent(this.btnTopPlayPause, 'playpause');
         setupMediaEvent(this.btnFloatingPlayPause, 'playpause');
-
-        if (this.btnFloatingRestart) {
-            this.btnFloatingRestart.addEventListener('click', async () => {
-                if (this.isPlaying || this.progressMs > 0) {
-                    this.seekToTime(0);
-
-                    setTimeout(() => this.pollPlayerState(), 200);
-                }
-            });
-        }
 
         // Light Mode Handler
         if (this.btnLightMode) {
