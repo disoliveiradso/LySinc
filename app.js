@@ -1478,10 +1478,10 @@ class LySincApp {
                 // Draw single large L resize handle in bottom-left corner
                 pipCtx.save();
                 pipCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                pipCtx.lineWidth = Math.round(8 * scale); // thicker line
+                pipCtx.lineWidth = Math.round(10 * scale); // slightly thicker
                 pipCtx.lineCap = 'round';
                 
-                const handleSize = Math.round(75 * scale); // larger size
+                const handleSize = Math.round(48 * scale); // smaller size
                 const pad = Math.round(30 * scale);
                 const blX = pad;
                 const blY = pipCanvas.height - pad;
@@ -1547,9 +1547,9 @@ class LySincApp {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
                 
-                // 1:1 square canvas — reduces the PiP window height on mobile devices
+                // 4:3 canvas ratio — produces a shorter, more compact PiP window on mobile
                 const pipW = 1080;
-                const pipH = 1080;
+                const pipH = 720;
                 
                 pipCanvas.width = pipW;
                 pipCanvas.height = pipH;
@@ -1575,7 +1575,7 @@ class LySincApp {
                 // Adapts initial PiP window size based on screen size (small on phone, larger on tablet)
                 const screenWidth = window.screen.width || window.innerWidth;
                 const videoW = Math.round(screenWidth * 0.32);
-                const videoH = Math.round(videoW * (pipH / pipW)); // 1:1 = same width and height
+                const videoH = Math.round(videoW * (pipH / pipW)); // 4:3 portrait (shorter)
                 
                 pipVideo.style.width = videoW + 'px';
                 pipVideo.style.height = videoH + 'px';
