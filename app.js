@@ -955,7 +955,8 @@ class LySincApp {
                         const linesToDraw = [];
                         const getWrapped = (lyric) => {
                             if (!lyric) return [];
-                            const cacheKey = `${mode}_${maxWidth}_${activeFontSize}`;
+                            // We ALWAYS wrap the original lyrics as the main line in PiP, regardless of currentLyricsMode
+                            const cacheKey = `original_${maxWidth}_${activeFontSize}`;
                             if (lyric._wrapCache && lyric._wrapCache.key === cacheKey) {
                                 return lyric._wrapCache.lines;
                             }
@@ -963,7 +964,7 @@ class LySincApp {
                             let lines = [];
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
                             
-                            if (mode === 'original' && Array.isArray(lyric.text) && lyric.isWordSynced) {
+                            if (Array.isArray(lyric.text) && lyric.isWordSynced) {
                                 // Syllable-by-syllable wrapping for word-synced original lyrics (syllabic break system)
                                 let currentLine = '';
                                 for (let i = 0; i < lyric.text.length; i++) {
@@ -982,8 +983,7 @@ class LySincApp {
                                 }
                                 lines = lines.map(l => l.trim());
                             } else {
-                                // Word-by-word wrapping for translation, romanized, or line-synced lyrics
-                                const text = getLineText(lyric, mode);
+                                const text = getLineText(lyric, 'original');
                                 lines = wrapText(pipCtx, text, maxWidth);
                             }
                             
@@ -991,19 +991,37 @@ class LySincApp {
                             return lines;
                         };
 
+                        const hasSubTextMode = (mode === 'translation' || mode === 'romanized');
+
                         for (let i = baseIndex - 3; i <= baseIndex + 3; i++) {
                             if (i >= 0 && i < this.lyrics.length) {
                                 const lyric = this.lyrics[i];
                                 const wrapped = getWrapped(lyric);
                                 const mainHeight = wrapped.length * activeLineHeight;
                                 
-                                // Calculate background vocals (backing vocals) height and layout info
+                                // Calculate background vocals (backing vocals) or translation/romanized subtitle height and layout info
                                 let bgWrapped = [];
                                 let bgHeight = 0;
                                 let bgOpacity = 0;
                                 
-                                if (lyric.background && lyric.backgroundText && lyric.backgroundText.length > 0) {
-                                    const bgCacheKey = `bg_${mode}_${maxWidth}_${activeFontSize}`;
+                                const hasSubText = (mode === 'translation' && lyric.translation) || (mode === 'romanized' && lyric.romanizedText);
+                                if (hasSubText) {
+                                    const subText = mode === 'translation' ? lyric.translation : lyric.romanizedText;
+                                    const bgCacheKey = `sub_${mode}_${maxWidth}_${activeFontSize}`;
+                                    if (lyric._subWrapCache && lyric._subWrapCache.key === bgCacheKey) {
+                                        bgWrapped = lyric._subWrapCache.lines;
+                                    } else {
+                                        pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
+                                        bgWrapped = wrapText(pipCtx, subText, maxWidth);
+                                        lyric._subWrapCache = { key: bgCacheKey, lines: bgWrapped };
+                                    }
+                                    
+                                    const bgFullHeight = bgWrapped.length * (activeLineHeight * 0.65) + activeSpacing * 0.25;
+                                    bgHeight = bgFullHeight;
+                                    bgOpacity = 1.0; 
+                                } else if (lyric.background && lyric.backgroundText && lyric.backgroundText.length > 0) {
+                                    // Fallback to background vocals if no translation/romanized subtitle is active
+                                    const bgCacheKey = `bg_original_${maxWidth}_${activeFontSize}`;
                                     if (lyric._bgWrapCache && lyric._bgWrapCache.key === bgCacheKey) {
                                         bgWrapped = lyric._bgWrapCache.lines;
                                     } else {
@@ -1044,7 +1062,8 @@ class LySincApp {
                                     mainHeight: mainHeight,
                                     bgWrapped: bgWrapped,
                                     bgHeight: bgHeight,
-                                    bgOpacity: bgOpacity
+                                    bgOpacity: bgOpacity,
+                                    hasSubText: hasSubText
                                 });
                             }
                         }
@@ -1079,15 +1098,28 @@ class LySincApp {
                             return 0;
                         };
 
-                        // Clamp scrollY so that the first lyric line starts near the top of the canvas, preventing the initial huge empty gap
+                        // Clamp scrollY so that the first lyric line starts near the top of the canvas, and the last line (Fim) doesn't leave empty gap below
                         const rawScrollY = getInterpolatedStackY(this.pipActiveIndexSmooth);
                         const minScrollY = centerY - activeLineHeight * 1.5;
-                        const scrollY = Math.max(minScrollY, rawScrollY);
+                        const lastItem = linesToDraw[linesToDraw.length - 1];
+                        const maxScrollY = lastItem ? (lastItem.stackY - centerY + activeLineHeight * 1.5) : rawScrollY;
+                        const scrollY = Math.max(minScrollY, Math.min(maxScrollY, rawScrollY));
 
                         // Draw each line in range
                         linesToDraw.forEach(item => {
                             const distance = Math.abs(item.index - this.pipActiveIndexSmooth);
-                            const s = Math.max(0.45, 1.0 - distance * 0.25);
+                            const isItemActive = activeLineIndices.has(item.index);
+                            
+                            // Smoothly animate scale down transition when active lines end
+                            const targetScaleMult = isItemActive ? 1.0 : 0.72;
+                            if (item.lyric._scaleMult === undefined) {
+                                item.lyric._scaleMult = targetScaleMult;
+                            } else {
+                                const lerpVal = 1 - Math.exp(-10 * clampedDelta);
+                                item.lyric._scaleMult += (targetScaleMult - item.lyric._scaleMult) * lerpVal;
+                            }
+                            
+                            const s = Math.max(0.45, 1.0 - distance * 0.25) * item.lyric._scaleMult;
                             const op = Math.max(0.15, 1.0 - distance * 0.30);
                             
                             pipCtx.save();
@@ -1112,7 +1144,6 @@ class LySincApp {
                             }
                             pipCtx.textBaseline = 'middle';
                             
-                            const isItemActive = activeLineIndices.has(item.index);
                             const mainHeight = item.mainHeight;
                             const bgHeight = item.bgHeight;
                             
@@ -1123,7 +1154,7 @@ class LySincApp {
                             
                             if (isItemActive) {
                                 // Draw active main lyrics (word-synced or line-synced)
-                                if (item.lyric.isWordSynced && Array.isArray(item.lyric.text) && mode === 'original') {
+                                if (item.lyric.isWordSynced && Array.isArray(item.lyric.text)) {
                                     const syllables = item.lyric.text;
                                     const wrappedStrings = item.wrapped;
                                     const wrappedSyllableLines = groupSyllablesByLines(syllables, wrappedStrings);
@@ -1154,7 +1185,7 @@ class LySincApp {
                                         // 2. Draw using Linear Gradient for soft feathered color transition
                                         let grad;
                                         const completedPct = completedW / totalLineWidth;
-                                        const isInstrumental = item.lyric.isInstrumental || (lineStr.trim() === '♪' || lineStr.trim() === 'Fim');
+                                        const isInstrumental = item.lyric.isInstrumental || lineStr.trim() === '♪';
                                         
                                         if (isInstrumental) {
                                             // Vertical gradient (to bottom / de cima para baixo) for instrumental notes
@@ -1166,7 +1197,7 @@ class LySincApp {
                                             grad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.45)');
                                             grad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
                                         } else {
-                                            // Horizontal gradient (to right) for standard lyrics
+                                            // Horizontal gradient (to right) for standard lyrics and Fim
                                             grad = pipCtx.createLinearGradient(
                                                 alignRight ? startX - totalLineWidth : startX,
                                                 0,
@@ -1227,14 +1258,24 @@ class LySincApp {
                                 });
                             }
                             
-                            // Draw background vocals (backing vocals) if present (in regular style, not italic, animated on timeline)
+                            // Draw background vocals (backing vocals) or subtitles (translation/romanized) if present
                             if (item.bgWrapped.length > 0 && item.bgHeight > 0) {
                                 let bgStartY = mainHeight / 2 + (activeLineHeight * 0.65 / 2);
                                 pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
                                 
                                 if (isItemActive) {
-                                    // Word-synced background vocal check
-                                    if (item.lyric.backgroundText && Array.isArray(item.lyric.backgroundText) && mode === 'original') {
+                                    if (item.hasSubText) {
+                                        // Draw active translation or romanization subtitle (brighter white, line-based)
+                                        item.bgWrapped.forEach(bgLineStr => {
+                                            pipCtx.save();
+                                            pipCtx.globalAlpha = op * item.bgOpacity;
+                                            pipCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                                            pipCtx.fillText(bgLineStr, startX, bgStartY);
+                                            pipCtx.restore();
+                                            bgStartY += activeLineHeight * 0.65;
+                                        });
+                                    } else if (item.lyric.backgroundText && Array.isArray(item.lyric.backgroundText)) {
+                                        // Word-synced background vocal check
                                         const bgSyllables = item.lyric.backgroundText;
                                         const wrappedBgSyllableLines = groupSyllablesByLines(bgSyllables, item.bgWrapped);
                                         
@@ -1303,7 +1344,7 @@ class LySincApp {
                                         });
                                     }
                                 } else {
-                                    // Static translucent background vocal
+                                    // Static translucent background vocal or subtitle
                                     if (item.index < activeIndex) {
                                         pipCtx.fillStyle = 'rgba(255, 255, 255, 0.25)';
                                     } else {
@@ -1411,10 +1452,17 @@ class LySincApp {
 
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
-                const pixelRatio = window.devicePixelRatio || 1;
-                const targetWidth = Math.min(window.innerWidth * pixelRatio, 1080);
-                pipCanvas.width = targetWidth;
-                pipCanvas.height = targetWidth * (1550 / 1080);
+                
+                const screenWidth = window.screen.width || window.innerWidth;
+                const screenHeight = window.screen.height || window.innerHeight;
+                
+                const pipW = 1080;
+                let pipH = Math.round(pipW * (screenHeight / screenWidth));
+                // Clamp height between 9:16 (1920) and 9:21 (2520) for standard vertical rectangles
+                pipH = Math.max(1920, Math.min(2520, pipH));
+                
+                pipCanvas.width = pipW;
+                pipCanvas.height = pipH;
                 
                 pipCanvas.style.position = 'fixed';
                 pipCanvas.style.top = '0';
@@ -1433,8 +1481,8 @@ class LySincApp {
                 pipVideo.style.position = 'fixed';
                 pipVideo.style.top = '0';
                 pipVideo.style.left = '0';
-                pipVideo.style.width = '540px';
-                pipVideo.style.height = '775px';
+                pipVideo.style.width = '360px';
+                pipVideo.style.height = Math.round(360 * (pipH / pipW)) + 'px';
                 pipVideo.style.opacity = '0.001';
                 pipVideo.style.pointerEvents = 'none';
                 pipVideo.style.zIndex = '-9999';
