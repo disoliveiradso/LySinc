@@ -160,12 +160,20 @@ body, html {
     .menu-drawer {
         transform-origin: right center;
     }
-    /* Header controls and Floating controls identically slide in from the right button */
-    #header-controls-container.menu-drawer.closed,
-    #floating-menu-content.menu-drawer.closed {
+    /* Header controls: drawer sits left of toggle, slides in from the right */
+    #header-controls-container.menu-drawer.closed {
         transform: translateX(20px) scale(0.95);
     }
-    #header-controls-container.menu-drawer.open,
+    #header-controls-container.menu-drawer.open {
+        transform: translateX(0) scale(1);
+    }
+    /* Floating controls: drawer sits right of toggle, slides in from the left */
+    #floating-menu-content {
+        transform-origin: left center;
+    }
+    #floating-menu-content.menu-drawer.closed {
+        transform: translateX(-20px) scale(0.95);
+    }
     #floating-menu-content.menu-drawer.open {
         transform: translateX(0) scale(1);
     }
@@ -363,7 +371,14 @@ body, html {
 
 .lyrics-syllable.current {
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.75));
-    transform: translateY(-2px) scale(1.05);
+    will-change: transform;
+}
+
+.lyrics-syllable.current .char {
+    display: inline-block;
+    --char-p: max(0, min(1, calc(var(--word-progress-raw, 0) * var(--char-total, 1) - var(--char-idx, 0))));
+    --wave: calc(var(--char-p) * (1 - var(--char-p)) * 4);
+    transform: translateY(calc(var(--wave) * -4px)) scale(calc(1 + var(--wave) * 0.15));
     will-change: transform;
 }
 
@@ -753,7 +768,8 @@ input:focus {
     transform: none !important;
 }
 
-.light-mode .lyrics-syllable.current {
+.light-mode .lyrics-syllable.current,
+.light-mode .lyrics-syllable.current .char {
     filter: none !important;
     transform: none !important;
 }
