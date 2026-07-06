@@ -1854,6 +1854,17 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                         this.updateLyricsSync(this.progressMs);
                     });
                     
+                    setTimeout(() => {
+                        this.isUserInteracting = false;
+                        this.lastAutoScrollTime = Date.now();
+                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                        if (btnRecenterClone) {
+                            btnRecenterClone.classList.remove('opacity-100', 'scale-100');
+                            btnRecenterClone.classList.add('opacity-0', 'scale-95');
+                        }
+                        this.updateLyricsSync(this.progressMs);
+                    }, 150);
+                    
                 } catch (error) {
                     console.error('Erro ao iniciar PiP:', error);
                     this.showToast('Erro ao abrir Picture-in-Picture.', 'error');
