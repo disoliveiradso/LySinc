@@ -1098,10 +1098,8 @@ class LySincApp {
                             return 0;
                         };
 
-                        // Clamp scrollY so that the first lyric line starts near the top of the canvas, preventing the initial huge empty gap
-                        const rawScrollY = getInterpolatedStackY(this.pipActiveIndexSmooth);
-                        const minScrollY = centerY - activeLineHeight * 1.5;
-                        const scrollY = Math.max(minScrollY, rawScrollY);
+                        // Keep scrolling center directly on the active line, allowing vertical centering at start and end
+                        const scrollY = getInterpolatedStackY(this.pipActiveIndexSmooth);
 
                         // Draw each line in range
                         linesToDraw.forEach(item => {
