@@ -109,6 +109,24 @@ const groupSyllablesByLines = (syllables, wrappedStrings) => {
     return lines;
 };
 
+const getLineText = (line, mode) => {
+    if (!line) return '';
+    if (mode === 'translation' && line.translation) return line.translation;
+    if (mode === 'romanized' && line.romanizedText) return line.romanizedText;
+    if (Array.isArray(line.text)) {
+        return line.text.map(s => s.text).join('').trim();
+    }
+    return (line.text || '') + '';
+};
+
+const getBgText = (line) => {
+    if (!line) return '';
+    if (Array.isArray(line.backgroundText)) {
+        return line.backgroundText.map(s => s.text).join('').trim();
+    }
+    return (line.backgroundText || '') + '';
+};
+
 class WakeLockManager {
     constructor() {
         this.wakeLock = null;
@@ -1030,7 +1048,7 @@ class LySincApp {
                             let lines = [];
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
                             
-                            const text = this.getLineText(lyric, 'original');
+                            const text = getLineText(lyric, 'original');
                             lines = wrapText(pipCtx, text, maxWidth);
                             
                             lyric._wrapCache = { key: cacheKey, lines: lines };
@@ -1071,7 +1089,7 @@ class LySincApp {
                                     if (lyric._bgWrapCache && lyric._bgWrapCache.key === bgCacheKey) {
                                         bgWrapped = lyric._bgWrapCache.lines;
                                     } else {
-                                        const bgText = this.getBgText(lyric);
+                                        const bgText = getBgText(lyric);
                                         pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
                                         bgWrapped = wrapText(pipCtx, bgText, maxWidth);
                                         lyric._bgWrapCache = { key: bgCacheKey, lines: bgWrapped };
@@ -2430,12 +2448,12 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 let domLines = [];
                 
                 if (Array.isArray(line.text) && line.isWordSynced) {
-                    const text = this.getLineText(line, 'original');
+                    const text = getLineText(line, 'original');
                     const wrappedStrings = wrapText(domCtx, text, maxWidth);
                     const syllableLines = groupSyllablesByLines(line.text, wrappedStrings);
                     domLines = syllableLines.map(sylArray => ({ text: sylArray, isSynced: true }));
                 } else {
-                    const text = this.getLineText(line, 'original');
+                    const text = getLineText(line, 'original');
                     const wrappedStrings = wrapText(domCtx, text, maxWidth);
                     domLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
                 }
@@ -2483,7 +2501,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 if (Array.isArray(line.backgroundText)) {
                     // Check if they are synced
                     const isSyncedBg = line.backgroundText[0] && line.backgroundText[0].timestamp !== undefined;
-                    const bgText = this.getBgText(line);
+                    const bgText = getBgText(line);
                     const wrappedStrings = wrapText(domCtx, bgText, maxWidth);
                     if (isSyncedBg) {
                         const syllableLines = groupSyllablesByLines(line.backgroundText, wrappedStrings);
@@ -2492,7 +2510,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                         domBgLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
                     }
                 } else {
-                    const bgText = this.getBgText(line);
+                    const bgText = getBgText(line);
                     const wrappedStrings = wrapText(domCtx, bgText, maxWidth);
                     domBgLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
                 }
@@ -2534,7 +2552,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             if (this.currentLyricsMode === 'translation' && line.translation) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
-                const transText = this.getLineText(line, 'translation');
+                const transText = getLineText(line, 'translation');
                 const wrappedTrans = wrapText(domCtx, transText, maxWidth);
                 
                 wrappedTrans.forEach((str, lineIdx) => {
@@ -2550,7 +2568,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const romEl = document.createElement('div');
                 romEl.className = 'lyrics-romanization-container';
                 
-                const romText = this.getLineText(line, 'romanized');
+                const romText = getLineText(line, 'romanized');
                 const wrappedRom = wrapText(domCtx, romText, maxWidth);
                 
                 wrappedRom.forEach((str, lineIdx) => {
