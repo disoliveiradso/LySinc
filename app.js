@@ -808,6 +808,7 @@ class LySincApp {
         let pipCanvas = null;
         let pipCtx = null;
         let pipAnimationId = null;
+        let pipIntervalId = null;
 
         const wrapText = (ctx, text, maxWidth) => {
             const words = text.split(' ');
@@ -836,6 +837,40 @@ class LySincApp {
                 return line.text.map(s => s.text).join('').trim();
             }
             return (line.text || '') + '';
+        };
+
+        const groupSyllablesByLines = (syllables, wrappedStrings) => {
+            const lines = [];
+            let sylIdx = 0;
+            
+            wrappedStrings.forEach(lineStr => {
+                const lineSyls = [];
+                let currentText = '';
+                const targetText = lineStr.replace(/\s+/g, '').toLowerCase();
+                
+                while (sylIdx < syllables.length) {
+                    const syl = syllables[sylIdx];
+                    const sylClean = syl.text.replace(/\s+/g, '').toLowerCase();
+                    
+                    if (currentText.length + sylClean.length <= targetText.length || lineSyls.length === 0) {
+                        lineSyls.push(syl);
+                        currentText += sylClean;
+                        sylIdx++;
+                    } else {
+                        break;
+                    }
+                }
+                lines.push(lineSyls);
+            });
+            
+            while (sylIdx < syllables.length) {
+                if (lines.length > 0) {
+                    lines[lines.length - 1].push(syllables[sylIdx]);
+                }
+                sylIdx++;
+            }
+            
+            return lines;
         };
 
         const renderPipCanvas = () => {
@@ -895,7 +930,7 @@ class LySincApp {
                             }
                         }
 
-                        // Calculate stackY positions
+                        // Calculate stackY positions in virtual stack
                         if (linesToDraw.length > 0) {
                             linesToDraw[0].stackY = 0;
                             for (let j = 1; j < linesToDraw.length; j++) {
@@ -934,7 +969,9 @@ class LySincApp {
                             const distance = Math.abs(item.index - this.pipActiveIndexSmooth);
                             const s = Math.max(0.45, 1.0 - distance * 0.25);
                             const op = Math.max(0.15, 1.0 - distance * 0.30);
-                            const blurPx = distance > 0.05 ? distance * 2.5 * scale : 0;
+                            
+                            // High-strength optical blur
+                            const blurPx = distance > 0.05 ? distance * 8.0 * scale : 0;
                             
                             pipCtx.save();
                             pipCtx.globalAlpha = op;
@@ -955,30 +992,21 @@ class LySincApp {
                             // Highlight active line word-by-word if synced
                             if (item.index === activeIndex && item.lyric.isWordSynced && Array.isArray(item.lyric.text) && mode === 'original') {
                                 const syllables = item.lyric.text;
-                                let wrappedSyllableLines = [];
-                                let currentLine = [];
-                                let currentWidth = 0;
-                                const localMaxWidth = maxWidth / s;
+                                const wrappedStrings = item.wrapped;
+                                const wrappedSyllableLines = groupSyllablesByLines(syllables, wrappedStrings);
                                 
-                                pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
-                                pipCtx.textBaseline = 'middle';
-                                
-                                syllables.forEach(syl => {
-                                    const sylWidth = pipCtx.measureText(syl.text).width;
-                                    if (currentWidth + sylWidth < localMaxWidth || currentLine.length === 0) {
-                                        currentLine.push({ ...syl, width: sylWidth });
-                                        currentWidth += sylWidth;
-                                    } else {
-                                        wrappedSyllableLines.push(currentLine);
-                                        currentLine = [{ ...syl, width: sylWidth }];
-                                        currentWidth = sylWidth;
-                                    }
+                                const measuredSyllableLines = wrappedSyllableLines.map(lineSyls => {
+                                    return lineSyls.map(syl => {
+                                        return {
+                                            ...syl,
+                                            width: pipCtx.measureText(syl.text).width
+                                        };
+                                    });
                                 });
-                                wrappedSyllableLines.push(currentLine);
                                 
-                                let startY = -(wrappedSyllableLines.length * activeLineHeight) / 2 + (activeLineHeight / 2);
+                                let startY = -(measuredSyllableLines.length * activeLineHeight) / 2 + (activeLineHeight / 2);
                                 
-                                wrappedSyllableLines.forEach(lineSyls => {
+                                measuredSyllableLines.forEach(lineSyls => {
                                     const lineWidth = lineSyls.reduce((sum, syl) => sum + syl.width, 0);
                                     let startX;
                                     if (alignRight) {
@@ -1067,14 +1095,14 @@ class LySincApp {
                     pipCtx.fillText('Carregando letras...', pipCanvas.width / 2, pipCanvas.height / 2);
                 }
                 
-                // Draw resize handle in bottom-left corner
+                // Draw large resize handle in bottom-left corner
                 pipCtx.save();
-                pipCtx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-                pipCtx.lineWidth = Math.round(4 * scale);
+                pipCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                pipCtx.lineWidth = Math.round(6 * scale);
                 pipCtx.lineCap = 'round';
                 
-                const handleSize = Math.round(24 * scale);
-                const pad = Math.round(20 * scale);
+                const handleSize = Math.round(50 * scale);
+                const pad = Math.round(30 * scale);
                 const blX = pad;
                 const blY = pipCanvas.height - pad;
                 
@@ -1086,7 +1114,7 @@ class LySincApp {
                 pipCtx.stroke();
                 
                 // Inner parallel angle
-                const offset = Math.round(8 * scale);
+                const offset = Math.round(12 * scale);
                 pipCtx.beginPath();
                 pipCtx.moveTo(blX + offset, blY - handleSize + offset);
                 pipCtx.lineTo(blX + offset, blY - offset);
@@ -1106,6 +1134,33 @@ class LySincApp {
         };
 
         const startCanvasPip = async () => {
+            let handleVisibilityChange = null;
+
+            const startLoop = () => {
+                stopLoop();
+                if (document.visibilityState === 'visible') {
+                    const tick = () => {
+                        if (!pipAnimationId) return;
+                        renderPipCanvas();
+                        pipAnimationId = requestAnimationFrame(tick);
+                    };
+                    pipAnimationId = requestAnimationFrame(tick);
+                } else {
+                    pipIntervalId = setInterval(renderPipCanvas, 250); // 4 FPS in background
+                }
+            };
+
+            const stopLoop = () => {
+                if (pipAnimationId) {
+                    cancelAnimationFrame(pipAnimationId);
+                    pipAnimationId = null;
+                }
+                if (pipIntervalId) {
+                    clearInterval(pipIntervalId);
+                    pipIntervalId = null;
+                }
+            };
+
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
                 const pixelRatio = window.devicePixelRatio || 1;
@@ -1138,9 +1193,12 @@ class LySincApp {
                 document.body.appendChild(pipVideo);
 
                 pipVideo.addEventListener('enterpictureinpicture', () => {
-                    if (!pipAnimationId) {
-                        pipAnimationId = setInterval(renderPipCanvas, 1000 / 30);
-                    }
+                    startLoop();
+                    
+                    handleVisibilityChange = () => {
+                        startLoop();
+                    };
+                    document.addEventListener('visibilitychange', handleVisibilityChange);
                     
                     const btnPipTop = document.getElementById('btn-pip-top');
                     if (btnPipTop) {
@@ -1184,9 +1242,10 @@ class LySincApp {
                 });
 
                 pipVideo.addEventListener('leavepictureinpicture', () => {
-                    if (pipAnimationId) {
-                        clearInterval(pipAnimationId);
-                        pipAnimationId = null;
+                    stopLoop();
+                    if (handleVisibilityChange) {
+                        document.removeEventListener('visibilitychange', handleVisibilityChange);
+                        handleVisibilityChange = null;
                     }
                     
                     const btnPipTop = document.getElementById('btn-pip-top');
@@ -1216,10 +1275,7 @@ class LySincApp {
                 });
             }
 
-            if (!pipAnimationId) {
-                pipAnimationId = setInterval(renderPipCanvas, 1000 / 30);
-            }
-            
+            startLoop();
             renderPipCanvas();
 
             const stream = pipCanvas.captureStream(30);
@@ -1231,10 +1287,7 @@ class LySincApp {
             } catch (err) {
                 console.error("Erro ao abrir Video PiP:", err);
                 this.showToast('Picture-in-Picture falhou.', 'error');
-                if (pipAnimationId) {
-                    cancelAnimationFrame(pipAnimationId);
-                    pipAnimationId = null;
-                }
+                stopLoop();
             }
         };
         
