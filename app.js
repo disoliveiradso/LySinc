@@ -161,6 +161,12 @@ class LySincApp {
         this.btnPipTop = document.getElementById('btn-pip-top');
         this.btnFloatingPip = document.getElementById('btn-floating-pip');
 
+        // Light Mode & Info Stutter Modal Elements
+        this.btnLightMode = document.getElementById('btn-light-mode');
+        this.btnInfoStutter = document.getElementById('btn-info-stutter');
+        this.infoStutterModal = document.getElementById('info-stutter-modal');
+        this.btnInfoStutterClose = document.getElementById('btn-info-stutter-close');
+
         this.syncOffset = 0;
 
         this.currentTrackId = null;
@@ -764,7 +770,15 @@ class LySincApp {
             if (btn) {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if (action === 'prev') await SpotifyService.previousTrack();
+                    if (action === 'prev') {
+                        const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                        const currentMs = this.progressMs + elapsed;
+                        if (currentMs > 3000) {
+                            await this.seekToTime(0);
+                        } else {
+                            await SpotifyService.previousTrack();
+                        }
+                    }
                     if (action === 'next') await SpotifyService.nextTrack();
                     if (action === 'playpause') {
                         if (this.isPlaying) {
@@ -792,6 +806,52 @@ class LySincApp {
                     this.seekToTime(0);
 
                     setTimeout(() => this.pollPlayerState(), 200);
+                }
+            });
+        }
+
+        // Light Mode Handler
+        if (this.btnLightMode) {
+            this.btnLightMode.addEventListener('click', () => {
+                const isActive = document.body.classList.contains('light-mode');
+                if (isActive) {
+                    document.body.classList.remove('light-mode');
+                    this.btnLightMode.classList.remove('active-light');
+                    localStorage.setItem('lysinc_light_mode', 'false');
+                    this.showToast('Modo Light desativado.', 'info');
+                } else {
+                    document.body.classList.add('light-mode');
+                    this.btnLightMode.classList.add('active-light');
+                    localStorage.setItem('lysinc_light_mode', 'true');
+                    this.showToast('Modo Light (Desempenho) ativado.', 'success');
+                }
+            });
+        }
+
+        // Info Stutter Modal Handlers
+        if (this.btnInfoStutter) {
+            this.btnInfoStutter.addEventListener('click', () => {
+                if (this.infoStutterModal) {
+                    this.infoStutterModal.classList.remove('hidden');
+                    this.infoStutterModal.classList.add('flex');
+                }
+            });
+        }
+
+        if (this.btnInfoStutterClose) {
+            this.btnInfoStutterClose.addEventListener('click', () => {
+                if (this.infoStutterModal) {
+                    this.infoStutterModal.classList.add('hidden');
+                    this.infoStutterModal.classList.remove('flex');
+                }
+            });
+        }
+
+        if (this.infoStutterModal) {
+            this.infoStutterModal.addEventListener('click', (e) => {
+                if (e.target === this.infoStutterModal) {
+                    this.infoStutterModal.classList.add('hidden');
+                    this.infoStutterModal.classList.remove('flex');
                 }
             });
         }
@@ -1767,9 +1827,14 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     }
 
     loadSettings() {
-
-
         this.inputClientId.value = localStorage.getItem(Config.CLIENT_ID_KEY) || '';
+
+        // Load Light Mode
+        const lightModeActive = localStorage.getItem('lysinc_light_mode') === 'true';
+        if (lightModeActive) {
+            document.body.classList.add('light-mode');
+            if (this.btnLightMode) this.btnLightMode.classList.add('active-light');
+        }
     }
 
     saveSettings() {
@@ -1966,6 +2031,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             g = Math.floor((g/count) * 0.4);
                             b = Math.floor((b/count) * 0.4);
                             this.currentAlbumColor = `rgb(${r}, ${g}, ${b})`;
+                            document.documentElement.style.setProperty('--album-color', this.currentAlbumColor);
                         }
                     } catch(e) {}
                 };
@@ -1975,6 +2041,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.albumArt.src = '';
             this.albumArtBlur.style.backgroundImage = 'none';
             this.currentAlbumColor = '#121212';
+            document.documentElement.style.setProperty('--album-color', '#121212');
             if (this.pipWindow) {
                 const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
                 if (pipBlur) pipBlur.style.backgroundImage = 'none';
