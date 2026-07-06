@@ -1286,6 +1286,7 @@ class LySincApp {
                                             pipCtx.shadowOffsetY = 0;
                                         }
                                         
+                                        pipCtx.textAlign = 'left';
                                         let currentX = alignRight ? startX - totalLineWidth : startX;
                                         lineSyls.forEach(syl => {
                                             const sylWidth = pipCtx.measureText(syl.text).width;
@@ -1296,19 +1297,15 @@ class LySincApp {
                                             if (isActiveWord && !isLightMode) {
                                                 const duration = syl.endtime - syl.timestamp;
                                                 const elapsed = smoothProgress - syl.timestamp;
-                                                const wave = duration > 0 ? Math.sin((elapsed / duration) * Math.PI) : 0;
+                                                const pct = duration > 0 ? (elapsed / duration) : 0;
+                                                const wave = Math.sin(pct * Math.PI);
                                                 
-                                                const popScale = 1 + 0.05 * wave;
-                                                const popY = -4 * wave * scale;
+                                                const bumpX = 4 * wave * scale;
                                                 
-                                                const centerX = currentX + sylWidth / 2;
-                                                pipCtx.translate(centerX, startY);
-                                                pipCtx.scale(popScale, popScale);
-                                                pipCtx.translate(-centerX, -startY);
-                                                pipCtx.fillText(syl.text, currentX, startY + popY);
-                                            } else {
-                                                pipCtx.fillText(syl.text, currentX, startY);
+                                                pipCtx.translate(bumpX, 0);
                                             }
+                                            
+                                            pipCtx.fillText(syl.text, currentX, startY);
                                             pipCtx.restore();
                                             currentX += sylWidth;
                                         });
@@ -1419,6 +1416,7 @@ class LySincApp {
                                                 pipCtx.shadowOffsetY = 0;
                                             }
                                             
+                                            pipCtx.textAlign = 'left';
                                             let currentBgX = alignRight ? startX - totalBgLineWidth : startX;
                                             bgLineSyls.forEach(syl => {
                                                 const sylWidth = pipCtx.measureText(syl.text).width;
@@ -1428,20 +1426,17 @@ class LySincApp {
                                                 if (isActiveWord && !isLightMode) {
                                                     const duration = syl.endtime - syl.timestamp;
                                                     const elapsed = smoothProgress - syl.timestamp;
-                                                    const wave = duration > 0 ? Math.sin((elapsed / duration) * Math.PI) : 0;
+                                                    const pct = duration > 0 ? (elapsed / duration) : 0;
+                                                    const wave = Math.sin(pct * Math.PI);
                                                     
-                                                    const popScale = 1 + 0.05 * wave;
-                                                    const popY = -4 * wave * scale;
+                                                    const bumpX = 4 * wave * scale;
                                                     
-                                                    const centerX = currentBgX + sylWidth / 2;
-                                                    pipCtx.translate(centerX, bgStartY);
-                                                    pipCtx.scale(popScale, popScale);
-                                                    pipCtx.translate(-centerX, -bgStartY);
-                                                    pipCtx.fillText(syl.text, currentBgX, bgStartY + popY);
-                                                } else {
-                                                    pipCtx.fillText(syl.text, currentBgX, bgStartY);
+                                                    pipCtx.translate(bumpX, 0);
                                                 }
+                                                
+                                                pipCtx.fillText(syl.text, currentBgX, bgStartY);
                                                 pipCtx.restore();
+                                                
                                                 currentBgX += sylWidth;
                                             });
                                             pipCtx.restore();
