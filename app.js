@@ -1296,9 +1296,11 @@ class LySincApp {
                                             
                                             pipCtx.save();
                                             if (isActiveWord && !isLightMode) {
-                                                const duration = syl.endtime - syl.timestamp;
-                                                const elapsed = smoothProgress - syl.timestamp;
-                                                const pct = duration > 0 ? (elapsed / duration) : 0;
+                                                const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
+                                                const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
+                                                const duration = wEnd - wStart;
+                                                const elapsed = smoothProgress - wStart;
+                                                const pct = duration > 0 ? Math.max(0, Math.min(1, elapsed / duration)) : 0;
                                                 const wave = Math.sin(pct * Math.PI);
                                                 
                                                 const bumpX = 4 * wave * scale;
@@ -1421,13 +1423,15 @@ class LySincApp {
                                             let currentBgX = alignRight ? startX - totalBgLineWidth : startX;
                                             bgLineSyls.forEach(syl => {
                                                 const sylWidth = pipCtx.measureText(syl.text).width;
-                                                const isActiveWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
+                                                const isActiveBgWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
                                                 
                                                 pipCtx.save();
-                                                if (isActiveWord && !isLightMode) {
-                                                    const duration = syl.endtime - syl.timestamp;
-                                                    const elapsed = smoothProgress - syl.timestamp;
-                                                    const pct = duration > 0 ? (elapsed / duration) : 0;
+                                                if (isActiveBgWord && !isLightMode) {
+                                                    const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
+                                                    const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
+                                                    const duration = wEnd - wStart;
+                                                    const elapsed = smoothProgress - wStart;
+                                                    const pct = duration > 0 ? Math.max(0, Math.min(1, elapsed / duration)) : 0;
                                                     const wave = Math.sin(pct * Math.PI);
                                                     
                                                     const bumpX = 4 * wave * scale;
@@ -2414,6 +2418,38 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.scrollToPosition(0);
         }
 
+        // Precalculate word boundaries for syllables to ensure word-level animations
+        this.lyrics.forEach(line => {
+            const processSyllables = (syls) => {
+                let currentWordStart = null;
+                let currentWordSyllables = [];
+                syls.forEach(syl => {
+                    if (currentWordStart === null) currentWordStart = syl.timestamp;
+                    currentWordSyllables.push(syl);
+                    const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
+                    if (hasSpace) {
+                        const wordEnd = syl.endtime;
+                        currentWordSyllables.forEach(s => {
+                            s.wordTimestamp = currentWordStart;
+                            s.wordEndtime = wordEnd;
+                        });
+                        currentWordStart = null;
+                        currentWordSyllables = [];
+                    }
+                });
+                if (currentWordSyllables.length > 0) {
+                    const wordEnd = currentWordSyllables[currentWordSyllables.length - 1].endtime;
+                    currentWordSyllables.forEach(s => {
+                        s.wordTimestamp = currentWordStart;
+                        s.wordEndtime = wordEnd;
+                    });
+                }
+            };
+            
+            if (line.isWordSynced && line.text) processSyllables(line.text);
+            if (line.isWordSynced && line.backgroundText) processSyllables(line.backgroundText);
+        });
+
         const { ctx: domCtx, maxWidth } = this.getDOMWrapContext();
 
         this.lyrics.forEach((line) => {
@@ -2480,6 +2516,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     currentWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
                     
                     if (domLine.isSynced) {
+                        let currentWordSpan = null;
+                        
                         domLine.text.forEach((syl, sylSubIdx) => {
                             // Recover global index of the syllable
                             const idx = line.text.indexOf(syl);
@@ -2491,9 +2529,17 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             sylSpan.id = `word-${line.id}-${idx}`;
                             sylSpan.textContent = cleanText;
                             
-                            currentWordWrapper.appendChild(sylSpan);
+                            if (!currentWordSpan) {
+                                currentWordSpan = document.createElement('span');
+                                currentWordSpan.className = 'lyric-word inline-block';
+                                currentWordWrapper.appendChild(currentWordSpan);
+                            }
+                            
+                            currentWordSpan.appendChild(sylSpan);
+                            
                             if (hasSpace) {
                                 currentWordWrapper.appendChild(document.createTextNode(' '));
+                                currentWordSpan = null;
                             }
                         });
                     } else {
@@ -2537,6 +2583,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     bgWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
                     
                     if (domLine.isSynced) {
+                        let currentBgWordSpan = null;
+                        
                         domLine.text.forEach((syl, sylSubIdx) => {
                             const idx = line.backgroundText.indexOf(syl);
                             const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
@@ -2547,9 +2595,17 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             sylSpan.id = `bgword-${line.id}-${idx}`;
                             sylSpan.textContent = cleanText;
                             
-                            bgWordWrapper.appendChild(sylSpan);
+                            if (!currentBgWordSpan) {
+                                currentBgWordSpan = document.createElement('span');
+                                currentBgWordSpan.className = 'lyric-word inline-block';
+                                bgWordWrapper.appendChild(currentBgWordSpan);
+                            }
+                            
+                            currentBgWordSpan.appendChild(sylSpan);
+                            
                             if (hasSpace) {
                                 bgWordWrapper.appendChild(document.createTextNode(' '));
+                                currentBgWordSpan = null;
                             }
                         });
                     } else {

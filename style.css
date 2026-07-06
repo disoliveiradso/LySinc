@@ -346,10 +346,20 @@ body, html {
     -webkit-text-fill-color: transparent;
     color: transparent;
     transition: filter 0.3s ease;
-    transform: translateX(calc(4px * var(--wave-progress, 0)));
     will-change: transform;
     white-space: pre-wrap;
     font-weight: bold;
+}
+
+.lyric-word {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.lyric-word:has(.lyrics-syllable.current) {
+    transform: translateX(4px);
+}
+.light-mode .lyric-word:has(.lyrics-syllable.current) {
+    transform: none !important;
 }
 
 .lyrics-syllable.passed {
