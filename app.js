@@ -926,23 +926,24 @@ class LySincApp {
             }
             if (currentLine) lines.push(currentLine);
             
-            // Prevent typographic orphans (single word on the last line)
-            if (lines.length > 1) {
+            // Prevent typographic orphans: ensure the last line always has at least 2 words.
+            // Strategy: move the last word of the penultimate line down to join the last line.
+            // Repeat until the last line has >= 2 words, or no more moves are possible.
+            let attempts = 0;
+            while (lines.length > 1 && attempts < 5) {
+                attempts++;
                 const lastLine = lines[lines.length - 1];
-                const lastLineWords = lastLine.trim().split(/\s+/);
-                if (lastLineWords.length === 1) {
-                    const prevLine = lines[lines.length - 2];
-                    const prevLineWords = prevLine.trim().split(/\s+/);
-                    if (prevLineWords.length > 1) {
-                        const lastWordOfPrev = prevLineWords[prevLineWords.length - 1];
-                        const combinedWidth = ctx.measureText(lastWordOfPrev + ' ' + lastLine).width;
-                        if (combinedWidth < maxWidth) {
-                            prevLineWords.pop();
-                            lines[lines.length - 2] = prevLineWords.join(' ');
-                            lines[lines.length - 1] = lastWordOfPrev + ' ' + lastLine;
-                        }
-                    }
-                }
+                const lastLineWords = lastLine.trim().split(/\s+/).filter(Boolean);
+                if (lastLineWords.length >= 2) break; // last line already has 2+ words, done
+
+                const prevLine = lines[lines.length - 2];
+                const prevLineWords = prevLine.trim().split(/\s+/).filter(Boolean);
+                if (prevLineWords.length <= 1) break; // can't steal from prev line
+
+                // Move last word of prev line to start of last line
+                const wordToMove = prevLineWords.pop();
+                lines[lines.length - 2] = prevLineWords.join(' ');
+                lines[lines.length - 1] = wordToMove + (lastLine ? ' ' + lastLine : '');
             }
             
             return lines;
