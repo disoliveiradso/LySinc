@@ -1453,13 +1453,9 @@ class LySincApp {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
                 
-                const screenWidth = window.screen.width || window.innerWidth;
-                const screenHeight = window.screen.height || window.innerHeight;
-                
+                // Fixed standard 9:16 vertical ratio for the canvas to prevent OS full-screen PiP bug
                 const pipW = 1080;
-                let pipH = Math.round(pipW * (screenHeight / screenWidth));
-                // Clamp height between 9:16 (1920) and 9:21 (2520) for standard vertical rectangles
-                pipH = Math.max(1920, Math.min(2520, pipH));
+                const pipH = 1920;
                 
                 pipCanvas.width = pipW;
                 pipCanvas.height = pipH;
@@ -1481,8 +1477,14 @@ class LySincApp {
                 pipVideo.style.position = 'fixed';
                 pipVideo.style.top = '0';
                 pipVideo.style.left = '0';
-                pipVideo.style.width = '360px';
-                pipVideo.style.height = Math.round(360 * (pipH / pipW)) + 'px';
+                
+                // Adapts initial PiP window size based on screen size (small on phone, larger on tablet)
+                const screenWidth = window.screen.width || window.innerWidth;
+                const videoW = Math.round(screenWidth * 0.32);
+                const videoH = Math.round(videoW * (pipH / pipW));
+                
+                pipVideo.style.width = videoW + 'px';
+                pipVideo.style.height = videoH + 'px';
                 pipVideo.style.opacity = '0.001';
                 pipVideo.style.pointerEvents = 'none';
                 pipVideo.style.zIndex = '-9999';
