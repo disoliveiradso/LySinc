@@ -897,11 +897,21 @@ class LySincApp {
                     if (activeIndex !== -1) {
                         const mode = this.currentLyricsMode;
                         
-                        // Initialize or interpolate smooth active index
+                        // Frame-independent delta-time smooth active index interpolation
+                        const now = Date.now();
+                        if (this.pipLastFrameTime === undefined) {
+                            this.pipLastFrameTime = now;
+                        }
+                        const deltaTime = (now - this.pipLastFrameTime) / 1000;
+                        this.pipLastFrameTime = now;
+                        const clampedDelta = Math.min(deltaTime, 1.0);
+
                         if (this.pipActiveIndexSmooth === undefined || isNaN(this.pipActiveIndexSmooth)) {
                             this.pipActiveIndexSmooth = activeIndex;
                         } else {
-                            this.pipActiveIndexSmooth += (activeIndex - this.pipActiveIndexSmooth) * 0.15;
+                            const k = 6.0; // scrolling speed factor
+                            const lerpFactor = 1 - Math.exp(-k * clampedDelta);
+                            this.pipActiveIndexSmooth += (activeIndex - this.pipActiveIndexSmooth) * lerpFactor;
                         }
 
                         const baseIndex = Math.floor(this.pipActiveIndexSmooth);
@@ -930,7 +940,7 @@ class LySincApp {
                             }
                         }
 
-                        // Calculate stackY positions in virtual stack
+                        // Calculate Y positions relative to each other in a virtual stack
                         if (linesToDraw.length > 0) {
                             linesToDraw[0].stackY = 0;
                             for (let j = 1; j < linesToDraw.length; j++) {
@@ -940,7 +950,7 @@ class LySincApp {
                             }
                         }
 
-                        // Find interpolated scrollY
+                        // Find interpolated scrollY at smooth index
                         const getInterpolatedStackY = (smoothIdx) => {
                             const idx1 = Math.floor(smoothIdx);
                             const idx2 = Math.ceil(smoothIdx);
@@ -970,108 +980,112 @@ class LySincApp {
                             const s = Math.max(0.45, 1.0 - distance * 0.25);
                             const op = Math.max(0.15, 1.0 - distance * 0.30);
                             
-                            // High-strength optical blur
-                            const blurPx = distance > 0.05 ? distance * 8.0 * scale : 0;
-                            
+                            // NO optical blur filter on background lines, just opacity
                             pipCtx.save();
                             pipCtx.globalAlpha = op;
-                            if (blurPx > 0) {
-                                pipCtx.filter = `blur(${blurPx}px)`;
-                            } else {
-                                pipCtx.filter = 'none';
-                            }
                             
                             const canvasY = centerY + (item.stackY - scrollY);
                             pipCtx.translate(pipCanvas.width / 2, canvasY);
                             pipCtx.scale(s, s);
                             
+                            // Align LEFT by default, align RIGHT only for opposite voice turn / end alignment
                             const alignRight = item.lyric.oppositeTurn || item.lyric.alignment === 'end';
-                            const alignLeft = item.lyric.alignment === 'start';
                             const halfWidth = (pipCanvas.width * 0.475) / s;
                             
-                            // Highlight active line word-by-word if synced
-                            if (item.index === activeIndex && item.lyric.isWordSynced && Array.isArray(item.lyric.text) && mode === 'original') {
-                                const syllables = item.lyric.text;
-                                const wrappedStrings = item.wrapped;
-                                const wrappedSyllableLines = groupSyllablesByLines(syllables, wrappedStrings);
-                                
-                                const measuredSyllableLines = wrappedSyllableLines.map(lineSyls => {
-                                    return lineSyls.map(syl => {
-                                        return {
-                                            ...syl,
-                                            width: pipCtx.measureText(syl.text).width
-                                        };
-                                    });
-                                });
-                                
-                                let startY = -(measuredSyllableLines.length * activeLineHeight) / 2 + (activeLineHeight / 2);
-                                
-                                measuredSyllableLines.forEach(lineSyls => {
-                                    const lineWidth = lineSyls.reduce((sum, syl) => sum + syl.width, 0);
-                                    let startX;
-                                    if (alignRight) {
-                                        startX = halfWidth - lineWidth;
-                                    } else if (alignLeft) {
-                                        startX = -halfWidth;
-                                    } else {
-                                        startX = -lineWidth / 2;
-                                    }
-                                    
-                                    lineSyls.forEach(syl => {
-                                        pipCtx.textAlign = 'left';
-                                        if (syl.timestamp !== undefined) {
-                                            if (smoothProgress >= syl.endtime) {
-                                                pipCtx.fillStyle = '#ffffff';
-                                            } else if (smoothProgress < syl.timestamp) {
-                                                pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                                            } else {
-                                                const pct = Math.max(0, Math.min(1, (smoothProgress - syl.timestamp) / (syl.endtime - syl.timestamp)));
-                                                const grad = pipCtx.createLinearGradient(startX, 0, startX + syl.width, 0);
-                                                grad.addColorStop(0, '#ffffff');
-                                                grad.addColorStop(pct, '#ffffff');
-                                                grad.addColorStop(pct, 'rgba(255, 255, 255, 0.4)');
-                                                grad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
-                                                pipCtx.fillStyle = grad;
-                                            }
-                                        } else {
-                                            pipCtx.fillStyle = '#ffffff';
-                                        }
-                                        pipCtx.fillText(syl.text, startX, startY);
-                                        startX += syl.width;
-                                    });
-                                    startY += activeLineHeight;
-                                });
+                            let startX;
+                            if (alignRight) {
+                                pipCtx.textAlign = 'right';
+                                startX = halfWidth;
                             } else {
-                                const isItemActive = (item.index === activeIndex);
-                                if (isItemActive) {
-                                    pipCtx.fillStyle = '#ffffff';
+                                pipCtx.textAlign = 'left';
+                                startX = -halfWidth;
+                            }
+                            pipCtx.textBaseline = 'middle';
+                            pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
+                            
+                            const isItemActive = (item.index === activeIndex);
+                            
+                            if (isItemActive) {
+                                // Realize active line (word-synced or line-synced)
+                                if (item.lyric.isWordSynced && Array.isArray(item.lyric.text) && mode === 'original') {
+                                    const syllables = item.lyric.text;
+                                    const wrappedStrings = item.wrapped;
+                                    const wrappedSyllableLines = groupSyllablesByLines(syllables, wrappedStrings);
+                                    
+                                    let startY = -(wrappedStrings.length * activeLineHeight) / 2 + (activeLineHeight / 2);
+                                    
+                                    wrappedStrings.forEach((lineStr, r) => {
+                                        const lineSyls = wrappedSyllableLines[r] || [];
+                                        const totalLineWidth = pipCtx.measureText(lineStr).width;
+                                        
+                                        // 1. Draw entire line string in inactive translucent gray (Pass 1)
+                                        pipCtx.save();
+                                        pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                                        pipCtx.shadowBlur = 0;
+                                        pipCtx.fillText(lineStr, startX, startY);
+                                        pipCtx.restore();
+                                        
+                                        // 2. Measure completed syllable width
+                                        let completedW = 0;
+                                        let sumSyllablesWidth = 0;
+                                        
+                                        lineSyls.forEach(syl => {
+                                            const sylWidth = pipCtx.measureText(syl.text).width;
+                                            sumSyllablesWidth += sylWidth;
+                                            if (smoothProgress >= syl.endtime) {
+                                                completedW += sylWidth;
+                                            } else if (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime) {
+                                                const pct = (smoothProgress - syl.timestamp) / (syl.endtime - syl.timestamp);
+                                                completedW += sylWidth * pct;
+                                            }
+                                        });
+                                        
+                                        if (sumSyllablesWidth > 0) {
+                                            completedW = completedW * (totalLineWidth / sumSyllablesWidth);
+                                        }
+                                        
+                                        // 3. Draw white active text with drop shadow glow, clipped to completedW (Pass 2)
+                                        if (completedW > 0) {
+                                            pipCtx.save();
+                                            pipCtx.beginPath();
+                                            let clipStartX;
+                                            if (alignRight) {
+                                                clipStartX = startX - totalLineWidth;
+                                            } else {
+                                                clipStartX = startX;
+                                            }
+                                            pipCtx.rect(clipStartX - 50 * scale, startY - 100 * scale, completedW + 50 * scale, 200 * scale);
+                                            pipCtx.clip();
+                                            
+                                            pipCtx.fillStyle = '#ffffff';
+                                            pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+                                            pipCtx.shadowBlur = 18 * scale;
+                                            pipCtx.fillText(lineStr, startX, startY);
+                                            pipCtx.restore();
+                                        }
+                                        
+                                        startY += activeLineHeight;
+                                    });
                                 } else {
-                                    pipCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                                    // Line-synced active line: entire line string lights up white with glow (Pass 2)
+                                    let startY = -(item.wrapped.length * activeLineHeight) / 2 + (activeLineHeight / 2);
+                                    item.wrapped.forEach(lineStr => {
+                                        pipCtx.save();
+                                        pipCtx.fillStyle = '#ffffff';
+                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+                                        pipCtx.shadowBlur = 18 * scale;
+                                        pipCtx.fillText(lineStr, startX, startY);
+                                        pipCtx.restore();
+                                        startY += activeLineHeight;
+                                    });
                                 }
-                                
-                                if (alignRight) {
-                                    pipCtx.textAlign = 'right';
-                                    pipCtx.textBaseline = 'middle';
-                                } else if (alignLeft) {
-                                    pipCtx.textAlign = 'left';
-                                    pipCtx.textBaseline = 'middle';
-                                } else {
-                                    pipCtx.textAlign = 'center';
-                                    pipCtx.textBaseline = 'middle';
-                                }
-                                
-                                pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
+                            } else {
+                                // Draw static non-active line (Pass 1) in translucent gray, no glow shadow
+                                pipCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                                pipCtx.shadowBlur = 0;
                                 
                                 let startY = -(item.wrapped.length * activeLineHeight) / 2 + (activeLineHeight / 2);
                                 item.wrapped.forEach(lineStr => {
-                                    let startX;
-                                    if (alignRight) {
-                                        startX = halfWidth;
-                                    } else if (alignLeft) {
-                                        startX = -halfWidth;
-                                    } else {
-                                        startX = 0;
-                                    }
                                     pipCtx.fillText(lineStr, startX, startY);
                                     startY += activeLineHeight;
                                 });
