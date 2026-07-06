@@ -333,7 +333,7 @@ body, html {
     -webkit-text-fill-color: transparent;
     color: transparent;
     transition: filter 0.3s ease;
-    transform: translateY(calc(-4px * var(--wave-progress, 0))) scale(calc(1 + 0.05 * var(--wave-progress, 0)));
+    transform: translateX(calc(4px * var(--wave-progress, 0)));
     will-change: transform;
     white-space: pre-wrap;
     font-weight: bold;
@@ -703,24 +703,7 @@ input:focus {
 
 
 
-/* Floating Menu Desktop Push Fix */
-@media (min-width: 768px) {
-    #floating-menu-content {
-        transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease, border 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        max-width: 500px;
-        overflow: hidden;
-    }
-    #floating-menu-content.closed {
-        max-width: 0 !important;
-        opacity: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        border-width: 0 !important;
-        pointer-events: none;
-    }
-}
+
 
 /* Modo Desempenho (Light Mode) */
 .light-mode .blur-background-container {

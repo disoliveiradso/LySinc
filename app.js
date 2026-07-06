@@ -3,6 +3,112 @@ import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
 
 
+const wrapText = (ctx, text, maxWidth) => {
+    const breakWordWithHyphen = (word) => {
+        if (!word.includes('-') || word.indexOf('-') === 0 || word.indexOf('-') === word.length - 1) {
+            return [word];
+        }
+        const parts = word.split('-');
+        let result = [];
+        let currentPart = parts[0] + '-';
+        for (let j = 1; j < parts.length; j++) {
+            let nextPart = parts[j] + (j === parts.length - 1 ? '' : '-');
+            if (ctx.measureText(currentPart + nextPart).width <= maxWidth) {
+                currentPart += nextPart;
+            } else {
+                if (currentPart) result.push(currentPart);
+                currentPart = nextPart;
+            }
+        }
+        if (currentPart) result.push(currentPart);
+        return result;
+    };
+
+    const words = text.split(' ');
+    let lines = [];
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const candidate = currentLine ? currentLine + ' ' + word : word;
+        if (ctx.measureText(candidate).width <= maxWidth) {
+            currentLine = candidate;
+        } else {
+            if (currentLine) {
+                lines.push(currentLine);
+                currentLine = '';
+            }
+            if (ctx.measureText(word).width <= maxWidth) {
+                currentLine = word;
+            } else {
+                const broken = breakWordWithHyphen(word);
+                for (let b = 0; b < broken.length - 1; b++) {
+                    lines.push(broken[b]);
+                }
+                currentLine = broken[broken.length - 1] || '';
+            }
+        }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    const balanceOrphans = (linesArray) => {
+        if (linesArray.length <= 1) return linesArray;
+        let wordsPerLine = linesArray.map(l => l.trim().split(/\s+/).filter(Boolean));
+        
+        if (wordsPerLine[wordsPerLine.length - 1].length === 1 && wordsPerLine.length > 1) {
+            if (wordsPerLine[wordsPerLine.length - 2].length > 1) {
+                let word = wordsPerLine[wordsPerLine.length - 2].pop();
+                wordsPerLine[wordsPerLine.length - 1].unshift(word);
+            }
+        }
+        
+        if (wordsPerLine[0].length === 1 && wordsPerLine.length > 1) {
+            if (wordsPerLine[1].length > 1) {
+                let word = wordsPerLine[1].shift();
+                wordsPerLine[0].push(word);
+            }
+        }
+        
+        return wordsPerLine.map(wArr => wArr.join(' '));
+    };
+
+    return balanceOrphans(lines);
+};
+
+const groupSyllablesByLines = (syllables, wrappedStrings) => {
+    const lines = [];
+    let sylIdx = 0;
+    
+    wrappedStrings.forEach(lineStr => {
+        const lineSyls = [];
+        let currentText = '';
+        const targetText = lineStr.replace(/\s+/g, '').toLowerCase();
+        
+        while (sylIdx < syllables.length) {
+            const syl = syllables[sylIdx];
+            const sylClean = syl.text.replace(/\s+/g, '').toLowerCase();
+            
+            if (currentText.length + sylClean.length <= targetText.length || lineSyls.length === 0) {
+                lineSyls.push(syl);
+                currentText += sylClean;
+                sylIdx++;
+            } else {
+                break;
+            }
+        }
+        lines.push(lineSyls);
+    });
+    
+    while (sylIdx < syllables.length) {
+        if (lines.length > 0) {
+            lines[lines.length - 1].push(syllables[sylIdx]);
+        }
+        sylIdx++;
+    }
+    
+    return lines;
+};
+
 class WakeLockManager {
     constructor() {
         this.wakeLock = null;
@@ -862,136 +968,7 @@ class LySincApp {
         let pipIntervalId = null;
         let silentAudio = null;
 
-        const wrapText = (ctx, text, maxWidth) => {
-            // Helper: break a word with hyphen if it's too long for maxWidth
-            const breakWordWithHyphen = (word) => {
-                const parts = [];
-                let remaining = word;
-                while (ctx.measureText(remaining + '-').width > maxWidth && remaining.length > 2) {
-                    let cutAt = remaining.length - 1;
-                    while (cutAt > 1 && ctx.measureText(remaining.slice(0, cutAt) + '-').width > maxWidth) {
-                        cutAt--;
-                    }
-                    parts.push(remaining.slice(0, cutAt) + '-');
-                    remaining = remaining.slice(cutAt);
-                }
-                parts.push(remaining);
-                return parts;
-            };
-
-            const words = text.split(' ');
-            let lines = [];
-            let currentLine = '';
-
-            for (let i = 0; i < words.length; i++) {
-                const word = words[i];
-                const candidate = currentLine ? currentLine + ' ' + word : word;
-                if (ctx.measureText(candidate).width <= maxWidth) {
-                    currentLine = candidate;
-                } else {
-                    // Word doesn't fit on current line
-                    if (currentLine) {
-                        // Check if the word alone is too wide
-                        if (ctx.measureText(word).width > maxWidth) {
-                            // Flush current line first
-                            lines.push(currentLine);
-                            currentLine = '';
-                            // Break the word with hyphens
-                            const broken = breakWordWithHyphen(word);
-                            for (let b = 0; b < broken.length - 1; b++) {
-                                lines.push(broken[b]);
-                            }
-                            currentLine = broken[broken.length - 1];
-                        } else {
-                            lines.push(currentLine);
-                            currentLine = word;
-                        }
-                    } else {
-                        // currentLine is empty: word alone is still too wide
-                        const broken = breakWordWithHyphen(word);
-                        for (let b = 0; b < broken.length - 1; b++) {
-                            lines.push(broken[b]);
-                        }
-                        currentLine = broken[broken.length - 1];
-                    }
-                }
-            }
-            if (currentLine) lines.push(currentLine);
-            
-            // Prevent typographic orphans: ensure the last line always has at least 2 words.
-            // Strategy: move the last word of the penultimate line down to join the last line.
-            // Repeat until the last line has >= 2 words, or no more moves are possible.
-            let attempts = 0;
-            while (lines.length > 1 && attempts < 5) {
-                attempts++;
-                const lastLine = lines[lines.length - 1];
-                const lastLineWords = lastLine.trim().split(/\s+/).filter(Boolean);
-                if (lastLineWords.length >= 2) break; // last line already has 2+ words, done
-
-                const prevLine = lines[lines.length - 2];
-                const prevLineWords = prevLine.trim().split(/\s+/).filter(Boolean);
-                if (prevLineWords.length <= 1) break; // can't steal from prev line
-
-                // Move last word of prev line to start of last line
-                const wordToMove = prevLineWords.pop();
-                lines[lines.length - 2] = prevLineWords.join(' ');
-                lines[lines.length - 1] = wordToMove + (lastLine ? ' ' + lastLine : '');
-            }
-            
-            return lines;
-        };        const getLineText = (line, mode) => {
-            if (!line) return '';
-            if (mode === 'translation' && line.translation) return line.translation;
-            if (mode === 'romanized' && line.romanizedText) return line.romanizedText;
-            if (Array.isArray(line.text)) {
-                return line.text.map(s => s.text).join('').trim();
-            }
-            return (line.text || '') + '';
-        };
-
-        const getBgText = (line) => {
-            if (!line) return '';
-            if (Array.isArray(line.backgroundText)) {
-                return line.backgroundText.map(s => s.text).join('').trim();
-            }
-            return (line.backgroundText || '') + '';
-        };
-
-        const groupSyllablesByLines = (syllables, wrappedStrings) => {
-            const lines = [];
-            let sylIdx = 0;
-            
-            wrappedStrings.forEach(lineStr => {
-                const lineSyls = [];
-                let currentText = '';
-                const targetText = lineStr.replace(/\s+/g, '').toLowerCase();
-                
-                while (sylIdx < syllables.length) {
-                    const syl = syllables[sylIdx];
-                    const sylClean = syl.text.replace(/\s+/g, '').toLowerCase();
-                    
-                    if (currentText.length + sylClean.length <= targetText.length || lineSyls.length === 0) {
-                        lineSyls.push(syl);
-                        currentText += sylClean;
-                        sylIdx++;
-                    } else {
-                        break;
-                    }
-                }
-                lines.push(lineSyls);
-            });
-            
-            while (sylIdx < syllables.length) {
-                if (lines.length > 0) {
-                    lines[lines.length - 1].push(syllables[sylIdx]);
-                }
-                sylIdx++;
-            }
-            
-            return lines;
-        };
-
-        const renderPipCanvas = () => {
+        const renderPipCanvas = () => {=> {
             if (!pipCanvas || !pipCtx) return;
             
             try {
@@ -1053,28 +1030,8 @@ class LySincApp {
                             let lines = [];
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
                             
-                            if (Array.isArray(lyric.text) && lyric.isWordSynced) {
-                                // Syllable-by-syllable wrapping for word-synced original lyrics (syllabic break system)
-                                let currentLine = '';
-                                for (let i = 0; i < lyric.text.length; i++) {
-                                    const syl = lyric.text[i];
-                                    const testLine = currentLine + syl.text;
-                                    const width = pipCtx.measureText(testLine).width;
-                                    if (width < maxWidth || currentLine === '') {
-                                        currentLine += syl.text;
-                                    } else {
-                                        lines.push(currentLine);
-                                        currentLine = syl.text;
-                                    }
-                                }
-                                if (currentLine) {
-                                    lines.push(currentLine);
-                                }
-                                lines = lines.map(l => l.trim());
-                            } else {
-                                const text = getLineText(lyric, 'original');
-                                lines = wrapText(pipCtx, text, maxWidth);
-                            }
+                            const text = this.getLineText(lyric, 'original');
+                            lines = wrapText(pipCtx, text, maxWidth);
                             
                             lyric._wrapCache = { key: cacheKey, lines: lines };
                             return lines;
@@ -1114,7 +1071,7 @@ class LySincApp {
                                     if (lyric._bgWrapCache && lyric._bgWrapCache.key === bgCacheKey) {
                                         bgWrapped = lyric._bgWrapCache.lines;
                                     } else {
-                                        const bgText = getBgText(lyric);
+                                        const bgText = this.getBgText(lyric);
                                         pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
                                         bgWrapped = wrapText(pipCtx, bgText, maxWidth);
                                         lyric._bgWrapCache = { key: bgCacheKey, lines: bgWrapped };
@@ -2392,6 +2349,28 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         return result;
     }
 
+    getDOMWrapContext() {
+        if (!this._domCtx) {
+            const canvas = document.createElement('canvas');
+            this._domCtx = canvas.getContext('2d');
+        }
+        
+        const dummy = document.createElement('div');
+        dummy.className = 'lyric-line md:py-3 max-md:py-1.5 font-black inline-block';
+        dummy.style.visibility = 'hidden';
+        dummy.style.position = 'absolute';
+        dummy.textContent = 'test';
+        if (this.lyricsContainer) this.lyricsContainer.appendChild(dummy);
+        
+        const style = window.getComputedStyle(dummy);
+        this._domCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+        
+        if (this.lyricsContainer) this.lyricsContainer.removeChild(dummy);
+        
+        const maxWidth = this.lyricsContainer ? (this.lyricsContainer.clientWidth - 48) : 300;
+        return { ctx: this._domCtx, maxWidth: maxWidth > 100 ? maxWidth : 300 };
+    }
+
     renderLyrics(keepScroll = false) {
         const currentScrollY = window.scrollY;
         this.lyricsContainer.innerHTML = '';
@@ -2399,6 +2378,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (!keepScroll) {
             this.scrollToPosition(0);
         }
+
+        const { ctx: domCtx, maxWidth } = this.getDOMWrapContext();
 
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
@@ -2446,32 +2427,48 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 sylSpan.innerHTML = '♪';
                 mainVocal.appendChild(sylSpan);
             } else {
-                let currentWordWrapper = document.createElement('span');
-                currentWordWrapper.className = 'inline-block max-w-full break-words';
+                let domLines = [];
+                
+                if (Array.isArray(line.text) && line.isWordSynced) {
+                    const text = this.getLineText(line, 'original');
+                    const wrappedStrings = wrapText(domCtx, text, maxWidth);
+                    const syllableLines = groupSyllablesByLines(line.text, wrappedStrings);
+                    domLines = syllableLines.map(sylArray => ({ text: sylArray, isSynced: true }));
+                } else {
+                    const text = this.getLineText(line, 'original');
+                    const wrappedStrings = wrapText(domCtx, text, maxWidth);
+                    domLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
+                }
 
-                line.text.forEach((syl, idx) => {
-                    const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
-                    const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
-
-                    const sylSpan = document.createElement('span');
-                    sylSpan.className = 'lyrics-syllable';
-                    sylSpan.id = `word-${line.id}-${idx}`;
-                    sylSpan.textContent = cleanText;
-                    currentWordWrapper.appendChild(sylSpan);
+                domLines.forEach((domLine, lineIdx) => {
+                    const currentWordWrapper = document.createElement('div');
+                    currentWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
                     
-                    const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.text.length - 1;
+                    if (domLine.isSynced) {
+                        domLine.text.forEach((syl, sylSubIdx) => {
+                            // Recover global index of the syllable
+                            const idx = line.text.indexOf(syl);
+                            const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
+                            const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
+                            
+                            const sylSpan = document.createElement('span');
+                            sylSpan.className = 'lyrics-syllable';
+                            sylSpan.id = `word-${line.id}-${idx}`;
+                            sylSpan.textContent = cleanText;
+                            
+                            currentWordWrapper.appendChild(sylSpan);
+                            if (hasSpace) {
+                                currentWordWrapper.appendChild(document.createTextNode(' '));
+                            }
+                        });
+                    } else {
+                        currentWordWrapper.textContent = domLine.text;
+                    }
                     
-                    if (isWordEnd) {
-                        mainVocal.appendChild(currentWordWrapper);
-                        
-                        if (syl.text.endsWith(' ') && idx < line.text.length - 1) {
-                            mainVocal.appendChild(document.createTextNode(' '));
-                        }
-                        
-                        if (idx < line.text.length - 1) {
-                            currentWordWrapper = document.createElement('span');
-                            currentWordWrapper.className = 'inline-block max-w-full break-words';
-                        }
+                    mainVocal.appendChild(currentWordWrapper);
+                    
+                    if (lineIdx < domLines.length - 1) {
+                        mainVocal.appendChild(document.createElement('br'));
                     }
                 });
             }
@@ -2481,32 +2478,54 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const bgVocal = document.createElement('div');
                 bgVocal.className = 'background-vocal-container';
                 
-                let bgWordWrapper = document.createElement('span');
-                bgWordWrapper.className = 'inline-block max-w-full break-words';
+                let domBgLines = [];
+                
+                if (Array.isArray(line.backgroundText)) {
+                    // Check if they are synced
+                    const isSyncedBg = line.backgroundText[0] && line.backgroundText[0].timestamp !== undefined;
+                    const bgText = this.getBgText(line);
+                    const wrappedStrings = wrapText(domCtx, bgText, maxWidth);
+                    if (isSyncedBg) {
+                        const syllableLines = groupSyllablesByLines(line.backgroundText, wrappedStrings);
+                        domBgLines = syllableLines.map(sylArray => ({ text: sylArray, isSynced: true }));
+                    } else {
+                        domBgLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
+                    }
+                } else {
+                    const bgText = this.getBgText(line);
+                    const wrappedStrings = wrapText(domCtx, bgText, maxWidth);
+                    domBgLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
+                }
 
-                line.backgroundText.forEach((syl, idx) => {
-                    const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
-                    const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
-
-                    const sylSpan = document.createElement('span');
-                    sylSpan.className = 'lyrics-syllable backing-vocal';
-                    sylSpan.id = `bgword-${line.id}-${idx}`;
-                    sylSpan.textContent = cleanText;
-                    bgWordWrapper.appendChild(sylSpan);
+                domBgLines.forEach((domLine, lineIdx) => {
+                    const bgWordWrapper = document.createElement('div');
+                    bgWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
                     
-                    const isWordEnd = syl.text.endsWith(' ') || syl.text === ' ' || idx === line.backgroundText.length - 1;
+                    if (domLine.isSynced) {
+                        domLine.text.forEach((syl, sylSubIdx) => {
+                            const idx = line.backgroundText.indexOf(syl);
+                            const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
+                            const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
+                            
+                            const sylSpan = document.createElement('span');
+                            sylSpan.className = 'lyrics-syllable backing-vocal';
+                            sylSpan.id = `bgword-${line.id}-${idx}`;
+                            sylSpan.textContent = cleanText;
+                            
+                            bgWordWrapper.appendChild(sylSpan);
+                            if (hasSpace) {
+                                bgWordWrapper.appendChild(document.createTextNode(' '));
+                            }
+                        });
+                    } else {
+                        bgWordWrapper.textContent = domLine.text;
+                        bgWordWrapper.className += ' backing-vocal';
+                    }
                     
-                    if (isWordEnd) {
-                        bgVocal.appendChild(bgWordWrapper);
-                        
-                        if (syl.text.endsWith(' ') && idx < line.backgroundText.length - 1) {
-                            bgVocal.appendChild(document.createTextNode(' '));
-                        }
-                        
-                        if (idx < line.backgroundText.length - 1) {
-                            bgWordWrapper = document.createElement('span');
-                            bgWordWrapper.className = 'inline-block max-w-full break-words';
-                        }
+                    bgVocal.appendChild(bgWordWrapper);
+                    
+                    if (lineIdx < domBgLines.length - 1) {
+                        bgVocal.appendChild(document.createElement('br'));
                     }
                 });
                 lineContainer.appendChild(bgVocal);
@@ -2515,12 +2534,33 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             if (this.currentLyricsMode === 'translation' && line.translation) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
-                transEl.textContent = line.translation;
+                const transText = this.getLineText(line, 'translation');
+                const wrappedTrans = wrapText(domCtx, transText, maxWidth);
+                
+                wrappedTrans.forEach((str, lineIdx) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
+                    wrapper.textContent = str;
+                    transEl.appendChild(wrapper);
+                    if (lineIdx < wrappedTrans.length - 1) transEl.appendChild(document.createElement('br'));
+                });
+                
                 lineContainer.appendChild(transEl);
             } else if (this.currentLyricsMode === 'romanized' && line.romanizedText) {
                 const romEl = document.createElement('div');
                 romEl.className = 'lyrics-romanization-container';
-                romEl.textContent = line.romanizedText;
+                
+                const romText = this.getLineText(line, 'romanized');
+                const wrappedRom = wrapText(domCtx, romText, maxWidth);
+                
+                wrappedRom.forEach((str, lineIdx) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
+                    wrapper.textContent = str;
+                    romEl.appendChild(wrapper);
+                    if (lineIdx < wrappedRom.length - 1) romEl.appendChild(document.createElement('br'));
+                });
+                
                 lineContainer.appendChild(romEl);
             }
 
