@@ -1008,8 +1008,8 @@ class LySincApp {
                 const scale = pipCanvas.width / 1080;
                 // Wider margin space (88% width, 6% each side)
                 const maxWidth = pipCanvas.width * 0.88;
-                const activeFontSize = Math.round(110 * scale);
-                const activeLineHeight = Math.round(140 * scale);
+                const activeFontSize = Math.round(85 * scale);
+                const activeLineHeight = Math.round(110 * scale);
                 const activeSpacing = Math.round(60 * scale);
                 
                 if (this.lyrics && this.lyrics.length > 0) {
@@ -1547,9 +1547,9 @@ class LySincApp {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
                 
-                // 4:3 canvas ratio — produces a shorter, more compact PiP window on mobile
+                // 3:4 portrait canvas — vertical rectangle, compact height on mobile
                 const pipW = 1080;
-                const pipH = 720;
+                const pipH = 1440;
                 
                 pipCanvas.width = pipW;
                 pipCanvas.height = pipH;
@@ -1575,7 +1575,7 @@ class LySincApp {
                 // Adapts initial PiP window size based on screen size (small on phone, larger on tablet)
                 const screenWidth = window.screen.width || window.innerWidth;
                 const videoW = Math.round(screenWidth * 0.32);
-                const videoH = Math.round(videoW * (pipH / pipW)); // 4:3 portrait (shorter)
+                const videoH = Math.round(videoW * (pipH / pipW)); // 3:4 portrait (vertical)
                 
                 pipVideo.style.width = videoW + 'px';
                 pipVideo.style.height = videoH + 'px';
