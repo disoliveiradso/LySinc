@@ -170,13 +170,23 @@ body, html {
     /* Floating controls: button on left, so drawer slides in from the left */
     #floating-menu-content.menu-drawer {
         transform-origin: left center;
+        transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        max-width: 600px;
+        overflow: hidden;
     }
     #floating-menu-content.menu-drawer.closed {
         transform: translateX(-20px) scale(0.95);
+        max-width: 0;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-width: 0 !important;
     }
-    #header-controls-container.menu-drawer.open,
+    #header-controls-container.menu-drawer.open {
+        transform: translateX(0) scale(1);
+    }
     #floating-menu-content.menu-drawer.open {
         transform: translateX(0) scale(1);
+        max-width: 600px;
     }
 }
 
