@@ -2380,8 +2380,16 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         
         if (this.lyricsContainer) this.lyricsContainer.removeChild(dummy);
         
-        const maxWidth = this.lyricsContainer ? (this.lyricsContainer.clientWidth - 48) : 300;
-        return { ctx: this._domCtx, maxWidth: maxWidth > 100 ? maxWidth : 300 };
+        let containerWidth = this.lyricsContainer ? this.lyricsContainer.clientWidth : 0;
+        
+        // Se o container estiver oculto (display: none) no momento do carregamento, 
+        // o clientWidth ser 0. Neste caso, estimamos a largura com base na tela.
+        if (containerWidth < 100) {
+            containerWidth = window.innerWidth >= 768 ? (window.innerWidth * 0.55) : window.innerWidth;
+        }
+        
+        const maxWidth = containerWidth - 48;
+        return { ctx: this._domCtx, maxWidth: maxWidth > 300 ? maxWidth : 300 };
     }
 
     renderLyrics(keepScroll = false) {
