@@ -1098,12 +1098,10 @@ class LySincApp {
                             return 0;
                         };
 
-                        // Clamp scrollY so that the first lyric line starts near the top of the canvas, and the last line (Fim) doesn't leave empty gap below
+                        // Clamp scrollY so that the first lyric line starts near the top of the canvas, preventing the initial huge empty gap
                         const rawScrollY = getInterpolatedStackY(this.pipActiveIndexSmooth);
                         const minScrollY = centerY - activeLineHeight * 1.5;
-                        const lastItem = linesToDraw[linesToDraw.length - 1];
-                        const maxScrollY = lastItem ? (lastItem.stackY - centerY + activeLineHeight * 1.5) : rawScrollY;
-                        const scrollY = Math.max(minScrollY, Math.min(maxScrollY, rawScrollY));
+                        const scrollY = Math.max(minScrollY, rawScrollY);
 
                         // Draw each line in range
                         linesToDraw.forEach(item => {
