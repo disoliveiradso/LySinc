@@ -794,7 +794,6 @@ class LySincApp {
         };
 
         setupMediaEvent(this.btnTopPrev, 'prev');
-        setupMediaEvent(this.btnFloatingPrev, 'prev');
         setupMediaEvent(this.btnTopNext, 'next');
         setupMediaEvent(this.btnFloatingNext, 'next');
         setupMediaEvent(this.btnTopPlayPause, 'playpause');
@@ -872,23 +871,60 @@ class LySincApp {
         let silentAudio = null;
 
         const wrapText = (ctx, text, maxWidth) => {
-            const words = text.split(' ');
-            if (words.length <= 1) return [text];
-            
-            let lines = [];
-            let currentLine = words[0];
+            // Helper: break a word with hyphen if it's too long for maxWidth
+            const breakWordWithHyphen = (word) => {
+                const parts = [];
+                let remaining = word;
+                while (ctx.measureText(remaining + '-').width > maxWidth && remaining.length > 2) {
+                    let cutAt = remaining.length - 1;
+                    while (cutAt > 1 && ctx.measureText(remaining.slice(0, cutAt) + '-').width > maxWidth) {
+                        cutAt--;
+                    }
+                    parts.push(remaining.slice(0, cutAt) + '-');
+                    remaining = remaining.slice(cutAt);
+                }
+                parts.push(remaining);
+                return parts;
+            };
 
-            for (let i = 1; i < words.length; i++) {
+            const words = text.split(' ');
+            let lines = [];
+            let currentLine = '';
+
+            for (let i = 0; i < words.length; i++) {
                 const word = words[i];
-                const width = ctx.measureText(currentLine + " " + word).width;
-                if (width < maxWidth) {
-                    currentLine += " " + word;
+                const candidate = currentLine ? currentLine + ' ' + word : word;
+                if (ctx.measureText(candidate).width <= maxWidth) {
+                    currentLine = candidate;
                 } else {
-                    lines.push(currentLine);
-                    currentLine = word;
+                    // Word doesn't fit on current line
+                    if (currentLine) {
+                        // Check if the word alone is too wide
+                        if (ctx.measureText(word).width > maxWidth) {
+                            // Flush current line first
+                            lines.push(currentLine);
+                            currentLine = '';
+                            // Break the word with hyphens
+                            const broken = breakWordWithHyphen(word);
+                            for (let b = 0; b < broken.length - 1; b++) {
+                                lines.push(broken[b]);
+                            }
+                            currentLine = broken[broken.length - 1];
+                        } else {
+                            lines.push(currentLine);
+                            currentLine = word;
+                        }
+                    } else {
+                        // currentLine is empty: word alone is still too wide
+                        const broken = breakWordWithHyphen(word);
+                        for (let b = 0; b < broken.length - 1; b++) {
+                            lines.push(broken[b]);
+                        }
+                        currentLine = broken[broken.length - 1];
+                    }
                 }
             }
-            lines.push(currentLine);
+            if (currentLine) lines.push(currentLine);
             
             // Prevent typographic orphans (single word on the last line)
             if (lines.length > 1) {
@@ -1316,7 +1352,9 @@ class LySincApp {
                             
                             // Draw background vocals (backing vocals) or subtitles (translation/romanized) if present
                             if (item.bgWrapped.length > 0 && item.bgHeight > 0) {
-                                let bgStartY = mainHeight / 2 + (activeLineHeight * 0.65 / 2);
+                                // startY is already pointing past the last main line at this point
+                                // Add a small gap (half the bg font size) to position bg text right below
+                                let bgStartY = startY + (activeLineHeight * 0.65) * 0.1;
                                 pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
                                 
                                 if (isItemActive) {
@@ -1509,9 +1547,9 @@ class LySincApp {
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
                 
-                // Fixed standard 9:16 vertical ratio for the canvas to prevent OS full-screen PiP bug
+                // 1:1 square canvas — reduces the PiP window height on mobile devices
                 const pipW = 1080;
-                const pipH = 1920;
+                const pipH = 1080;
                 
                 pipCanvas.width = pipW;
                 pipCanvas.height = pipH;
@@ -1537,7 +1575,7 @@ class LySincApp {
                 // Adapts initial PiP window size based on screen size (small on phone, larger on tablet)
                 const screenWidth = window.screen.width || window.innerWidth;
                 const videoW = Math.round(screenWidth * 0.32);
-                const videoH = Math.round(videoW * (pipH / pipW));
+                const videoH = Math.round(videoW * (pipH / pipW)); // 1:1 = same width and height
                 
                 pipVideo.style.width = videoW + 'px';
                 pipVideo.style.height = videoH + 'px';

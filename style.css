@@ -160,16 +160,16 @@ body, html {
     .menu-drawer {
         transform-origin: right center;
     }
-    /* For Header Controls: Slide right */
+    /* For Header Controls: Slide from the right */
     #header-controls-container.menu-drawer.closed {
         transform: translateX(20px);
     }
     #header-controls-container.menu-drawer.open {
         transform: translateX(0);
     }
-    /* For Floating Controls: Slide left */
+    /* For Floating Controls: Same animation as header — slide from the right */
     #floating-menu-content.menu-drawer.closed {
-        transform: translateX(-20px);
+        transform: translateX(20px);
     }
     #floating-menu-content.menu-drawer.open {
         transform: translateX(0);
@@ -192,6 +192,8 @@ body, html {
     word-break: break-word;
     overflow-wrap: break-word;
     text-wrap: balance;
+    hyphens: auto;
+    -webkit-hyphens: auto;
     
     
     font-size: clamp(1.8rem, 4vw, 2.8rem);
