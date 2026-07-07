@@ -1290,33 +1290,24 @@ class LySincApp {
                                         pipCtx.textAlign = 'left';
                                         let currentX = alignRight ? startX - totalLineWidth : startX;
                                         lineSyls.forEach(syl => {
+                                            const sylWidth = pipCtx.measureText(syl.text).width;
                                             const isActiveWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
                                             const isLightMode = document.body.classList.contains('light-mode');
                                             
                                             pipCtx.save();
                                             if (isActiveWord && !isLightMode) {
                                                 const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
+                                                const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
+                                                const duration = wEnd - wStart;
                                                 const elapsed = smoothProgress - wStart;
-                                                const pulseDuration = 400;
-                                                if (elapsed >= 0 && elapsed <= pulseDuration) {
-                                                    const pct = elapsed / pulseDuration;
-                                                    const wave = Math.sin(pct * Math.PI);
-                                                    
-                                                    // Pivot at currentX
-                                                    pipCtx.translate(currentX, startY);
-                                                    pipCtx.scale(1 + wave * 0.05, 1 + wave * 0.05);
-                                                    // Translate back by offset
-                                                    pipCtx.translate(-currentX, -startY);
-                                                    // Slight Y peak lift
-                                                    pipCtx.translate(0, -wave * 2);
-                                                    
-                                                    // Add glow shadow
-                                                    pipCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-                                                    pipCtx.shadowBlur = 4;
-                                                }
+                                                const pct = duration > 0 ? Math.max(0, Math.min(1, elapsed / duration)) : 0;
+                                                const wave = Math.sin(pct * Math.PI);
+                                                
+                                                const bumpX = 4 * wave * scale;
+                                                
+                                                pipCtx.translate(bumpX, 0);
                                             }
                                             
-                                            const sylWidth = pipCtx.measureText(syl.text).width;
                                             pipCtx.fillText(syl.text, currentX, startY);
                                             pipCtx.restore();
                                             currentX += sylWidth;
@@ -1431,28 +1422,23 @@ class LySincApp {
                                             pipCtx.textAlign = 'left';
                                             let currentBgX = alignRight ? startX - totalBgLineWidth : startX;
                                             bgLineSyls.forEach(syl => {
+                                                const sylWidth = pipCtx.measureText(syl.text).width;
                                                 const isActiveBgWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
                                                 
                                                 pipCtx.save();
                                                 if (isActiveBgWord && !isLightMode) {
                                                     const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
+                                                    const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
+                                                    const duration = wEnd - wStart;
                                                     const elapsed = smoothProgress - wStart;
-                                                    const pulseDuration = 400;
-                                                    if (elapsed >= 0 && elapsed <= pulseDuration) {
-                                                        const pct = elapsed / pulseDuration;
-                                                        const wave = Math.sin(pct * Math.PI);
-                                                        
-                                                        pipCtx.translate(currentBgX, bgStartY);
-                                                        pipCtx.scale(1 + wave * 0.05, 1 + wave * 0.05);
-                                                        pipCtx.translate(-currentBgX, -bgStartY);
-                                                        pipCtx.translate(0, -wave * 2);
-                                                        
-                                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-                                                        pipCtx.shadowBlur = 4;
-                                                    }
+                                                    const pct = duration > 0 ? Math.max(0, Math.min(1, elapsed / duration)) : 0;
+                                                    const wave = Math.sin(pct * Math.PI);
+                                                    
+                                                    const bumpX = 4 * wave * scale;
+                                                    
+                                                    pipCtx.translate(bumpX, 0);
                                                 }
                                                 
-                                                const sylWidth = pipCtx.measureText(syl.text).width;
                                                 pipCtx.fillText(syl.text, currentBgX, bgStartY);
                                                 pipCtx.restore();
                                                 
