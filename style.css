@@ -354,34 +354,35 @@ body, html {
 @keyframes grow-dynamic {
     0% {
         transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
-        filter: drop-shadow(0 0 0 transparent);
+        text-shadow: none;
     }
-    25%, 30% {
-        transform: translate3d(var(--char-offset-x, 0px), var(--translate-y-peak, -2px), 0) scale3d(var(--matrix-scale, 1.1), var(--matrix-scale, 1.1), 1);
-        filter: drop-shadow(0 0 0.1em rgba(255, 255, 255, var(--shadow-intensity, 0.4)));
+    30% {
+        transform: translate3d(var(--char-offset-x, 0px), -1px, 0) scale3d(1.05, 1.05, 1);
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
     }
-    75%, 100% {
-        transform: translate3d(var(--char-offset-x, 0px), var(--translate-y-final, 0px), 0) scale3d(1, 1, 1);
-        filter: drop-shadow(0 0 0 transparent);
+    100% {
+        transform: translate3d(var(--char-offset-x, 0px), 0px, 0) scale3d(1, 1, 1);
+        text-shadow: none;
     }
+}
+
+.lyric-char {
+    display: inline-block;
+    will-change: transform;
+    transform-origin: left center;
 }
 
 .lyric-word {
     display: inline-block;
 }
 
-.lyric-char {
-    display: inline-block;
-    will-change: transform;
-    transform-origin: 50% 80%;
-    transform: translate3d(0, 0, 0);
-}
 .lyric-word:has(.lyrics-syllable.current) .lyric-char {
-    animation: grow-dynamic 450ms ease-in-out var(--char-delay, 0ms) forwards;
+    animation: grow-dynamic 0.5s ease-in-out forwards;
+    animation-delay: var(--char-delay, 0s);
 }
-.light-mode .lyric-char {
+
+.light-mode .lyric-word:has(.lyrics-syllable.current) .lyric-char {
     animation: none !important;
-    transform: none !important;
 }
 
 .lyrics-syllable.passed {
