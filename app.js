@@ -1297,11 +1297,13 @@ class LySincApp {
                                             if (isActiveWord && !isLightMode) {
                                                 const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
                                                 const elapsed = smoothProgress - wStart;
-                                                const pulseDuration = 400;
+                                                const pulseDuration = 450;
                                                 if (elapsed >= 0 && elapsed <= pulseDuration) {
                                                     const pct = elapsed / pulseDuration;
                                                     const wave = Math.sin(pct * Math.PI);
-                                                    pipCtx.letterSpacing = (wave * 0.05) + "em";
+                                                    const scaleAmount = 1 + (0.05 * wave);
+                                                    pipCtx.translate(0, -2 * wave * scale);
+                                                    pipCtx.scale(scaleAmount, scaleAmount);
                                                 }
                                             }
                                             
@@ -1426,11 +1428,13 @@ class LySincApp {
                                                 if (isActiveBgWord && !isLightMode) {
                                                     const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
                                                     const elapsed = smoothProgress - wStart;
-                                                    const pulseDuration = 400;
+                                                    const pulseDuration = 450;
                                                     if (elapsed >= 0 && elapsed <= pulseDuration) {
                                                         const pct = elapsed / pulseDuration;
                                                         const wave = Math.sin(pct * Math.PI);
-                                                        pipCtx.letterSpacing = (wave * 0.05) + "em";
+                                                        const scaleAmount = 1 + (0.05 * wave);
+                                                        pipCtx.translate(0, -2 * wave * scale);
+                                                        pipCtx.scale(scaleAmount, scaleAmount);
                                                     }
                                                 }
                                                 
@@ -2513,6 +2517,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     
                     if (domLine.isSynced) {
                         let currentWordSpan = null;
+                        let wordCharIndex = 0;
                         
                         domLine.text.forEach((syl, sylSubIdx) => {
                             // Recover global index of the syllable
@@ -2523,7 +2528,21 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             const sylSpan = document.createElement('span');
                             sylSpan.className = 'lyrics-syllable';
                             sylSpan.id = `word-${line.id}-${idx}`;
-                            sylSpan.textContent = cleanText;
+                            
+                            const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
+                            const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
+                            const wDur = wEnd - wStart;
+                            const baseDelay = wDur * 0.09;
+                            
+                            for (let i = 0; i < cleanText.length; i++) {
+                                const charSpan = document.createElement('span');
+                                charSpan.className = 'lyric-char';
+                                charSpan.textContent = cleanText[i];
+                                charSpan.style.setProperty('--char-delay', `${baseDelay * wordCharIndex}ms`);
+                                charSpan.style.setProperty('--char-offset-x', `${wordCharIndex * 1.5}px`);
+                                sylSpan.appendChild(charSpan);
+                                wordCharIndex++;
+                            }
                             
                             if (!currentWordSpan) {
                                 currentWordSpan = document.createElement('span');
@@ -2536,6 +2555,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             if (hasSpace) {
                                 currentWordWrapper.appendChild(document.createTextNode(' '));
                                 currentWordSpan = null;
+                                wordCharIndex = 0;
                             }
                         });
                     } else {
@@ -2580,6 +2600,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     
                     if (domLine.isSynced) {
                         let currentBgWordSpan = null;
+                        let wordCharIndex = 0;
                         
                         domLine.text.forEach((syl, sylSubIdx) => {
                             const idx = line.backgroundText.indexOf(syl);
@@ -2589,7 +2610,21 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             const sylSpan = document.createElement('span');
                             sylSpan.className = 'lyrics-syllable backing-vocal';
                             sylSpan.id = `bgword-${line.id}-${idx}`;
-                            sylSpan.textContent = cleanText;
+                            
+                            const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
+                            const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
+                            const wDur = wEnd - wStart;
+                            const baseDelay = wDur * 0.09;
+                            
+                            for (let i = 0; i < cleanText.length; i++) {
+                                const charSpan = document.createElement('span');
+                                charSpan.className = 'lyric-char';
+                                charSpan.textContent = cleanText[i];
+                                charSpan.style.setProperty('--char-delay', `${baseDelay * wordCharIndex}ms`);
+                                charSpan.style.setProperty('--char-offset-x', `${wordCharIndex * 1.5}px`);
+                                sylSpan.appendChild(charSpan);
+                                wordCharIndex++;
+                            }
                             
                             if (!currentBgWordSpan) {
                                 currentBgWordSpan = document.createElement('span');
@@ -2602,6 +2637,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             if (hasSpace) {
                                 bgWordWrapper.appendChild(document.createTextNode(' '));
                                 currentBgWordSpan = null;
+                                wordCharIndex = 0;
                             }
                         });
                     } else {
