@@ -1301,7 +1301,18 @@ class LySincApp {
                                                 if (elapsed >= 0 && elapsed <= pulseDuration) {
                                                     const pct = elapsed / pulseDuration;
                                                     const wave = Math.sin(pct * Math.PI);
-                                                    pipCtx.letterSpacing = (wave * 0.05) + "em";
+                                                    
+                                                    // Pivot at currentX
+                                                    pipCtx.translate(currentX, startY);
+                                                    pipCtx.scale(1 + wave * 0.05, 1 + wave * 0.05);
+                                                    // Translate back by offset
+                                                    pipCtx.translate(-currentX, -startY);
+                                                    // Slight Y peak lift
+                                                    pipCtx.translate(0, -wave * 2);
+                                                    
+                                                    // Add glow shadow
+                                                    pipCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+                                                    pipCtx.shadowBlur = 4;
                                                 }
                                             }
                                             
@@ -1430,7 +1441,14 @@ class LySincApp {
                                                     if (elapsed >= 0 && elapsed <= pulseDuration) {
                                                         const pct = elapsed / pulseDuration;
                                                         const wave = Math.sin(pct * Math.PI);
-                                                        pipCtx.letterSpacing = (wave * 0.05) + "em";
+                                                        
+                                                        pipCtx.translate(currentBgX, bgStartY);
+                                                        pipCtx.scale(1 + wave * 0.05, 1 + wave * 0.05);
+                                                        pipCtx.translate(-currentBgX, -bgStartY);
+                                                        pipCtx.translate(0, -wave * 2);
+                                                        
+                                                        pipCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+                                                        pipCtx.shadowBlur = 4;
                                                     }
                                                 }
                                                 
@@ -2523,17 +2541,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             const sylSpan = document.createElement('span');
                             sylSpan.className = 'lyrics-syllable';
                             sylSpan.id = `word-${line.id}-${idx}`;
-                            
-                            const chars = Array.from(cleanText);
-                            chars.forEach((char, charIdx) => {
-                                const charSpan = document.createElement('span');
-                                charSpan.className = 'lyric-char';
-                                charSpan.textContent = char;
-                                const horizontalOffset = charIdx * 1.5;
-                                charSpan.style.setProperty('--char-offset-x', `${horizontalOffset}px`);
-                                charSpan.style.setProperty('--char-delay', `${charIdx * 0.03}s`);
-                                sylSpan.appendChild(charSpan);
-                            });
+                            sylSpan.textContent = cleanText;
                             
                             if (!currentWordSpan) {
                                 currentWordSpan = document.createElement('span');
@@ -2599,17 +2607,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                             const sylSpan = document.createElement('span');
                             sylSpan.className = 'lyrics-syllable backing-vocal';
                             sylSpan.id = `bgword-${line.id}-${idx}`;
-                            
-                            const chars = Array.from(cleanText);
-                            chars.forEach((char, charIdx) => {
-                                const charSpan = document.createElement('span');
-                                charSpan.className = 'lyric-char';
-                                charSpan.textContent = char;
-                                const horizontalOffset = charIdx * 1.5;
-                                charSpan.style.setProperty('--char-offset-x', `${horizontalOffset}px`);
-                                charSpan.style.setProperty('--char-delay', `${charIdx * 0.03}s`);
-                                sylSpan.appendChild(charSpan);
-                            });
+                            sylSpan.textContent = cleanText;
                             
                             if (!currentBgWordSpan) {
                                 currentBgWordSpan = document.createElement('span');

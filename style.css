@@ -352,36 +352,28 @@ body, html {
 }
 
 @keyframes grow-dynamic {
-    0% {
-        transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
-        text-shadow: none;
-    }
-    30% {
-        transform: translate3d(var(--char-offset-x, 0px), -1px, 0) scale3d(1.05, 1.05, 1);
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
-    }
-    100% {
-        transform: translate3d(var(--char-offset-x, 0px), 0px, 0) scale3d(1, 1, 1);
-        text-shadow: none;
-    }
-}
-
-.lyric-char {
-    display: inline-block;
-    will-change: transform;
-    transform-origin: left center;
+  0% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  25%, 30% {
+    transform: translate3d(0px, -2px, 0) scale3d(1.05, 1.05, 1);
+    filter: drop-shadow(0 0 0.1em rgba(255, 255, 255, 0.4));
+  }
+  75%, 100% {
+    transform: translate3d(0px, 0px, 0) scale3d(1, 1, 1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
 }
 
 .lyric-word {
     display: inline-block;
+    transform-origin: left center;
 }
-
-.lyric-word:has(.lyrics-syllable.current) .lyric-char {
-    animation: grow-dynamic 0.5s ease-in-out forwards;
-    animation-delay: var(--char-delay, 0s);
+.lyric-word:has(.lyrics-syllable.current) {
+    animation: grow-dynamic 400ms ease-in-out forwards;
 }
-
-.light-mode .lyric-word:has(.lyrics-syllable.current) .lyric-char {
+.light-mode .lyric-word:has(.lyrics-syllable.current) {
     animation: none !important;
 }
 
