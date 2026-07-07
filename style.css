@@ -353,14 +353,6 @@ body, html {
 
 .lyric-word {
     display: inline-block;
-    transition: transform 0.25s ease;
-}
-.lyric-word:has(.lyrics-syllable.current) {
-    transform: translateX(4px);
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.light-mode .lyric-word:has(.lyrics-syllable.current) {
-    transform: none !important;
 }
 
 .lyrics-syllable.passed {

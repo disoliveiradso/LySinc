@@ -1295,18 +1295,6 @@ class LySincApp {
                                             const isLightMode = document.body.classList.contains('light-mode');
                                             
                                             pipCtx.save();
-                                            if (isActiveWord && !isLightMode) {
-                                                const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
-                                                const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
-                                                const duration = wEnd - wStart;
-                                                const elapsed = smoothProgress - wStart;
-                                                const pct = duration > 0 ? Math.max(0, Math.min(1, elapsed / duration)) : 0;
-                                                const wave = Math.sin(pct * Math.PI);
-                                                
-                                                const bumpX = 4 * wave * scale;
-                                                
-                                                pipCtx.translate(bumpX, 0);
-                                            }
                                             
                                             pipCtx.fillText(syl.text, currentX, startY);
                                             pipCtx.restore();
@@ -1426,18 +1414,6 @@ class LySincApp {
                                                 const isActiveBgWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
                                                 
                                                 pipCtx.save();
-                                                if (isActiveBgWord && !isLightMode) {
-                                                    const wStart = syl.wordTimestamp !== undefined ? syl.wordTimestamp : syl.timestamp;
-                                                    const wEnd = syl.wordEndtime !== undefined ? syl.wordEndtime : syl.endtime;
-                                                    const duration = wEnd - wStart;
-                                                    const elapsed = smoothProgress - wStart;
-                                                    const pct = duration > 0 ? Math.max(0, Math.min(1, elapsed / duration)) : 0;
-                                                    const wave = Math.sin(pct * Math.PI);
-                                                    
-                                                    const bumpX = 4 * wave * scale;
-                                                    
-                                                    pipCtx.translate(bumpX, 0);
-                                                }
                                                 
                                                 pipCtx.fillText(syl.text, currentBgX, bgStartY);
                                                 pipCtx.restore();
