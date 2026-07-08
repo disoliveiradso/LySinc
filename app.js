@@ -2045,6 +2045,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         }
 
         this.showScreen('main');
+        this.setupMarquee(this.trackName);
+        this.setupMarquee(this.trackArtists);
 
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
@@ -2070,11 +2072,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 this.footerExplicit.classList.remove('flex');
             }
         }
-
-        setTimeout(() => {
-            this.setupMarquee(this.trackName);
-            this.setupMarquee(this.trackArtists);
-        }, 50);
 
         if (state.albumArtUrl) {
             this.albumArt.src = state.albumArtUrl;
@@ -2129,7 +2126,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     setupMarquee(element) {
         if (!element) return;
         
-        // Force the element to be truncated first to get a clean container measurement (non-expanded by text)
         element.classList.add('truncate');
         element.classList.remove('marquee-text');
         element.style.removeProperty('--scroll-dist');
@@ -2142,21 +2138,18 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
         const containerWidth = container.clientWidth;
 
-        // Temporarily remove truncate and force nowrap to measure the full text width
         element.classList.remove('truncate');
         const originalWhiteSpace = element.style.whiteSpace;
         element.style.whiteSpace = 'nowrap';
         const textWidth = element.scrollWidth;
-        element.style.whiteSpace = originalWhiteSpace; // restore
+        element.style.whiteSpace = originalWhiteSpace;
 
-        // Account for explicit icon width if it is visible
         const explicitIcon = document.getElementById('explicit-icon-header');
         const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
         const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
         const availableWidth = containerWidth - reservedSpace;
 
         if (textWidth > availableWidth) {
-            // Apply scroll distance
             element.style.setProperty('--scroll-dist', `-${textWidth - availableWidth + 30}px`);
             element.classList.add('marquee-text');
             if (element.parentElement) {
