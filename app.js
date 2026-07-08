@@ -1801,16 +1801,16 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
                     const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
                     btnRecenterClone.id = 'btn-recenter-pip';
-                    btnRecenterClone.style.position = 'fixed';
+                    btnRecenterClone.style.position = 'sticky';
                     btnRecenterClone.style.bottom = '2rem';
-                    btnRecenterClone.style.left = '50%';
-                    btnRecenterClone.style.transform = 'translateX(-50%)';
+                    btnRecenterClone.style.alignSelf = 'flex-start';
+                    btnRecenterClone.style.marginLeft = '0.5rem';
                     btnRecenterClone.style.zIndex = '50';
                     btnRecenterClone.style.display = 'flex';
                     btnRecenterClone.style.alignItems = 'center';
                     btnRecenterClone.style.justifyContent = 'center';
                     btnRecenterClone.style.whiteSpace = 'nowrap';
-                    pipWindow.document.body.appendChild(btnRecenterClone);
+                    pipMain.appendChild(btnRecenterClone);
 
                     let pipScrollTimeout;
                     const handlePipUserInteraction = () => {
