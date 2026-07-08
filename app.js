@@ -1801,16 +1801,15 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
                     const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
                     btnRecenterClone.id = 'btn-recenter-pip';
-                    btnRecenterClone.style.position = 'sticky';
+                    btnRecenterClone.style.position = 'fixed';
                     btnRecenterClone.style.bottom = '2rem';
-                    btnRecenterClone.style.alignSelf = 'flex-start';
-                    btnRecenterClone.style.marginLeft = '0.5rem';
+                    btnRecenterClone.style.left = '1.5rem';
                     btnRecenterClone.style.zIndex = '50';
                     btnRecenterClone.style.display = 'flex';
                     btnRecenterClone.style.alignItems = 'center';
                     btnRecenterClone.style.justifyContent = 'center';
                     btnRecenterClone.style.whiteSpace = 'nowrap';
-                    pipMain.appendChild(btnRecenterClone);
+                    pipWindow.document.body.appendChild(btnRecenterClone);
 
                     let pipScrollTimeout;
                     const handlePipUserInteraction = () => {
@@ -1835,6 +1834,17 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
                     pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
                     pipWindow.addEventListener('scroll', () => {
+                        const credits = pipWindow.document.getElementById('lyrics-credits-block');
+                        if (credits) {
+                            const rect = credits.getBoundingClientRect();
+                            const desiredBottom = 32; // 2rem
+                            const distanceToBottom = pipWindow.innerHeight - rect.top;
+                            if (distanceToBottom > desiredBottom) {
+                                btnRecenterClone.style.bottom = (distanceToBottom + 16) + 'px';
+                            } else {
+                                btnRecenterClone.style.bottom = '2rem';
+                            }
+                        }
 
                         if (Date.now() - this.lastAutoScrollTime < 800) {
                             return;
