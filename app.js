@@ -57,15 +57,23 @@ const wrapText = (ctx, text, maxWidth) => {
         
         if (wordsPerLine[wordsPerLine.length - 1].length === 1 && wordsPerLine.length > 1) {
             if (wordsPerLine[wordsPerLine.length - 2].length > 1) {
-                let word = wordsPerLine[wordsPerLine.length - 2].pop();
-                wordsPerLine[wordsPerLine.length - 1].unshift(word);
+                let word = wordsPerLine[wordsPerLine.length - 2][wordsPerLine[wordsPerLine.length - 2].length - 1];
+                let candidateLine = word + ' ' + wordsPerLine[wordsPerLine.length - 1].join(' ');
+                if (ctx.measureText(candidateLine).width <= maxWidth) {
+                    wordsPerLine[wordsPerLine.length - 2].pop();
+                    wordsPerLine[wordsPerLine.length - 1].unshift(word);
+                }
             }
         }
         
         if (wordsPerLine[0].length === 1 && wordsPerLine.length > 1) {
             if (wordsPerLine[1].length > 1) {
-                let word = wordsPerLine[1].shift();
-                wordsPerLine[0].push(word);
+                let word = wordsPerLine[1][0];
+                let candidateLine = wordsPerLine[0].join(' ') + ' ' + word;
+                if (ctx.measureText(candidateLine).width <= maxWidth) {
+                    wordsPerLine[1].shift();
+                    wordsPerLine[0].push(word);
+                }
             }
         }
         
