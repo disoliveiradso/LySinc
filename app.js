@@ -746,7 +746,7 @@ class LySincApp {
                 this.currentLyricsProvider = providers[nextIndex];
                 
                 const providerLabels = {
-                    'apple': 'Apple Music',
+                    'apple': 'Apple',
                     'musixmatch': 'Musixmatch',
                     'lrclib': 'LrcLib',
                     'netease': 'NetEase'
@@ -896,6 +896,7 @@ class LySincApp {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if (action === 'prev') {
+                        this.lastUserSeekTime = Date.now();
                         const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
                         const currentMs = this.progressMs + elapsed;
                         if (currentMs > 3000) {
@@ -904,16 +905,33 @@ class LySincApp {
                             await SpotifyService.previousTrack();
                         }
                     }
-                    if (action === 'next') await SpotifyService.nextTrack();
+                    if (action === 'next') {
+                        this.lastUserSeekTime = Date.now();
+                        await SpotifyService.nextTrack();
+                    }
                     if (action === 'playpause') {
+                        this.lastUserSeekTime = Date.now();
                         if (this.isPlaying) {
-                            await SpotifyService.pauseTrack();
+                            this.isPlaying = false;
+                            const elapsed = this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
+                            this.progressMs = Math.min(this.progressMs + elapsed + this.syncOffset, this.durationMs);
+                            this.lastSyncTime = 0;
+                            
+                            this.updatePlayPauseUI();
+                            this.updateProgressBar(this.progressMs);
+                            this.updateLyricsSync(this.progressMs);
+                            
+                            await SpotifyService.pauseTrack().catch(err => console.error(err));
                         } else {
-                            await SpotifyService.playTrack();
+                            this.isPlaying = true;
+                            this.lastSyncTime = Date.now();
+                            
+                            this.updatePlayPauseUI();
+                            await SpotifyService.playTrack().catch(err => console.error(err));
                         }
                     }
 
-                    setTimeout(() => this.pollPlayerState(), 200);
+                    setTimeout(() => this.pollPlayerState(), 2000);
                 });
             }
         };
@@ -1981,17 +1999,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         }
         this.durationMs = state.durationMs;
 
-        if (this.isPlaying) {
-            if (this.iconTopPlay) this.iconTopPlay.classList.add('hidden');
-            if (this.iconTopPause) this.iconTopPause.classList.remove('hidden');
-            if (this.iconFloatingPlay) this.iconFloatingPlay.classList.add('hidden');
-            if (this.iconFloatingPause) this.iconFloatingPause.classList.remove('hidden');
-        } else {
-            if (this.iconTopPlay) this.iconTopPlay.classList.remove('hidden');
-            if (this.iconTopPause) this.iconTopPause.classList.add('hidden');
-            if (this.iconFloatingPlay) this.iconFloatingPlay.classList.remove('hidden');
-            if (this.iconFloatingPause) this.iconFloatingPause.classList.add('hidden');
-        }
+        this.updatePlayPauseUI();
 
         if (stateTrackId !== this.currentTrackId) {
             const isAutoSkip = this.currentTrackId !== null && this.isPlaying;
@@ -2023,11 +2031,15 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             const isOutOfSync = diff > syncThreshold;
 
             if (isSeek || isOutOfSync) {
-                this.progressMs = state.progressMs + safeCompensation;
-                this.lastSyncTime = Date.now();
-                console.log(`[LySinc] Sincronização alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
+                const isBackwardJump = state.progressMs < currentLocalProgress;
+                if (!isSeek && isBackwardJump && diff < 3000) {
+                    console.log(`[LySinc] Ignorado ajuste para trás devido a lag do Spotify (diff=${diff}ms)`);
+                } else {
+                    this.progressMs = state.progressMs + safeCompensation;
+                    this.lastSyncTime = Date.now();
+                    console.log(`[LySinc] Sincronização alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
+                }
             } else {
-
                 console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
             }
         }
@@ -3106,6 +3118,20 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.floatingMenuContent.classList.add('closed');
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
+        }
+    }
+
+    updatePlayPauseUI() {
+        if (this.isPlaying) {
+            if (this.iconTopPlay) this.iconTopPlay.classList.add('hidden');
+            if (this.iconTopPause) this.iconTopPause.classList.remove('hidden');
+            if (this.iconFloatingPlay) this.iconFloatingPlay.classList.add('hidden');
+            if (this.iconFloatingPause) this.iconFloatingPause.classList.remove('hidden');
+        } else {
+            if (this.iconTopPlay) this.iconTopPlay.classList.remove('hidden');
+            if (this.iconTopPause) this.iconTopPause.classList.add('hidden');
+            if (this.iconFloatingPlay) this.iconFloatingPlay.classList.remove('hidden');
+            if (this.iconFloatingPause) this.iconFloatingPause.classList.add('hidden');
         }
     }
 
