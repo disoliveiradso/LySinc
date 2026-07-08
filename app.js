@@ -447,6 +447,15 @@ class LySincApp {
     }
 
     setupEventListeners() {
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (this.trackName) this.setupMarquee(this.trackName);
+                if (this.trackArtists) this.setupMarquee(this.trackArtists);
+            }, 300);
+        });
+
         document.addEventListener('click', (e) => {
             if (window.matchMedia("(hover: none)").matches) {
                 const btn = e.target.closest('button');
