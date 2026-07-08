@@ -712,11 +712,6 @@ input:focus {
     margin-bottom: 0;
 }
 
-@media (min-width: 896px) {
-    #floating-controls-wrapper {
-        left: calc(50vw - 448px + 1.5rem);
-    }
-}
 
 
 
