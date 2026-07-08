@@ -2139,19 +2139,30 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         
         element.style.transform = 'translateX(0)';
         element.classList.remove('truncate', 'marquee-text');
-        
-        element.style.whiteSpace = 'nowrap';
-        element.style.flexShrink = '0';
-        element.style.width = 'max-content';
-        element.style.display = 'inline-block';
 
         const container = element.closest('.flex-1') || element.parentElement;
         if (!container) return;
 
         const containerWidth = container.clientWidth;
-        const textWidth = element.getBoundingClientRect().width;
+        
+        const clone = element.cloneNode(true);
+        clone.style.position = 'absolute';
+        clone.style.visibility = 'hidden';
+        clone.style.whiteSpace = 'nowrap';
+        clone.style.width = 'max-content';
+        clone.style.transform = 'none';
+        clone.style.padding = '0';
+        clone.style.margin = '0';
+        clone.classList.remove('truncate', 'overflow-hidden');
+        element.parentElement.appendChild(clone);
+        const textWidth = clone.getBoundingClientRect().width;
+        element.parentElement.removeChild(clone);
 
         if (textWidth > containerWidth + 2) {
+            element.style.whiteSpace = 'nowrap';
+            element.style.flexShrink = '0';
+            element.style.minWidth = 'max-content';
+
             const scrollDistance = (textWidth - containerWidth) + 50;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
@@ -2191,9 +2202,9 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             };
         } else {
             element.style.transform = 'translateX(0)';
-            element.style.width = 'auto';
+            element.style.minWidth = 'auto';
             element.style.flexShrink = '1';
-            element.style.display = '';
+            element.style.whiteSpace = 'nowrap';
         }
     }
 
@@ -2535,9 +2546,9 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             mainVocal.className = 'main-vocal-container';
             if (isInstrumental) {
                 const sylSpan = document.createElement('span');
-                sylSpan.className = 'lyrics-syllable instrumental-icon';
+                sylSpan.className = 'lyrics-syllable instrumental-icon flex items-center justify-center mx-auto';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9835;';
+                sylSpan.innerHTML = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" style="display: inline-block; vertical-align: middle;"><path d="M21 3v10.5c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h-8v6.5c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V3h12z"/></svg>';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
