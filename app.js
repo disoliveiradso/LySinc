@@ -3130,8 +3130,13 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
 
         const minTop = 88;
-        const dynamicTop = Math.max(minTop, rect.bottom + 16);
-        wrapper.style.top = `${dynamicTop}px`;
+        if (rect.bottom + 16 > minTop) {
+            wrapper.style.position = 'absolute';
+            wrapper.style.top = `${topMenu.offsetTop + topMenu.offsetHeight + 16}px`;
+        } else {
+            wrapper.style.position = 'fixed';
+            wrapper.style.top = `${minTop}px`;
+        }
 
         if (rect.bottom < 0) {
 
