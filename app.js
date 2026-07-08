@@ -1767,35 +1767,69 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     }
     setupMarquee(element) {
         if (!element) return;
-        element.classList.add('truncate');
+        
+        if (element.marqueeAnimation) {
+            element.marqueeAnimation.cancel();
+            element.marqueeAnimation = null;
+        }
+
         element.classList.remove('marquee-text');
         element.style.removeProperty('--scroll-dist');
-        if (element.parentElement) {
-            element.parentElement.classList.remove('overflow-hidden');
-        }
+        element.style.transform = 'none';
+        element.style.whiteSpace = '';
+        element.style.flexShrink = '';
+
         const container = element.closest('.flex-1') || element.parentElement;
         if (!container) return;
+
         const containerWidth = container.clientWidth;
+
         element.classList.remove('truncate');
         const originalWhiteSpace = element.style.whiteSpace;
         const originalFlexShrink = element.style.flexShrink;
+        
         element.style.whiteSpace = 'nowrap';
         element.style.flexShrink = '0';
         element.style.width = 'max-content';
+        
         const textWidth = element.getBoundingClientRect().width;
+        
         element.style.whiteSpace = originalWhiteSpace;
         element.style.flexShrink = originalFlexShrink;
         element.style.width = '';
+
         const explicitIcon = document.getElementById('explicit-icon-header');
         const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
         const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
         const availableWidth = containerWidth - reservedSpace;
+
         if (textWidth > availableWidth) {
-            element.style.setProperty('--scroll-dist', `-${textWidth - availableWidth + 30}px`);
-            element.classList.add('marquee-text');
+            element.style.whiteSpace = 'nowrap';
+            element.style.flexShrink = '0';
+            
             if (element.parentElement) {
                 element.parentElement.classList.add('overflow-hidden');
             }
+
+            const scrollDist = textWidth - availableWidth + 40;
+            const slideTime = Math.max(3000, scrollDist * 25);
+            const totalDuration = 2000 + slideTime + 1500 + 600;
+            
+            const p1 = 2000 / totalDuration;
+            const p2 = (2000 + slideTime) / totalDuration;
+            const p3 = (2000 + slideTime + 1500) / totalDuration;
+
+            element.marqueeAnimation = element.animate([
+                { transform: 'translateX(0px)', offset: 0 },
+                { transform: 'translateX(0px)', offset: p1 },
+                { transform: `translateX(-${scrollDist}px)`, offset: p2 },
+                { transform: `translateX(-${scrollDist}px)`, offset: p3 },
+                { transform: 'translateX(0px)', offset: 1 }
+            ], {
+                duration: totalDuration,
+                iterations: Infinity,
+                easing: 'ease-in-out'
+            });
         } else {
             element.classList.add('truncate');
             element.classList.remove('marquee-text');
@@ -2671,6 +2705,7 @@ if (document.readyState === 'loading') {
 } else {
     window.app = new LySincApp();
 }
+
 
 
 
