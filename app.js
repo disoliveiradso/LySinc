@@ -3137,7 +3137,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         } else {
             wrapper.style.position = 'fixed';
             wrapper.style.top = `${minTop}px`;
-            wrapper.style.left = `${rect.left}px`;
+            wrapper.style.left = '';
         }
 
         if (rect.bottom < 0) {
