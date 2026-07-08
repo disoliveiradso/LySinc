@@ -2552,7 +2552,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9835;';
+                sylSpan.innerHTML = `<svg viewBox="0 0 100 100" fill="currentColor" style="width: 1.2em; height: 1.2em; display: inline-block; vertical-align: -0.2em;">
+                    <ellipse cx="38" cy="78" rx="17" ry="12" transform="rotate(-20 38 78)" />
+                    <rect x="50" y="25" width="6" height="55" />
+                    <path d="M 50 25 L 56 15 C 75 25, 95 45, 80 70 C 70 50, 62 45, 56 45 L 56 25 Z" />
+                </svg>`;
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
