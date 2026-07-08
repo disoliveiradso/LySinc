@@ -2149,15 +2149,21 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (!container) return;
 
         const containerWidth = container.clientWidth;
-        const textWidth = element.scrollWidth;
-
         const explicitIcon = document.getElementById('explicit-icon-header');
         const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
         const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
         const availableWidth = containerWidth - reservedSpace;
 
+        const originalPos = element.style.position;
+        const originalWidth = element.style.width;
+        element.style.position = 'absolute';
+        element.style.width = 'max-content';
+        const textWidth = element.getBoundingClientRect().width;
+        element.style.position = originalPos;
+        element.style.width = originalWidth;
+
         if (textWidth > availableWidth) {
-            const scrollDistance = textWidth - availableWidth + 60;
+            const scrollDistance = textWidth - availableWidth + 80;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
@@ -2180,7 +2186,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     { transform: 'translateX(0)' }
                 ];
                 const returnOptions = {
-                    duration: 500,
+                    duration: 2500,
                     delay: 2000
                 };
                 
@@ -2536,7 +2542,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9836;';
+                sylSpan.innerHTML = '&#127925;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
