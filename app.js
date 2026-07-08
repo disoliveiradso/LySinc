@@ -3087,11 +3087,20 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     toggleFloatingMenu(show) {
         if (!this.floatingMenuContent) return;
 
+        if (this.floatingDrawerTimeoutId) {
+            clearTimeout(this.floatingDrawerTimeoutId);
+            this.floatingDrawerTimeoutId = null;
+        }
+
         if (show) {
             this.floatingMenuContent.classList.add('open');
             this.floatingMenuContent.classList.remove('closed');
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('scale-x-[-1]');
+            
+            this.floatingDrawerTimeoutId = setTimeout(() => {
+                this.toggleFloatingMenu(false);
+            }, 4000);
         } else {
             this.floatingMenuContent.classList.remove('open');
             this.floatingMenuContent.classList.add('closed');
