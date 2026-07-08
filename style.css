@@ -753,7 +753,37 @@ input:focus {
     transform: none !important;
 }
 
-.light-mode .lyrics-syllable.current {
+/* Fim Line Visibility */
+.lyric-line.is-fim-line {
+    opacity: 0 !important;
+    transition: opacity 0.5s ease;
+}
+.lyric-line.is-fim-line.active {
+    opacity: 1 !important;
+}
+.user-scrolling .lyric-line.is-fim-line.active {
+    opacity: 1 !important;
+}
+
+/* Translation and Romanization Formatting */
+.lyrics-translation-container,
+.lyrics-romanization-container {
+    word-break: break-word;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+}
+.dom-lyric-line-wrapper {
+    max-width: 100% !important;
+}
+
+/* Hide elements in Main Window when PiP is active */
+body.pip-active #lyrics-top-menu,
+body.pip-active .w-full.bg-white\/10.h-\[3px\] {
+    display: none !important;
+}.light-mode .lyrics-syllable.current {
     filter: none !important;
     transform: none !important;
 }

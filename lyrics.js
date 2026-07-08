@@ -1026,7 +1026,7 @@ const LyricsService = {
             if (lines && lines.length > 0) {
 
 
-              fallbackBiniResult = { lines, source: 'Apple' };
+              fallbackBiniResult = { lines, source: 'Binimum' };
             }
           }
         }
@@ -1096,14 +1096,22 @@ const LyricsService = {
 
       if (response.ok) {
         bestMatch = await response.json();
-      } else {
+      }
 
+      if (!bestMatch || (bestMatch.syncedLyrics && !bestMatch.syncedLyrics.includes('<'))) {
         const searchParams = new URLSearchParams({ q: `${artist} ${title}` });
         const searchRes = await fetchWithTimeout(`https://lrclib.net/api/search?${searchParams.toString()}`);
         if (searchRes.ok) {
           const results = await searchRes.json();
           if (Array.isArray(results) && results.length > 0) {
-            bestMatch = results.find(r => r.syncedLyrics && typeof r.syncedLyrics === 'string') || results[0];
+            const syncedResults = results.filter(r => r.syncedLyrics && typeof r.syncedLyrics === 'string');
+            const wordByWordMatch = syncedResults.find(r => r.syncedLyrics.includes('<'));
+            
+            if (wordByWordMatch) {
+              bestMatch = wordByWordMatch;
+            } else if (!bestMatch) {
+              bestMatch = syncedResults[0] || results[0];
+            }
           }
         }
       }

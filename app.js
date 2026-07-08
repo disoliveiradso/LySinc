@@ -1751,6 +1751,7 @@ class LySincApp {
                     });
 
                     pipWindow.document.body.className = 'pip-mode bg-[#050505] text-white flex flex-col min-h-screen relative';
+                    document.body.classList.add('pip-active');
 
                     const bgClone = document.querySelector('.blur-background-container').cloneNode(true);
                     pipWindow.document.body.appendChild(bgClone);
@@ -1842,6 +1843,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     });
 
                     pipWindow.addEventListener("pagehide", (event) => {
+                        document.body.classList.remove('pip-active');
                         placeholder.parentNode.insertBefore(originalContainer, placeholder);
                         placeholder.remove();
                         this.pipWindow = null;
@@ -2002,8 +2004,12 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.isPlaying = state.isPlaying;
             if (this.isPlaying) {
                 this.wakeLockManager.request();
+                this.lastSyncTime = Date.now();
+                this.progressMs = state.progressMs + safeCompensation;
             } else {
                 this.wakeLockManager.release();
+                this.progressMs = state.progressMs;
+                this.lastSyncTime = 0;
             }
         }
         this.durationMs = state.durationMs;
@@ -2428,6 +2434,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     timestamp: lastEndtime + 500,
                     endtime: this.durationMs,
                     isWordSynced: true,
+                    isFim: true,
                     alignment: alignRight ? 'end' : 'start',
                     oppositeTurn: alignRight
                 });
@@ -2514,6 +2521,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             lineEl.id = `line-${line.id}`;
             
             let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2 transition-all duration-300';
+            if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
             } else {
