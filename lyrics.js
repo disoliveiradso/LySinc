@@ -1026,7 +1026,7 @@ const LyricsService = {
             if (lines && lines.length > 0) {
 
 
-              fallbackBiniResult = { lines, source: 'Apple' };
+              fallbackBiniResult = { lines, source: 'BiniLyrics' };
             }
           }
         }

@@ -740,13 +740,13 @@ class LySincApp {
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
             btnChangeSource.addEventListener('click', async () => {
-                const providers = ['apple', 'musixmatch', 'lrclib', 'netease'];
+                const providers = ['binilyrics', 'musixmatch', 'lrclib', 'netease'];
                 const currentIndex = providers.indexOf(this.currentLyricsProvider);
                 const nextIndex = (currentIndex + 1) % providers.length;
                 this.currentLyricsProvider = providers[nextIndex];
                 
                 const providerLabels = {
-                    'apple': 'Apple',
+                    'binilyrics': 'BiniLyrics',
                     'musixmatch': 'Musixmatch',
                     'lrclib': 'LrcLib',
                     'netease': 'NetEase'
@@ -2157,7 +2157,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const availableWidth = containerWidth - reservedSpace;
 
         if (textWidth > availableWidth) {
-            const scrollDistance = textWidth - availableWidth + 20;
+            const scrollDistance = textWidth - availableWidth + 60;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
@@ -2168,7 +2168,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
             const animOptions = {
                 duration: durationMs,
-                delay: 1500,
+                delay: 2000,
                 fill: 'forwards'
             };
 
@@ -2181,12 +2181,14 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 ];
                 const returnOptions = {
                     duration: 500,
-                    delay: 1500
+                    delay: 2000
                 };
                 
                 element.marqueeReturnAnim = element.animate(returnKeyframes, returnOptions);
                 element.marqueeReturnAnim.onfinish = () => {
-                    this.setupMarquee(element); 
+                    setTimeout(() => {
+                        this.setupMarquee(element); 
+                    }, 2000);
                 };
             };
         } else {
@@ -2534,7 +2536,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9835;';
+                sylSpan.innerHTML = '&#9836;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
