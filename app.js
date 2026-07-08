@@ -1833,24 +1833,31 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
                     pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
                     pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
+                    let isTicking = false;
                     pipWindow.addEventListener('scroll', () => {
-                        const credits = pipWindow.document.getElementById('lyrics-credits-block');
-                        if (credits) {
-                            const rect = credits.getBoundingClientRect();
-                            const desiredBottom = 32; // 2rem
-                            const distanceToBottom = pipWindow.innerHeight - rect.top;
-                            if (distanceToBottom > desiredBottom) {
-                                btnRecenterClone.style.bottom = (distanceToBottom + 16) + 'px';
-                            } else {
-                                btnRecenterClone.style.bottom = '2rem';
-                            }
+                        if (!isTicking) {
+                            pipWindow.requestAnimationFrame(() => {
+                                const credits = pipWindow.document.getElementById('lyrics-credits-block');
+                                if (credits) {
+                                    const rect = credits.getBoundingClientRect();
+                                    const desiredBottom = 32; // 2rem
+                                    const distanceToBottom = pipWindow.innerHeight - rect.top;
+                                    if (distanceToBottom > desiredBottom) {
+                                        btnRecenterClone.style.bottom = (distanceToBottom + 16) + 'px';
+                                    } else {
+                                        btnRecenterClone.style.bottom = '2rem';
+                                    }
+                                }
+                                isTicking = false;
+                            });
+                            isTicking = true;
                         }
 
                         if (Date.now() - this.lastAutoScrollTime < 800) {
                             return;
                         }
                         handlePipUserInteraction();
-                    });
+                    }, { passive: true });
 
                     btnRecenterClone.addEventListener('click', () => {
                         this.isUserInteracting = false;
