@@ -1,4 +1,4 @@
-import Config from './config.js';
+﻿import Config from './config.js';
 import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
 const wrapText = (ctx, text, maxWidth) => {
@@ -326,14 +326,14 @@ class LySincApp {
                 this.showScreen('pre-login');
                 this.btnLogout.classList.add('hidden');
                 if (hadRefreshToken) {
-                    this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
+                    this.showToast('SessÃ£o expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
                 }
                 if (!Config.getClientId()) {
                     this.toggleSettingsModal(true);
                 }
             }
         } catch (globalError) {
-            console.error('Erro crítico na inicialização do aplicativo LySinc:', globalError);
+            console.error('Erro crÃ­tico na inicializaÃ§Ã£o do aplicativo LySinc:', globalError);
         }
     }
     setupDemoMode() {
@@ -1042,7 +1042,7 @@ class LySincApp {
                                         }
                                         let grad;
                                         const completedPct = completedW / totalLineWidth;
-                                        const isInstrumental = item.lyric.isInstrumental || lineStr.trim() === '♪';
+                                        const isInstrumental = item.lyric.isInstrumental || lineStr.trim() === 'â™ª';
                                         if (isInstrumental) {
                                             grad = pipCtx.createLinearGradient(0, startY - activeFontSize * 0.45, 0, startY + activeFontSize * 0.45);
                                             grad.addColorStop(0, '#ffffff');
@@ -1344,9 +1344,9 @@ class LySincApp {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
                         </svg>
                         <h2 class="text-xl font-bold mb-2 text-white">Modo Picture-in-Picture ativo</h2>
-                        <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
+                        <p class="text-sm">As letras estÃ£o sendo exibidas na janela flutuante.</p>
                         <button id="btn-mobile-pip-return" class="mt-6 bg-white text-black px-6 py-2 rounded-full font-bold hover:scale-105 transition-transform">
-                            Voltar para cá
+                            Voltar para cÃ¡
                         </button>
                     `;
                     if (lyricsContainer && lyricsContainer.parentNode) {
@@ -1449,8 +1449,8 @@ class LySincApp {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
                         </svg>
                         <h2 class="text-xl font-bold mb-2 text-white">Modo Picture-in-Picture ativo</h2>
-                        <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
-                        <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cá</button>
+                        <p class="text-sm">As letras estÃ£o sendo exibidas na janela flutuante.</p>
+                        <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cÃ¡</button>
                     `;
 originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     pipMain.appendChild(originalContainer);
@@ -1578,7 +1578,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const id = this.inputClientId.value.trim();
         Config.setClientId(id);
         this.toggleSettingsModal(false);
-        this.showToast('Configurações salvas! Agora você pode conectar sua conta do Spotify.', 'success');
+        this.showToast('ConfiguraÃ§Ãµes salvas! Agora vocÃª pode conectar sua conta do Spotify.', 'success');
     }
     toggleSettingsModal(show) {
         if (show) {
@@ -1615,7 +1615,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     }
     async pollPlayerState() {
         if (Date.now() - this.lastUserSeekTime < 3000) {
-            console.log('[LySinc] Ignorando pollPlayerState devido a clique/seek recente do usuário.');
+            console.log('[LySinc] Ignorando pollPlayerState devido a clique/seek recente do usuÃ¡rio.');
             return;
         }
         const state = await SpotifyService.getCurrentlyPlaying();
@@ -1625,7 +1625,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 this.stopPolling();
                 this.showScreen('pre-login');
                 this.btnLogout.classList.add('hidden');
-                this.showToast('Sessão encerrada com o Spotify.', 'info');
+                this.showToast('SessÃ£o encerrada com o Spotify.', 'info');
             }
             return;
         }
@@ -1673,11 +1673,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             if (isSeek || isOutOfSync) {
                 const isBackwardJump = state.progressMs < currentLocalProgress;
                 if (!isSeek && isBackwardJump && diff < 3000) {
-                    console.log(`[LySinc] Ignorado ajuste para trás devido a lag do Spotify (diff=${diff}ms)`);
+                    console.log(`[LySinc] Ignorado ajuste para trÃ¡s devido a lag do Spotify (diff=${diff}ms)`);
                 } else {
                     this.progressMs = state.progressMs + safeCompensation;
                     this.lastSyncTime = Date.now();
-                    console.log(`[LySinc] Sincronização alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
+                    console.log(`[LySinc] SincronizaÃ§Ã£o alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
                 }
             } else {
                 console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
@@ -1775,9 +1775,14 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const containerWidth = container.clientWidth;
         element.classList.remove('truncate');
         const originalWhiteSpace = element.style.whiteSpace;
+        const originalFlexShrink = element.style.flexShrink;
         element.style.whiteSpace = 'nowrap';
-        const textWidth = element.scrollWidth;
+        element.style.flexShrink = '0';
+        element.style.width = 'max-content';
+        const textWidth = element.getBoundingClientRect().width;
         element.style.whiteSpace = originalWhiteSpace;
+        element.style.flexShrink = originalFlexShrink;
+        element.style.width = '';
         const explicitIcon = document.getElementById('explicit-icon-header');
         const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
         const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
@@ -1868,8 +1873,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.lyrics = [];
             this.lyricsContainer.innerHTML = `
                 <div class="text-center text-white/40 text-xl py-20">
-                    Letras não disponíveis para esta música.<br>
-                    <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
+                    Letras nÃ£o disponÃ­veis para esta mÃºsica.<br>
+                    <span class="text-sm mt-2 block">Tente tocar outra mÃºsica no Spotify para testar a sincronizaÃ§Ã£o!</span>
                 </div>`;
             if (topMenu) {
                 topMenu.classList.add('hidden');
@@ -1892,11 +1897,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (needsTranslation || needsRomanization) {
             if (mode === 'translation') {
                 this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
-                this.showToast('Traduzindo letras para o português...', 'info');
+                this.showToast('Traduzindo letras para o portuguÃªs...', 'info');
                 const translated = await LyricsService.translateLyrics(this.lyricsData.original);
                 this.lyricsData.original = translated;
             } else if (mode === 'romanized') {
-                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
+                this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanizaÃ§Ã£o das letras...</div>';
                 this.showToast('Convertendo escrita para caracteres latinos...', 'info');
                 const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
                 this.lyricsData.original = romanized;
@@ -1940,7 +1945,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (firstLine.timestamp > 5000) {
             result.push({
                 id: -1,
-                text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
+                text: [{ text: 'â™ª', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
                 background: false,
                 backgroundText: [],
                 timestamp: 0,
@@ -1956,7 +1961,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
                         id: i - 0.5,
-                        text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
+                        text: [{ text: 'â™ª', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
                         background: false,
                         backgroundText: [],
                         timestamp: prevEndtime + 1000,
@@ -2062,7 +2067,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             if (!line.isWordSynced) {
                 lineClass += ' line-synced';
             }
-            const isInstrumental = line.isInstrumental || (line.text.length === 1 && (line.text[0].text.trim() === '♪' || line.text[0].text.trim().includes('♪')));
+            const isInstrumental = line.isInstrumental || (line.text.length === 1 && (line.text[0].text.trim() === 'â™ª' || line.text[0].text.trim().includes('â™ª')));
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
             }
@@ -2081,7 +2086,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '♪';
+                sylSpan.innerHTML = 'â™ª';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
@@ -2258,7 +2263,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     <div class="w-5 h-5 rounded-[3px] bg-white/20 flex items-center justify-center text-white text-[11px] font-bold">
                         E
                     </div>
-                    <span class="font-medium uppercase tracking-wider text-[11px] ml-2 mt-[1px]">Explícita</span>
+                    <span class="font-medium uppercase tracking-wider text-[11px] ml-2 mt-[1px]">ExplÃ­cita</span>
                 `;
                 creditsBlock.appendChild(explicitInfo);
             }
@@ -2282,7 +2287,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" />
                 </svg>
-                <span class="font-medium">Reiniciar Música</span>
+                <span class="font-medium">Reiniciar MÃºsica</span>
             `;
             btnRestartTrack.addEventListener('click', () => {
                 this.seekToTime(0);
@@ -2296,7 +2301,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.lyricsContainer.appendChild(creditsBlock);
             btnChangeSource.addEventListener('click', () => {
                 if (!this.lyricsData || !this.lyricsData.availableSources || this.lyricsData.availableSources.length <= 1) {
-                    this.showToast('Nenhuma outra fonte disponível para esta música.', 'info');
+                    this.showToast('Nenhuma outra fonte disponÃ­vel para esta mÃºsica.', 'info');
                     return;
                 }
                 const available = this.lyricsData.availableSources.map(s => s.source);
@@ -2534,20 +2539,20 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             });
             if (response.status === 403) {
                 if (!isAutoSync) {
-                    this.showToast('Navegação temporal por letras requer conta Spotify Premium.', 'error');
+                    this.showToast('NavegaÃ§Ã£o temporal por letras requer conta Spotify Premium.', 'error');
                 }
                 return;
             }
             if (!response.ok) {
-                throw new Error('Falha ao pular reprodução');
+                throw new Error('Falha ao pular reproduÃ§Ã£o');
             }
             this.progressMs = timeMs;
             this.lastSyncTime = Date.now();
             this.lastUserSeekTime = Date.now();
             this.updateLyricsSync(timeMs);
         } catch (error) {
-            console.error('Erro ao pular reprodução:', error);
-            this.showToast('Erro ao atualizar a reprodução no Spotify.', 'error');
+            console.error('Erro ao pular reproduÃ§Ã£o:', error);
+            this.showToast('Erro ao atualizar a reproduÃ§Ã£o no Spotify.', 'error');
         }
     }
     updateFloatingMenuVisibility() {
@@ -2663,4 +2668,5 @@ if (document.readyState === 'loading') {
 } else {
     window.app = new LySincApp();
 }
+
 

@@ -488,8 +488,8 @@ body, html {
     display: inline-block;
     white-space: nowrap;
     flex-shrink: 0;
-    animation: marquee-scroll 10s ease-in-out infinite;
-    animation-delay: 1.5s;
+    animation: marquee-scroll 10s ease-in-out infinite !important;
+    animation-delay: 1.5s !important;
 }
 
 @keyframes marquee-scroll {
