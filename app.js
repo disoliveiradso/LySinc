@@ -2126,23 +2126,30 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     setupMarquee(element) {
         if (!element) return;
         
-        element.classList.add('truncate');
+        element.classList.remove('truncate');
         element.classList.remove('marquee-text');
         element.style.removeProperty('--scroll-dist');
+        element.style.whiteSpace = 'nowrap';
+        
         if (element.parentElement) {
-            element.parentElement.classList.remove('overflow-hidden');
+            element.parentElement.classList.add('overflow-hidden');
         }
+
+        if (element.marqueeAnim) {
+            element.marqueeAnim.cancel();
+            element.marqueeAnim = null;
+        }
+        if (element.marqueeReturnAnim) {
+            element.marqueeReturnAnim.cancel();
+            element.marqueeReturnAnim = null;
+        }
+        element.style.transform = 'translateX(0)';
 
         const container = element.closest('.flex-1') || element.parentElement;
         if (!container) return;
 
         const containerWidth = container.clientWidth;
-
-        element.classList.remove('truncate');
-        const originalWhiteSpace = element.style.whiteSpace;
-        element.style.whiteSpace = 'nowrap';
         const textWidth = element.scrollWidth;
-        element.style.whiteSpace = originalWhiteSpace;
 
         const explicitIcon = document.getElementById('explicit-icon-header');
         const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
@@ -2150,18 +2157,40 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const availableWidth = containerWidth - reservedSpace;
 
         if (textWidth > availableWidth) {
-            element.style.setProperty('--scroll-dist', `-${textWidth - availableWidth + 30}px`);
-            element.classList.add('marquee-text');
-            if (element.parentElement) {
-                element.parentElement.classList.add('overflow-hidden');
-            }
+            const scrollDistance = textWidth - availableWidth + 20;
+            const pixelsPerSecond = 30;
+            const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
+
+            const keyframes = [
+                { transform: 'translateX(0)' },
+                { transform: `translateX(-${scrollDistance}px)` }
+            ];
+
+            const animOptions = {
+                duration: durationMs,
+                delay: 1500,
+                fill: 'forwards'
+            };
+
+            element.marqueeAnim = element.animate(keyframes, animOptions);
+
+            element.marqueeAnim.onfinish = () => {
+                const returnKeyframes = [
+                    { transform: `translateX(-${scrollDistance}px)` },
+                    { transform: 'translateX(0)' }
+                ];
+                const returnOptions = {
+                    duration: 500,
+                    delay: 1500
+                };
+                
+                element.marqueeReturnAnim = element.animate(returnKeyframes, returnOptions);
+                element.marqueeReturnAnim.onfinish = () => {
+                    this.setupMarquee(element); 
+                };
+            };
         } else {
-            element.classList.add('truncate');
-            element.classList.remove('marquee-text');
-            element.style.removeProperty('--scroll-dist');
-            if (element.parentElement) {
-                element.parentElement.classList.remove('overflow-hidden');
-            }
+            element.style.transform = 'translateX(0)';
         }
     }
 
@@ -2505,7 +2534,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '♪';
+                sylSpan.innerHTML = '&#9835;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
