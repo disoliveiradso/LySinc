@@ -1,55 +1,72 @@
+
+
 const GOOGLE_CONFIG = {
   MAX_RETRIES: 3,
   RETRY_DELAY_MS: 1000,
   FETCH_TIMEOUT_MS: 6000,
 };
+
 class GoogleService {
   static delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
   static fetchWithTimeout(url, timeoutMs = GOOGLE_CONFIG.FETCH_TIMEOUT_MS) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeoutId));
   }
+
   static isPurelyLatinScript(text) {
     return /^[\u0000-\u007F\u0080-\u00FF\u0100-\u017F\u0180-\u024F]*$/.test(text);
   }
+
   static async translate(textOrArray, targetLang) {
     if (!textOrArray || (Array.isArray(textOrArray) && textOrArray.length === 0)) {
       return Array.isArray(textOrArray) ? [] : '';
     }
+
     const isArray = Array.isArray(textOrArray);
     const texts = isArray ? textOrArray : [textOrArray];
+
     const nonEmptyIndices = [];
     const textsToTranslate = [];
+
     texts.forEach((t, i) => {
       if (t && t.trim()) {
         nonEmptyIndices.push(i);
         textsToTranslate.push(t);
       }
     });
+
     if (textsToTranslate.length === 0) {
       return isArray ? texts : texts[0];
     }
+
     const BATCH_SIZE_CHARS = 1500;
     const translatedResults = new Array(textsToTranslate.length).fill('');
+
     let currentBatch = [];
     let currentBatchIndices = [];
     let currentBatchLength = 0;
+
     const processBatch = async (batch, indices) => {
       if (batch.length === 0) return;
       const joinedText = batch.join('\n');
+
       let attempt = 0;
       let success = false;
+
       while (attempt < GOOGLE_CONFIG.MAX_RETRIES && !success) {
         try {
           const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(joinedText)}`;
           const response = await GoogleService.fetchWithTimeout(url);
           if (!response.ok) throw new Error(`Status ${response.status}`);
           const data = await response.json();
+
           const fullTranslation = data?.[0]?.map((seg) => seg?.[0]).join('') || '';
           const lines = fullTranslation.split('\n');
+
           indices.forEach((originalIdx, i) => {
             if (i < lines.length) {
               translatedResults[originalIdx] = lines[i];
@@ -57,6 +74,7 @@ class GoogleService {
               translatedResults[originalIdx] = batch[i];
             }
           });
+
           success = true;
         } catch (e) {
           attempt += 1;
@@ -70,6 +88,7 @@ class GoogleService {
         }
       }
     };
+
     for (let i = 0; i < textsToTranslate.length; i += 1) {
       const text = textsToTranslate[i];
       if (currentBatchLength + text.length > BATCH_SIZE_CHARS) {
@@ -82,40 +101,52 @@ class GoogleService {
       currentBatchIndices.push(i);
       currentBatchLength += text.length;
     }
+
     if (currentBatch.length > 0) {
       await processBatch(currentBatch, currentBatchIndices);
     }
+
     const finalArray = [...texts];
     nonEmptyIndices.forEach((realIdx, mappedIdx) => {
       finalArray[realIdx] = translatedResults[mappedIdx];
     });
+
     return isArray ? finalArray : finalArray[0];
   }
+
   static async romanize(originalLyrics) {
     const lines = Array.isArray(originalLyrics)
       ? originalLyrics
       : originalLyrics.data || originalLyrics.content || [];
+
     if (!lines || lines.length === 0)
       return Array.isArray(originalLyrics) ? originalLyrics : [];
+
     const isWordSynced = lines.some(
       (l) => l.isWordSynced !== false && Array.isArray(l.text) && l.text.length > 1
     );
+
     if (isWordSynced) {
       return this.romanizeWordSynced(lines);
     }
+
     return this.romanizeLineSynced(lines);
   }
+
   static async romanizeWordSynced(lines) {
     return Promise.all(
       lines.map(async (line) => {
         if (!line.text || !Array.isArray(line.text) || line.text.length === 0 || line.romanizedText)
           return line;
+
         const fullText = line.text.map((s) => s.text).join('');
         const [romanizedFullLine] = await this.romanizeTexts([fullText]);
+
         const newSyllabus = line.text.map((s) => ({
           ...s,
           romanizedText: s.romanizedText,
         }));
+
         return {
           ...line,
           text: newSyllabus,
@@ -124,6 +155,7 @@ class GoogleService {
       })
     );
   }
+
   static async romanizeLineSynced(lines) {
     const linesToRomanize = lines.map((line) => {
       if (line.romanizedText) {
@@ -134,18 +166,24 @@ class GoogleService {
       }
       return '';
     });
+
     const romanizedLines = await this.romanizeTexts(linesToRomanize);
+
     return lines.map((line, index) => ({
       ...line,
       romanizedText: romanizedLines[index] || '',
     }));
   }
+
   static async romanizeTexts(texts) {
     const contextText = texts.join(' ');
+
     if (GoogleService.isPurelyLatinScript(contextText)) {
       return texts;
     }
+
     const romanizedTexts = [];
+
     for (const text of texts) {
       if (!text || GoogleService.isPurelyLatinScript(text)) {
         romanizedTexts.push(text);
@@ -153,12 +191,14 @@ class GoogleService {
         let attempt = 0;
         let success = false;
         let lastError = null;
+
         while (attempt < GOOGLE_CONFIG.MAX_RETRIES && !success) {
           try {
             const romanizeUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=rm&q=${encodeURIComponent(text)}`;
             const response = await GoogleService.fetchWithTimeout(romanizeUrl);
             const data = await response.json();
             const romanized = data?.[0]?.[0]?.[3] || text;
+
             romanizedTexts.push(romanized);
             success = true;
           } catch (error) {
@@ -170,14 +210,17 @@ class GoogleService {
             }
           }
         }
+
         if (!success) {
           romanizedTexts.push(text);
         }
       }
     }
+
     return romanizedTexts;
   }
 }
+
 const KPOE_SERVERS = [
   'https://lyricsplus.binimum.org',
   'https://lyricsplus.atomix.one',
@@ -187,11 +230,13 @@ const KPOE_SERVERS = [
 ];
 const UNISON_BASE_URL = 'https://unison.boidu.dev';
 const FETCH_TIMEOUT_MS = 8000;
+
 function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId));
 }
+
 const LyricsService = {
   toMilliseconds(value, fallback = 0) {
     const num = Number(value);
@@ -203,9 +248,11 @@ const LyricsService = {
     }
     return Math.max(0, Math.round(num));
   },
+
   parseQueryMetadata(rawQuery) {
     const trimmed = rawQuery?.trim();
     if (!trimmed) return null;
+
     const result = {};
     const hyphenSplit = trimmed.split(/\s[-–—]\s/);
     if (hyphenSplit.length >= 2) {
@@ -219,6 +266,7 @@ const LyricsService = {
         return result;
       }
     }
+
     const bySplit = trimmed.split(/\s+[bB]y\s+/);
     if (bySplit.length === 2) {
       const [maybeTitle, maybeArtist] = bySplit.map(part => part.trim());
@@ -228,14 +276,18 @@ const LyricsService = {
         return result;
       }
     }
+
     return null;
   },
+
   async searchLyricsPlusCatalog(searchTerm) {
     const trimmedQuery = searchTerm?.trim();
     if (!trimmedQuery) return null;
+
     for (const base of KPOE_SERVERS) {
       const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
       const url = `${normalizedBase}/v1/songlist/search?q=${encodeURIComponent(trimmedQuery)}`;
+
       try {
         const response = await fetchWithTimeout(url);
         if (response.ok) {
@@ -246,32 +298,40 @@ const LyricsService = {
           } else if (Array.isArray(payload)) {
             results = payload;
           }
+
           if (results.length > 0) {
             const primary = results.find(item => item?.id && item.id.appleMusic);
             return primary ?? results[0];
           }
         }
       } catch (error) {
+
       }
     }
     return null;
   },
+
   async resolveSongMetadata(songTitle, songArtist, songAlbum, durationMs, musicId, isrc, query) {
+
     const cleanTitle = (t) => {
       if (!t) return '';
       return t.replace(/\s*(?:-|\(|\[)(?:radio edit|remastered|remaster|radio cut|live|bonus track|feat\.|ft\.|with |version|edit|mix|remix|acoustic).*/i, '').trim();
     };
+
     const metadata = {
       title: cleanTitle(songTitle),
       artist: songArtist?.trim() ?? '',
       album: songAlbum?.trim() || undefined,
       durationMs: undefined,
     };
+
     if (typeof durationMs === 'number' && durationMs > 0) {
       metadata.durationMs = durationMs;
     }
+
     let appleId = musicId;
     let catalogIsrc = isrc;
+
     if (query && (!metadata.title || !metadata.artist || !metadata.album)) {
       const parsed = this.parseQueryMetadata(query);
       if (parsed) {
@@ -280,6 +340,7 @@ const LyricsService = {
         if (!metadata.album && parsed.album) metadata.album = parsed.album;
       }
     }
+
     if (query && (!metadata.title || !metadata.artist)) {
       const catalogResult = await this.searchLyricsPlusCatalog(query);
       if (catalogResult) {
@@ -293,12 +354,14 @@ const LyricsService = {
         if (!catalogIsrc && catalogResult.isrc) catalogIsrc = catalogResult.isrc;
       }
     }
+
     const trimmedTitle = metadata.title?.trim() ?? '';
     const trimmedArtist = metadata.artist?.trim() ?? '';
     const trimmedAlbum = metadata.album?.trim();
     const sanitizedDuration = typeof metadata.durationMs === 'number' && Number.isFinite(metadata.durationMs) && metadata.durationMs > 0
       ? Math.round(metadata.durationMs)
       : undefined;
+
     const finalMetadata = trimmedTitle && trimmedArtist
       ? {
           title: trimmedTitle,
@@ -307,23 +370,29 @@ const LyricsService = {
           durationMs: sanitizedDuration,
         }
       : undefined;
+
     return {
       metadata: finalMetadata,
       appleId,
       catalogIsrc,
     };
   },
+
   parseLrcSubtitles(lrc) {
     if (!lrc || typeof lrc !== 'string') return [];
+
     const lines = [];
     const rawLines = lrc.split('\n');
     const timeTagRegex = /\[(\d{1,3}):(\d{2})\.(\d{1,3})\]/;
     const wordTagRegex = /<(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?>/g;
+    
     const parsed = [];
     let isEnhanced = false;
+
     for (const raw of rawLines) {
       const match = raw.match(timeTagRegex);
       if (!match) continue;
+
       const parseTime = (minutes, seconds, msStr) => {
         let ms = 0;
         if (msStr) {
@@ -333,28 +402,36 @@ const LyricsService = {
         }
         return (parseInt(minutes, 10) * 60 + parseInt(seconds, 10)) * 1000 + ms;
       };
+
       const lineTime = parseTime(match[1], match[2], match[3]);
       let content = raw.replace(timeTagRegex, '').trim();
+
       const wordMatches = [...content.matchAll(wordTagRegex)];
       let syllables = [];
+      
       if (wordMatches.length > 0) {
         isEnhanced = true;
         let lastIndex = 0;
+        
         wordMatches.forEach(wm => {
           const wordTime = parseTime(wm[1], wm[2], wm[3]);
           const preText = content.substring(lastIndex, wm.index);
+          
           if (preText) {
             syllables.push({ text: preText, time: 0, isTag: false });
           }
           syllables.push({ text: "", time: wordTime, isTag: true });
           lastIndex = wm.index + wm[0].length;
         });
+        
         const tailText = content.substring(lastIndex);
         if (tailText) {
           syllables.push({ text: tailText, time: 0, isTag: false });
         }
+
         const refinedSyllables = [];
         let currentWordTime = 0;
+
         syllables.forEach(item => {
           if (item.isTag) {
             currentWordTime = item.time;
@@ -366,17 +443,23 @@ const LyricsService = {
             });
           }
         });
+
         syllables = refinedSyllables;
+        
         if (syllables.length > 0 && syllables[0].timestamp === 0) {
           syllables[0].timestamp = lineTime;
         }
       }
+
       parsed.push({ timestamp: lineTime, text: content.replace(wordTagRegex, '').trim(), syllables });
     }
+
     for (let i = 0; i < parsed.length; i += 1) {
       const current = parsed[i];
       const endtime = i + 1 < parsed.length ? parsed[i + 1].timestamp : current.timestamp + 5000;
+
       if (!current.text) continue;
+
       let finalSyllables = [];
       if (isEnhanced && current.syllables.length > 0) {
         for (let j = 0; j < current.syllables.length; j++) {
@@ -399,6 +482,7 @@ const LyricsService = {
           lineSynced: true,
         }];
       }
+
       lines.push({
         id: i,
         text: finalSyllables,
@@ -410,14 +494,17 @@ const LyricsService = {
         isWordSynced: isEnhanced && current.syllables.length > 0,
       });
     }
+
     return lines;
   },
+
   calculateLineAlignments(lineSingers, agentTypes) {
     const lineSideAssignments = new Array(lineSingers.length).fill(undefined);
     let currentSideIsLeft = true;
     let lastPersonSingerId = null;
     let rightCount = 0;
     let totalCount = 0;
+
     lineSingers.forEach((singerId, index) => {
       let sideClass;
       if (singerId) {
@@ -431,6 +518,7 @@ const LyricsService = {
             type = 'person';
           }
         }
+
         if (type === 'group') {
           sideClass = 'start';
         } else {
@@ -443,12 +531,14 @@ const LyricsService = {
           lastPersonSingerId = singerId;
         }
       }
+
       if (sideClass) {
         totalCount += 1;
         if (sideClass === 'end') rightCount += 1;
       }
       lineSideAssignments[index] = sideClass;
     });
+
     if (totalCount > 0 && Math.round((rightCount / totalCount) * 100) >= 85) {
       const flip = (s) => {
         if (s === 'start') return 'end';
@@ -461,13 +551,16 @@ const LyricsService = {
     }
     return lineSideAssignments;
   },
+
   parseTTML(ttmlString) {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(ttmlString, 'text/xml');
+
       const translations = {};
       const transliterations = {};
       const agentMap = {};
+
       const agents = doc.getElementsByTagName('ttm:agent');
       for (let i = 0; i < agents.length; i += 1) {
         const agent = agents[i];
@@ -477,6 +570,7 @@ const LyricsService = {
           agentMap[id] = type;
         }
       }
+
       const translationNodes = doc.getElementsByTagName('translation');
       for (let i = 0; i < translationNodes.length; i += 1) {
         const texts = translationNodes[i].getElementsByTagName('text');
@@ -488,6 +582,7 @@ const LyricsService = {
           }
         }
       }
+
       const timeToMs = (timeStr) => {
         if (!timeStr) return 0;
         const parts = timeStr.split(':');
@@ -501,6 +596,7 @@ const LyricsService = {
         }
         return Math.round(seconds * 1000);
       };
+
       const transliterationNodes = doc.getElementsByTagName('transliteration');
       for (let i = 0; i < transliterationNodes.length; i += 1) {
         const texts = transliterationNodes[i].getElementsByTagName('text');
@@ -508,7 +604,9 @@ const LyricsService = {
           const textNode = texts[j];
           const key = textNode.getAttribute('for');
           if (!key) continue;
+
           const spans = Array.from(textNode.getElementsByTagName('span')).filter(span => span.getAttribute('begin'));
+
           if (spans.length > 0) {
             const syllabus = [];
             let fullText = '';
@@ -522,6 +620,7 @@ const LyricsService = {
                 spanText += ' ';
               }
               if (spanText.trim() === '') continue;
+
               syllabus.push({
                 time: timeToMs(begin),
                 duration: timeToMs(end) - timeToMs(begin),
@@ -537,28 +636,35 @@ const LyricsService = {
           }
         }
       }
+
       const lines = [];
       const pNodes = doc.getElementsByTagName('p');
+
       const lineSingers = [];
       for (let i = 0; i < pNodes.length; i += 1) {
         lineSingers.push(pNodes[i].getAttribute('ttm:agent') || undefined);
       }
       const alignments = this.calculateLineAlignments(lineSingers, agentMap);
+
       for (let i = 0; i < pNodes.length; i += 1) {
         const p = pNodes[i];
         const key = p.getAttribute('itunes:key');
         const beginMs = timeToMs(p.getAttribute('begin'));
         const endMs = timeToMs(p.getAttribute('end'));
+
         let songPart;
         if (p.parentNode && p.parentNode.tagName === 'div') {
           songPart = p.parentNode.getAttribute('itunes:songPart') || undefined;
         }
+
         const mainSyllables = [];
         const bgSyllables = [];
+
         const spans = p.getElementsByTagName('span');
         if (spans.length > 0) {
           for (let j = 0; j < spans.length; j += 1) {
             const span = spans[j];
+
             if (span.getAttribute('ttm:role') === 'x-bg') {
               const bgInnerSpans = span.getElementsByTagName('span');
               for (let k = 0; k < bgInnerSpans.length; k += 1) {
@@ -577,9 +683,11 @@ const LyricsService = {
               }
               continue;
             }
+
             if (span.parentNode && span.parentNode.getAttribute?.('ttm:role') === 'x-bg') {
               continue;
             }
+
             let text = span.textContent || '';
             const nextNode = span.nextSibling;
             if (nextNode && nextNode.nodeType === 3 && /^\s/.test(nextNode.textContent || '') && !text.endsWith(' ')) {
@@ -601,8 +709,10 @@ const LyricsService = {
             lineSynced: true,
           });
         }
+
         const alignment = alignments[i];
         const lineTransliterationItem = key ? transliterations[key] : undefined;
+
         if (lineTransliterationItem && mainSyllables.length > 1 && spans.length > 0) {
           if (lineTransliterationItem.syllabus && lineTransliterationItem.syllabus.length === mainSyllables.length) {
             mainSyllables.forEach((syl, mapIdx) => {
@@ -611,6 +721,7 @@ const LyricsService = {
           } else {
             const lineTransliteration = lineTransliterationItem.text;
             const romanWords = lineTransliteration.split(/\s+/).filter(Boolean);
+
             const syllableGroups = [];
             for (let si = 0; si < mainSyllables.length; si += 1) {
               if (mainSyllables[si].part && syllableGroups.length > 0) {
@@ -619,7 +730,9 @@ const LyricsService = {
                 syllableGroups.push([si]);
               }
             }
+
             const isCJK = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(mainSyllables.map(s => s.text).join(''));
+
             if (romanWords.length === syllableGroups.length) {
               syllableGroups.forEach((group, gi) => {
                 mainSyllables[group[0]].romanizedText = romanWords[gi];
@@ -643,6 +756,7 @@ const LyricsService = {
             }
           }
         }
+
         lines.push({
           id: i,
           text: mainSyllables,
@@ -658,14 +772,17 @@ const LyricsService = {
           oppositeTurn: alignment === 'end',
         });
       }
+
       return lines;
     } catch (e) {
       console.error('Failed to parse TTML', e);
       return null;
     }
   },
+
   convertKPoeLyrics(payload) {
     if (!payload) return null;
+
     let rawLyrics = null;
     if (Array.isArray(payload?.lyrics)) {
       rawLyrics = payload.lyrics;
@@ -674,10 +791,13 @@ const LyricsService = {
     } else if (Array.isArray(payload?.data)) {
       rawLyrics = payload.data;
     }
+
     if (!rawLyrics || rawLyrics.length === 0) return null;
+
     const sanitizedEntries = rawLyrics.filter((item) => Boolean(item));
     const lines = [];
     const isLineType = payload.type === 'Line' || payload.type === 'line';
+
     const agentTypes = {};
     if (payload.metadata?.agents) {
       Object.entries(payload.metadata.agents).forEach(([key, agent]) => {
@@ -685,37 +805,45 @@ const LyricsService = {
         agentTypes[mappedKey] = agent.type;
       });
     }
+
     const lineSingers = sanitizedEntries.map((entry) => entry.element?.singer);
     const alignments = this.calculateLineAlignments(lineSingers, agentTypes);
+
     for (let i = 0; i < sanitizedEntries.length; i += 1) {
       const entry = sanitizedEntries[i];
       const start = this.toMilliseconds(entry.time);
       const duration = this.toMilliseconds(entry.duration);
+
       const alignment = alignments[i];
       const lineText = typeof entry.text === 'string' ? entry.text : '';
       const lineStart = this.toMilliseconds(entry.time);
       const lineDuration = this.toMilliseconds(entry.duration);
       const explicitEnd = this.toMilliseconds(entry.endTime);
       const lineEnd = explicitEnd || lineStart + (lineDuration || 0);
+
       let syllabus = [];
       if (Array.isArray(entry.syllabus)) {
         syllabus = entry.syllabus.filter((s) => Boolean(s));
       } else if (Array.isArray(entry.words)) {
         syllabus = entry.words.filter((s) => Boolean(s));
       }
+
       const mainSyllables = [];
       const backgroundSyllables = [];
+
       if (!isLineType && syllabus.length > 0) {
         for (const syl of syllabus) {
           const sylStart = this.toMilliseconds(syl.time, lineStart);
           const sylDuration = this.toMilliseconds(syl.duration);
           const sylEnd = sylDuration === 0 && syllabus.length === 1 ? lineEnd : sylStart + sylDuration;
+
           const syllable = {
             text: typeof syl.text === 'string' ? syl.text : '',
             part: Boolean(syl.part),
             timestamp: sylStart,
             endtime: sylEnd,
           };
+
           if (syl.isBackground) {
             backgroundSyllables.push(syllable);
           } else {
@@ -723,6 +851,7 @@ const LyricsService = {
           }
         }
       }
+
       if (mainSyllables.length === 0 && lineText) {
         mainSyllables.push({
           text: lineText,
@@ -732,9 +861,12 @@ const LyricsService = {
           lineSynced: isLineType,
         });
       }
+
       const hasWordSync = mainSyllables.length > 0 || backgroundSyllables.length > 0;
+
       const { transliteration } = entry;
       let romanizedTextFromPayload;
+
       if (transliteration) {
         romanizedTextFromPayload = transliteration.text;
         if (Array.isArray(transliteration.syllabus) && transliteration.syllabus.length === mainSyllables.length) {
@@ -743,7 +875,9 @@ const LyricsService = {
           });
         }
       }
+
       const translationText = entry.translation?.text;
+
       const lineResult = {
         id: i,
         text: mainSyllables,
@@ -758,20 +892,28 @@ const LyricsService = {
         romanizedText: romanizedTextFromPayload,
         translation: translationText,
       };
+
       lines.push(lineResult);
     }
+
     return lines;
   },
+
   getRankForCollected(sourceLabel, parsedLines) {
     const lower = sourceLabel.toLowerCase();
+
     const hasWordSync = parsedLines.some(line => line.isWordSynced);
+
     const isUnsynced = parsedLines.length > 0 && parsedLines.every(line => line.timestamp === 0 && line.endtime === 0);
+    
     const isLineSync = !hasWordSync && !isUnsynced;
+
     const isApple = lower.includes('apple') || lower.includes('qq') || lower.includes('lyricsplus') || lower.includes('better lyrics') || lower.includes('betterlyrics');
     const isLrcLib = lower.includes('lrclib');
     const isMusixmatch = lower.includes('musixmatch');
     const isUnison = lower.includes('unison');
     const isBini = lower.includes('bini');
+
     if (hasWordSync) {
       if (isApple) return 1;
       if (isLrcLib) return 2;
@@ -780,6 +922,7 @@ const LyricsService = {
       if (isBini) return 5;
       return 6;
     }
+
     if (isLineSync) {
       if (isApple) return 7;
       if (isLrcLib) return 8;
@@ -788,6 +931,7 @@ const LyricsService = {
       if (isBini) return 11;
       return 12;
     }
+
     if (isUnsynced) {
       if (isApple) return 13;
       if (isLrcLib) return 14;
@@ -796,15 +940,22 @@ const LyricsService = {
       if (isBini) return 17;
       return 18;
     }
+
     return 20;
   },
+
   mergeAndSortSources(collectedSources) {
+
+
     const sortedAll = collectedSources.sort(
       (a, b) => this.getRankForCollected(a.source, a.lines) - this.getRankForCollected(b.source, b.lines)
     );
+
     const uniqueSourcesMap = new Map();
+
     for (const source of sortedAll) {
       const normalizedSource = source.source.toLowerCase().includes('lyricsplus') ? 'QQ' : source.source;
+
       if (!uniqueSourcesMap.has(normalizedSource)) {
         uniqueSourcesMap.set(normalizedSource, {
           ...source,
@@ -812,24 +963,32 @@ const LyricsService = {
         });
       }
     }
+
     return Array.from(uniqueSourcesMap.values());
   },
+
   async fetchLyricsFromYouLyPlus(title, artist, isrc, metadata = {}) {
     if ((!title || !artist) && !isrc) return [];
+
     const params = new URLSearchParams();
     if (title) params.append('title', title);
     if (artist) params.append('artist', artist);
     if (isrc) params.append('isrc', isrc);
+
     if (metadata.album) {
       params.append('album', metadata.album);
     }
+
     if (metadata.durationMs && metadata.durationMs > 0) {
       params.append('duration', Math.round(metadata.durationMs / 1000).toString());
     }
+
     const allResults = [];
     let fallbackBiniResult = null;
+
     try {
       let cacheData = null;
+
       if (isrc) {
         try {
           const isrcUrl = `https://lyrics-api.binimum.org/?isrc=${encodeURIComponent(isrc)}`;
@@ -842,18 +1001,21 @@ const LyricsService = {
           }
         } catch (isrcErr) {}
       }
+
       if (!cacheData && title && artist) {
         const cacheParams = new URLSearchParams({ track: title, artist });
         if (metadata.album) cacheParams.append('album', metadata.album);
         if (metadata.durationMs && metadata.durationMs > 0) {
           cacheParams.append('duration', Math.round(metadata.durationMs / 1000).toString());
         }
+
         const cacheUrl = `https://lyrics-api.binimum.org/?${cacheParams.toString()}`;
         const cacheRes = await fetchWithTimeout(cacheUrl);
         if (cacheRes.ok) {
           cacheData = await cacheRes.json();
         }
       }
+
       if (cacheData && cacheData.results && cacheData.results.length > 0) {
         const result = cacheData.results[0];
         if (result.lyricsUrl) {
@@ -862,6 +1024,8 @@ const LyricsService = {
             const ttmlText = await ttmlRes.text();
             const lines = this.parseTTML(ttmlText);
             if (lines && lines.length > 0) {
+
+
               fallbackBiniResult = { lines, source: 'Apple' };
             }
           }
@@ -870,10 +1034,13 @@ const LyricsService = {
     } catch (e) {
       console.error('Cache API failed', e);
     }
+
     const shuffledServers = [...KPOE_SERVERS].sort(() => Math.random() - 0.5).slice(0, 3);
+
     const fetchPromises = shuffledServers.map(async (base) => {
       const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
       const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
+      
       try {
         const response = await fetchWithTimeout(url, {}, 3000);
         if (response.ok) {
@@ -882,9 +1049,11 @@ const LyricsService = {
             const lines = this.convertKPoeLyrics(payload);
             if (lines && lines.length > 0) {
               let sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
+
               if (sourceLabel.toLowerCase() === 'qq') sourceLabel = 'QQ Music';
               if (sourceLabel.toLowerCase() === 'netease') sourceLabel = 'NetEase';
               if (sourceLabel.toLowerCase() === 'musixmatch') sourceLabel = 'Musixmatch';
+              
               return { lines, source: sourceLabel };
             }
           }
@@ -892,21 +1061,26 @@ const LyricsService = {
       } catch (err) {}
       return null;
     });
+
     const results = await Promise.all(fetchPromises);
     results.forEach(res => {
       if (res) {
         allResults.push(res);
       }
     });
+
     if (fallbackBiniResult) {
       allResults.push(fallbackBiniResult);
     }
+
     return allResults;
   },
+
   async fetchLyricsFromLrclib(metadata) {
     const title = metadata.title?.trim();
     const artist = metadata.artist?.trim();
     if (!title || !artist) return null;
+
     try {
       const params = new URLSearchParams({
         track_name: title,
@@ -916,11 +1090,14 @@ const LyricsService = {
       if (metadata.durationMs && metadata.durationMs > 0) {
         params.append('duration', Math.round(metadata.durationMs / 1000).toString());
       }
+      
       let response = await fetchWithTimeout(`https://lrclib.net/api/get?${params.toString()}`);
       let bestMatch = null;
+
       if (response.ok) {
         bestMatch = await response.json();
       } else {
+
         const searchParams = new URLSearchParams({ q: `${artist} ${title}` });
         const searchRes = await fetchWithTimeout(`https://lrclib.net/api/search?${searchParams.toString()}`);
         if (searchRes.ok) {
@@ -930,13 +1107,16 @@ const LyricsService = {
           }
         }
       }
+
       if (!bestMatch) return null;
+
       if (bestMatch.syncedLyrics) {
         const lines = this.parseLrcSubtitles(bestMatch.syncedLyrics);
         if (lines.length > 0) {
           return { lines, source: 'LRCLIB' };
         }
       }
+
       if (bestMatch.plainLyrics && typeof bestMatch.plainLyrics === 'string') {
         const plainLines = bestMatch.plainLyrics.split('\n').filter(l => l.trim());
         if (plainLines.length > 0) {
@@ -955,20 +1135,25 @@ const LyricsService = {
     } catch {}
     return null;
   },
+
   async fetchLyricsFromUnison(metadata) {
     const title = metadata.title?.trim();
     const artist = metadata.artist?.trim();
     if (!title || !artist) return null;
+
     try {
       const params = new URLSearchParams({ song: title, artist });
       if (metadata.album) params.append('album', metadata.album);
       if (metadata.durationMs && metadata.durationMs > 0) {
         params.append('duration', Math.round(metadata.durationMs / 1000).toString());
       }
+
       const response = await fetchWithTimeout(`${UNISON_BASE_URL}/lyrics?${params.toString()}`);
       if (!response.ok) return null;
+      
       const json = await response.json();
       if (!json.success || !json.data || !json.data.lyrics) return null;
+
       const format = (json.data.format || '').toLowerCase();
       if (format === 'ttml') {
         const lines = this.parseTTML(json.data.lyrics);
@@ -984,11 +1169,14 @@ const LyricsService = {
     } catch {}
     return null;
   },
+
+
   async translateLyrics(lines) {
     if (!lines || lines.length === 0) return [];
     try {
       const textsToTranslate = lines.map(line => line.text.map(s => s.text).join(''));
       const translatedBatch = await GoogleService.translate(textsToTranslate, 'pt');
+
       return lines.map((line, idx) => {
         const transText = translatedBatch[idx] || line.text.map(s => s.text).join('');
         return {
@@ -1001,6 +1189,7 @@ const LyricsService = {
       return lines;
     }
   },
+
   async romanizeLyrics(lines) {
     if (!lines || lines.length === 0) return [];
     try {
@@ -1011,12 +1200,15 @@ const LyricsService = {
       return lines;
     }
   },
+
   async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics', isrc = null) {
     const resolved = await this.resolveSongMetadata(trackName, artistName, albumName, durationMs, null, isrc, `${artistName} - ${trackName}`);
     const metadata = resolved.metadata || { title: trackName, artist: artistName, album: albumName, durationMs };
+
     const cacheKey = `lysinc_cache_${metadata.title}_${metadata.artist}`;
     const cachedData = localStorage.getItem(cacheKey);
     let sortedSources;
+
     if (cachedData) {
       try {
         sortedSources = JSON.parse(cachedData);
@@ -1024,15 +1216,19 @@ const LyricsService = {
         sortedSources = null;
       }
     }
+
     if (!sortedSources) {
       const collectedSources = [];
+
       const fetchPromises = [
         this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata).catch(() => null),
         this.fetchLyricsFromUnison(metadata).catch(() => null),
         this.fetchLyricsFromLrclib(metadata).catch(() => null)
       ];
+
       const results = await Promise.all(fetchPromises);
       const [youLyResults, unisonResult, lrclibResult] = results;
+
       if (youLyResults && youLyResults.length > 0) {
         collectedSources.push(...youLyResults);
       }
@@ -1042,6 +1238,7 @@ const LyricsService = {
       if (lrclibResult && lrclibResult.lines && lrclibResult.lines.length > 0) {
         collectedSources.push(lrclibResult);
       }
+
       if (collectedSources.length > 0) {
         sortedSources = this.mergeAndSortSources(collectedSources);
         try {
@@ -1049,6 +1246,7 @@ const LyricsService = {
         } catch (e) {}
       }
     }
+
     if (sortedSources && sortedSources.length > 0) {
       let selectedSource = sortedSources[0];
       if (provider && provider !== 'betterlyrics') {
@@ -1057,6 +1255,7 @@ const LyricsService = {
           selectedSource = forced;
         }
       }
+
       return {
         original: selectedSource.lines,
         translation: null,
@@ -1065,8 +1264,10 @@ const LyricsService = {
         availableSources: sortedSources
       };
     }
+
     return null;
   }
 };
+
 export default LyricsService;
 
