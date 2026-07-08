@@ -1763,7 +1763,8 @@ class LySincApp {
                     
                     const placeholder = document.createElement('div');
                     placeholder.id = 'pip-placeholder';
-                    placeholder.className = 'flex-1 flex flex-col justify-center items-center text-white/50 text-center px-4 order-3';
+                    placeholder.className = 'flex-1 flex flex-col justify-center items-center text-white/50 text-center px-4';
+                    placeholder.style.order = '3';
                     placeholder.innerHTML = `
                         <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
@@ -2727,7 +2728,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (this.lyrics.length > 0) {
             const creditsBlock = document.createElement('div');
             creditsBlock.id = 'lyrics-credits-block';
-            creditsBlock.className = 'mt-10 mb-8 pt-6 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
+            creditsBlock.className = 'mt-2 mb-8 pt-2 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
 
             if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
                 this.currentTrackArtistsRaw.forEach(artist => {
