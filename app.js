@@ -2126,15 +2126,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     setupMarquee(element) {
         if (!element) return;
         
-        element.classList.remove('truncate');
-        element.classList.remove('marquee-text');
-        element.style.removeProperty('--scroll-dist');
-        element.style.whiteSpace = 'nowrap';
-        
-        if (element.parentElement) {
-            element.parentElement.classList.add('overflow-hidden');
-        }
-
         if (element.marqueeAnim) {
             element.marqueeAnim.cancel();
             element.marqueeAnim = null;
@@ -2143,32 +2134,22 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             element.marqueeReturnAnim.cancel();
             element.marqueeReturnAnim = null;
         }
+        
         element.style.transform = 'translateX(0)';
+        element.classList.remove('truncate', 'marquee-text');
+        
+        element.style.whiteSpace = 'nowrap';
+        element.style.flexShrink = '0';
+        element.style.minWidth = 'max-content';
 
         const container = element.closest('.flex-1') || element.parentElement;
         if (!container) return;
 
         const containerWidth = container.clientWidth;
-        const explicitIcon = document.getElementById('explicit-icon-header');
-        const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
-        const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
-        const availableWidth = containerWidth - reservedSpace;
+        const textWidth = element.getBoundingClientRect().width;
 
-        const clone = element.cloneNode(true);
-        clone.style.position = 'absolute';
-        clone.style.visibility = 'hidden';
-        clone.style.whiteSpace = 'nowrap';
-        clone.style.width = 'max-content';
-        clone.style.transform = 'none';
-        clone.style.padding = '0';
-        clone.style.margin = '0';
-        clone.classList.remove('truncate', 'overflow-hidden');
-        element.parentElement.appendChild(clone);
-        const textWidth = clone.getBoundingClientRect().width;
-        element.parentElement.removeChild(clone);
-
-        if (textWidth > availableWidth) {
-            const scrollDistance = textWidth - availableWidth + 60;
+        if (textWidth > containerWidth) {
+            const scrollDistance = (textWidth - containerWidth) + 50;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
@@ -2207,6 +2188,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             };
         } else {
             element.style.transform = 'translateX(0)';
+            element.style.minWidth = 'auto';
+            element.style.flexShrink = '1';
         }
     }
 
@@ -2550,7 +2533,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9835;';
+                sylSpan.innerHTML = '&#9836;&#xFE0E;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
