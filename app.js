@@ -2043,10 +2043,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
             }
         }
-
         this.showScreen('main');
-        this.setupMarquee(this.trackName);
-        this.setupMarquee(this.trackArtists);
 
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
@@ -2121,6 +2118,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 if (pipBlur) pipBlur.style.backgroundImage = 'none';
             }
         }
+
+        setTimeout(() => {
+            this.setupMarquee(this.trackName);
+            this.setupMarquee(this.trackArtists);
+        }, 50);
     }
 
     setupMarquee(element) {
@@ -2140,7 +2142,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         
         element.style.whiteSpace = 'nowrap';
         element.style.flexShrink = '0';
-        element.style.minWidth = 'max-content';
+        element.style.width = 'max-content';
+        element.style.display = 'inline-block';
 
         const container = element.closest('.flex-1') || element.parentElement;
         if (!container) return;
@@ -2148,7 +2151,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const containerWidth = container.clientWidth;
         const textWidth = element.getBoundingClientRect().width;
 
-        if (textWidth > containerWidth) {
+        if (textWidth > containerWidth + 2) {
             const scrollDistance = (textWidth - containerWidth) + 50;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
@@ -2188,8 +2191,9 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             };
         } else {
             element.style.transform = 'translateX(0)';
-            element.style.minWidth = 'auto';
+            element.style.width = 'auto';
             element.style.flexShrink = '1';
+            element.style.display = '';
         }
     }
 
@@ -2533,7 +2537,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9836;&#xFE0E;';
+                sylSpan.innerHTML = '&#9835;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
@@ -3170,6 +3174,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
         }
     }
+
+
 
     updatePlayPauseUI() {
         if (this.isPlaying) {
