@@ -3129,16 +3129,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
 
 
-        const minTop = 88;
-        if (rect.bottom + 16 > minTop) {
-            wrapper.style.position = 'absolute';
-            wrapper.style.top = `${topMenu.offsetTop + topMenu.offsetHeight + 16}px`;
-            wrapper.style.left = '';
-        } else {
-            wrapper.style.position = 'fixed';
-            wrapper.style.top = `${minTop}px`;
-            wrapper.style.left = '';
-        }
+
 
         if (rect.bottom < 0) {
 
