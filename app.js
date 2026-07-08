@@ -2163,9 +2163,9 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         clone.style.padding = '0';
         clone.style.margin = '0';
         clone.classList.remove('truncate', 'overflow-hidden');
-        document.body.appendChild(clone);
+        element.parentElement.appendChild(clone);
         const textWidth = clone.getBoundingClientRect().width;
-        document.body.removeChild(clone);
+        element.parentElement.removeChild(clone);
 
         if (textWidth > availableWidth) {
             const scrollDistance = textWidth - availableWidth + 60;
@@ -2550,7 +2550,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#9836;';
+                sylSpan.innerHTML = '&#9835;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
