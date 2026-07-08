@@ -645,6 +645,8 @@ class LySincApp {
                         durationMs: this.durationMs
                     };
                     await this.loadLyricsForTrack(state);
+            this.showScreen('main');
+            this.triggerMarqueeCheck();
                 }
             });
         }
@@ -1663,6 +1665,8 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             }
             this.updateTrackDetails(state);
             await this.loadLyricsForTrack(state);
+            this.showScreen('main');
+            this.triggerMarqueeCheck();
         } else {
             const elapsed = Date.now() - this.lastSyncTime;
             const currentLocalProgress = this.progressMs + elapsed;
@@ -1684,7 +1688,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             }
         }
         this.showScreen('main');
-        this.triggerMarqueeCheck();
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             const currentEstimatedTime = this.progressMs + elapsed + this.syncOffset;
@@ -2668,5 +2671,6 @@ if (document.readyState === 'loading') {
 } else {
     window.app = new LySincApp();
 }
+
 
 
