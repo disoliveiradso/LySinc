@@ -740,13 +740,13 @@ class LySincApp {
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
             btnChangeSource.addEventListener('click', async () => {
-                const providers = ['binilyrics', 'musixmatch', 'lrclib', 'netease'];
+                const providers = ['apple', 'musixmatch', 'lrclib', 'netease'];
                 const currentIndex = providers.indexOf(this.currentLyricsProvider);
                 const nextIndex = (currentIndex + 1) % providers.length;
                 this.currentLyricsProvider = providers[nextIndex];
                 
                 const providerLabels = {
-                    'binilyrics': 'BiniLyrics',
+                    'apple': 'Apple',
                     'musixmatch': 'Musixmatch',
                     'lrclib': 'LrcLib',
                     'netease': 'NetEase'
@@ -2043,7 +2043,10 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
             }
         }
+
         this.showScreen('main');
+        this.setupMarquee(this.trackName);
+        this.setupMarquee(this.trackArtists);
 
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
@@ -2118,16 +2121,20 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 if (pipBlur) pipBlur.style.backgroundImage = 'none';
             }
         }
-
-        setTimeout(() => {
-            this.setupMarquee(this.trackName);
-            this.setupMarquee(this.trackArtists);
-        }, 50);
     }
 
     setupMarquee(element) {
         if (!element) return;
         
+        element.classList.remove('truncate');
+        element.classList.remove('marquee-text');
+        element.style.removeProperty('--scroll-dist');
+        element.style.whiteSpace = 'nowrap';
+        
+        if (element.parentElement) {
+            element.parentElement.classList.add('overflow-hidden');
+        }
+
         if (element.marqueeAnim) {
             element.marqueeAnim.cancel();
             element.marqueeAnim = null;
@@ -2136,23 +2143,21 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             element.marqueeReturnAnim.cancel();
             element.marqueeReturnAnim = null;
         }
-        
         element.style.transform = 'translateX(0)';
-        element.classList.remove('truncate', 'marquee-text');
-        
-        // Remove constraints that prevent text from stretching internally
-        element.style.whiteSpace = 'nowrap';
-        element.style.minWidth = 'auto';
-        element.style.width = 'auto';
-        element.style.flexShrink = '1';
 
-        // Measure internal scroll vs visible area
+        const container = element.closest('.flex-1') || element.parentElement;
+        if (!container) return;
+
+        const containerWidth = container.clientWidth;
         const textWidth = element.scrollWidth;
-        const visibleWidth = element.clientWidth;
 
-        // If text overflows its own visible container by more than 5px
-        if (textWidth > visibleWidth + 5) {
-            const scrollDistance = (textWidth - visibleWidth) + 50; // 50px padding at the end
+        const explicitIcon = document.getElementById('explicit-icon-header');
+        const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
+        const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
+        const availableWidth = containerWidth - reservedSpace;
+
+        if (textWidth > availableWidth) {
+            const scrollDistance = textWidth - availableWidth + 20;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
@@ -2163,7 +2168,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
             const animOptions = {
                 duration: durationMs,
-                delay: 2000,
+                delay: 1500,
                 fill: 'forwards'
             };
 
@@ -2174,23 +2179,17 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     { transform: `translateX(-${scrollDistance}px)` },
                     { transform: 'translateX(0)' }
                 ];
-                
-                const returnDuration = Math.max(3000, durationMs * 0.4);
-                
                 const returnOptions = {
-                    duration: returnDuration,
-                    delay: 2000
+                    duration: 500,
+                    delay: 1500
                 };
                 
                 element.marqueeReturnAnim = element.animate(returnKeyframes, returnOptions);
                 element.marqueeReturnAnim.onfinish = () => {
-                    setTimeout(() => {
-                        this.setupMarquee(element); 
-                    }, 2000);
+                    this.setupMarquee(element); 
                 };
             };
         } else {
-            // It fits! Just ensure it's positioned normally
             element.style.transform = 'translateX(0)';
         }
     }
@@ -3172,8 +3171,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
         }
     }
-
-
 
     updatePlayPauseUI() {
         if (this.isPlaying) {
