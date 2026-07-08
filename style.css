@@ -756,13 +756,27 @@ input:focus {
 /* Fim Line Visibility */
 .lyric-line.is-fim-line {
     opacity: 0 !important;
-    transition: opacity 0.5s ease;
+    max-height: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    transition: opacity 0.5s ease, max-height 0.5s ease, margin 0.5s ease, padding 0.5s ease;
 }
 .lyric-line.is-fim-line.active {
     opacity: 1 !important;
+    max-height: 100px;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
 }
 .user-scrolling .lyric-line.is-fim-line.active {
     opacity: 1 !important;
+    max-height: 100px;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
 }
 
 /* Translation and Romanization Formatting */
@@ -779,11 +793,7 @@ input:focus {
     max-width: 100% !important;
 }
 
-/* Hide elements in Main Window when PiP is active */
-body.pip-active #lyrics-top-menu,
-body.pip-active .w-full.bg-white\/10.h-\[3px\] {
-    display: none !important;
-}.light-mode .lyrics-syllable.current {
+.light-mode .lyrics-syllable.current {
     filter: none !important;
     transform: none !important;
 }
