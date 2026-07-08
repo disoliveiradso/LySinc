@@ -2127,19 +2127,48 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     }
 
     setupMarquee(element) {
-        const containerWidth = element.parentElement.clientWidth;
-        element.classList.remove('truncate');
-        const textWidth = element.scrollWidth;
+        if (!element) return;
+        
+        // Force the element to be truncated first to get a clean container measurement (non-expanded by text)
+        element.classList.add('truncate');
+        element.classList.remove('marquee-text');
+        element.style.removeProperty('--scroll-dist');
+        if (element.parentElement) {
+            element.parentElement.classList.remove('overflow-hidden');
+        }
 
-        if (textWidth > containerWidth) {
-            element.style.setProperty('--scroll-dist', `-${textWidth - containerWidth + 30}px`);
+        const container = element.closest('.flex-1') || element.parentElement;
+        if (!container) return;
+
+        const containerWidth = container.clientWidth;
+
+        // Temporarily remove truncate and force nowrap to measure the full text width
+        element.classList.remove('truncate');
+        const originalWhiteSpace = element.style.whiteSpace;
+        element.style.whiteSpace = 'nowrap';
+        const textWidth = element.scrollWidth;
+        element.style.whiteSpace = originalWhiteSpace; // restore
+
+        // Account for explicit icon width if it is visible
+        const explicitIcon = document.getElementById('explicit-icon-header');
+        const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
+        const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
+        const availableWidth = containerWidth - reservedSpace;
+
+        if (textWidth > availableWidth) {
+            // Apply scroll distance
+            element.style.setProperty('--scroll-dist', `-${textWidth - availableWidth + 30}px`);
             element.classList.add('marquee-text');
-            element.parentElement.classList.add('overflow-hidden');
+            if (element.parentElement) {
+                element.parentElement.classList.add('overflow-hidden');
+            }
         } else {
             element.classList.add('truncate');
             element.classList.remove('marquee-text');
             element.style.removeProperty('--scroll-dist');
-            element.parentElement.classList.remove('overflow-hidden');
+            if (element.parentElement) {
+                element.parentElement.classList.remove('overflow-hidden');
+            }
         }
     }
 
