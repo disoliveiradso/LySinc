@@ -2010,7 +2010,9 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
         this.updatePlayPauseUI();
 
-        if (stateTrackId !== this.currentTrackId) {
+        const trackChanged = (stateTrackId !== this.currentTrackId);
+
+        if (trackChanged) {
             const isAutoSkip = this.currentTrackId !== null && this.isPlaying;
             this.currentTrackId = stateTrackId;
             this.hasAutoSeekedToFirstLine = false;
@@ -2020,17 +2022,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.lastSyncTime = Date.now();
             
             if (isAutoSkip) {
-
-
                 this.seekToTime(this.progressMs, true).catch(() => {});
             }
 
             this.updateTrackDetails(state);
-            await this.loadLyricsForTrack(state);
         } else {
-
-
-
             const elapsed = Date.now() - this.lastSyncTime;
             const currentLocalProgress = this.progressMs + elapsed;
             const diff = Math.abs(state.progressMs - currentLocalProgress);
@@ -2054,8 +2050,14 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         }
 
         this.showScreen('main');
-        this.setupMarquee(this.trackName);
-        this.setupMarquee(this.trackArtists);
+
+        if (trackChanged) {
+            // Setup marquee only on track change (or resize), and only after screen is visible
+            this.setupMarquee(this.trackName);
+            this.setupMarquee(this.trackArtists);
+            
+            await this.loadLyricsForTrack(state);
+        }
 
         if (this.lyrics.length > 0) {
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
