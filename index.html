@@ -174,44 +174,46 @@
                         </button>
                     </div>
 
-                    <div class="w-px h-4 bg-white/20 mx-1"></div>
-
-                    <button
-                        class="lyric-tab-btn active px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
-                        id="btn-tab-original" data-mode="original">Original</button>
-                    <button
-                        class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
-                        id="btn-tab-translation" data-mode="translation">Tradução</button>
-                    <button
-                        class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
-                        id="btn-tab-romanized" data-mode="romanized">Romanização</button>
-
-                    
-                    <div class="w-px h-4 bg-white/20 mx-2 hidden md:block"></div>
-
-                    
-                    <div class="flex items-center space-x-1 px-2" id="sync-controls-group">
-                        <button id="btn-sync-down"
-                            class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold"
-                            title="Atrasar letras">-</button>
-                        <span id="sync-offset-display"
-                            class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
-                        <button id="btn-sync-up"
-                            class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold"
-                            title="Adiantar letras">+</button>
-                        <button id="btn-sync-reset"
-                            class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center ml-0.5"
-                            title="Resetar sincronização">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                                </path>
-                            </svg>
-                        </button>
-                        
+                    <div id="lyrics-advanced-controls" class="flex items-center opacity-0 pointer-events-none transition-all duration-500 ease-out max-w-0 overflow-hidden">
                         <div class="w-px h-4 bg-white/20 mx-1"></div>
-                        <div
-                            class="flex items-center space-x-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+
+                        <button
+                            class="lyric-tab-btn active px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
+                            id="btn-tab-original" data-mode="original">Original</button>
+                        <button
+                            class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
+                            id="btn-tab-translation" data-mode="translation">Tradução</button>
+                        <button
+                            class="lyric-tab-btn px-4 py-1.5 rounded-full text-white/50 hover:text-white transition-colors text-sm font-medium"
+                            id="btn-tab-romanized" data-mode="romanized">Romanização</button>
+
+                        
+                        <div class="w-px h-4 bg-white/20 mx-2 hidden md:block"></div>
+
+                        
+                        <div class="flex items-center space-x-1 px-2" id="sync-controls-group">
+                            <button id="btn-sync-down"
+                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold"
+                                title="Atrasar letras">-</button>
+                            <span id="sync-offset-display"
+                                class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
+                            <button id="btn-sync-up"
+                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold"
+                                title="Adiantar letras">+</button>
+                            <button id="btn-sync-reset"
+                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full flex items-center justify-center ml-0.5"
+                                title="Resetar sincronização">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                    </path>
+                                </svg>
+                            </button>
+                            
+                            <div class="w-px h-4 bg-white/20 mx-1"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity ml-1">
                             
                             <button id="btn-pip-top"
                                 class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden flex items-center justify-center"

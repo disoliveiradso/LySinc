@@ -2246,7 +2246,15 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.btnRecenter.classList.add('hidden', 'opacity-0');
         }
         const topMenu = document.getElementById('lyrics-top-menu');
-        if (topMenu) topMenu.classList.add('hidden');
+        if (topMenu) {
+            topMenu.classList.remove('hidden');
+            topMenu.classList.add('flex');
+        }
+        const advancedControls = document.getElementById('lyrics-advanced-controls');
+        if (advancedControls) {
+            advancedControls.classList.remove('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
+            advancedControls.classList.add('opacity-0', 'max-w-0', 'pointer-events-none');
+        }
         
         this.currentTrackArtistsRaw = state.artistsRaw || [];
         if (this.currentTrackArtistsRaw.length > 0) {
@@ -2290,8 +2298,12 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
             if (topMenu) {
                 topMenu.classList.remove('hidden');
-
                 topMenu.classList.add('flex');
+            }
+            const advancedControls = document.getElementById('lyrics-advanced-controls');
+            if (advancedControls) {
+                advancedControls.classList.remove('opacity-0', 'max-w-0', 'pointer-events-none');
+                advancedControls.classList.add('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
             }
 
             this.activeLineId = null;
@@ -2307,8 +2319,13 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
                 </div>`;
             if (topMenu) {
-                topMenu.classList.add('hidden');
-                topMenu.classList.remove('flex');
+                topMenu.classList.remove('hidden');
+                topMenu.classList.add('flex');
+            }
+            const advancedControls = document.getElementById('lyrics-advanced-controls');
+            if (advancedControls) {
+                advancedControls.classList.remove('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
+                advancedControls.classList.add('opacity-0', 'max-w-0', 'pointer-events-none');
             }
         }
     }
