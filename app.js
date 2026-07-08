@@ -3133,9 +3133,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (rect.bottom + 16 > minTop) {
             wrapper.style.position = 'absolute';
             wrapper.style.top = `${topMenu.offsetTop + topMenu.offsetHeight + 16}px`;
+            wrapper.style.left = '';
         } else {
             wrapper.style.position = 'fixed';
             wrapper.style.top = `${minTop}px`;
+            wrapper.style.left = `${rect.left}px`;
         }
 
         if (rect.bottom < 0) {
