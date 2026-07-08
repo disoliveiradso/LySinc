@@ -1809,7 +1809,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     btnRecenterClone.style.alignItems = 'center';
                     btnRecenterClone.style.justifyContent = 'center';
                     btnRecenterClone.style.whiteSpace = 'nowrap';
-                    pipWindow.document.body.appendChild(btnRecenterClone);
+                    pipMain.appendChild(btnRecenterClone);
 
                     let pipScrollTimeout;
                     const handlePipUserInteraction = () => {
@@ -1833,24 +1833,33 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
                     pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
                     pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
-                    let isTicking = false;
+                    let isAbsolute = false;
                     pipWindow.addEventListener('scroll', () => {
-                        if (!isTicking) {
-                            pipWindow.requestAnimationFrame(() => {
-                                const credits = pipWindow.document.getElementById('lyrics-credits-block');
-                                if (credits) {
-                                    const rect = credits.getBoundingClientRect();
-                                    const desiredBottom = 32; // 2rem
-                                    const distanceToBottom = pipWindow.innerHeight - rect.top;
-                                    if (distanceToBottom > desiredBottom) {
-                                        btnRecenterClone.style.bottom = (distanceToBottom + 16) + 'px';
-                                    } else {
-                                        btnRecenterClone.style.bottom = '2rem';
-                                    }
+                        const credits = pipWindow.document.getElementById('lyrics-credits-block');
+                        if (credits) {
+                            const rect = credits.getBoundingClientRect();
+                            const threshold = pipWindow.innerHeight - 16;
+                            
+                            if (rect.top <= threshold) {
+                                if (!isAbsolute) {
+                                    btnRecenterClone.style.position = 'absolute';
+                                    btnRecenterClone.style.bottom = 'auto';
+                                    btnRecenterClone.style.top = (credits.offsetTop - btnRecenterClone.offsetHeight - 16) + 'px';
+                                    isAbsolute = true;
                                 }
-                                isTicking = false;
-                            });
-                            isTicking = true;
+                            } else {
+                                if (isAbsolute) {
+                                    btnRecenterClone.style.position = 'fixed';
+                                    btnRecenterClone.style.top = 'auto';
+                                    btnRecenterClone.style.bottom = '2rem';
+                                    isAbsolute = false;
+                                }
+                            }
+                        } else if (isAbsolute) {
+                            btnRecenterClone.style.position = 'fixed';
+                            btnRecenterClone.style.top = 'auto';
+                            btnRecenterClone.style.bottom = '2rem';
+                            isAbsolute = false;
                         }
 
                         if (Date.now() - this.lastAutoScrollTime < 800) {
