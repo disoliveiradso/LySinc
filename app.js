@@ -2126,39 +2126,39 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     setupMarquee(element) {
         if (!element) return;
         
-        element.classList.remove('truncate');
-        element.classList.remove('marquee-text');
-        element.style.removeProperty('--scroll-dist');
+        const container = element.closest('.flex-1');
+        if (!container) return;
+        
+        // Ensure the main container clips overflowing content
+        container.classList.add('overflow-hidden');
+        
+        // Animate the parent wrapper for track-name (to include explicit icon), or the element itself for track-artists
+        const targetToAnimate = (element.id === 'track-name') ? element.parentElement : element;
+        
+        // Force the element to expand to its true content width so it doesn't wrap or shrink
+        targetToAnimate.style.width = 'max-content';
+        targetToAnimate.style.maxWidth = 'none';
+        targetToAnimate.classList.remove('overflow-hidden');
         element.style.whiteSpace = 'nowrap';
         
-        if (element.parentElement) {
-            element.parentElement.classList.add('overflow-hidden');
+        // Cancel existing animations
+        if (targetToAnimate.marqueeAnim) {
+            targetToAnimate.marqueeAnim.cancel();
+            targetToAnimate.marqueeAnim = null;
         }
-
-        if (element.marqueeAnim) {
-            element.marqueeAnim.cancel();
-            element.marqueeAnim = null;
+        if (targetToAnimate.marqueeReturnAnim) {
+            targetToAnimate.marqueeReturnAnim.cancel();
+            targetToAnimate.marqueeReturnAnim = null;
         }
-        if (element.marqueeReturnAnim) {
-            element.marqueeReturnAnim.cancel();
-            element.marqueeReturnAnim = null;
-        }
-        element.style.transform = 'translateX(0)';
+        targetToAnimate.style.transform = 'translateX(0)';
 
-        const container = element.closest('.flex-1') || element.parentElement;
-        if (!container) return;
-
+        // Measure true widths
         const containerWidth = container.clientWidth;
-        const textWidth = element.scrollWidth;
+        const textWidth = targetToAnimate.scrollWidth;
 
-        const explicitIcon = document.getElementById('explicit-icon-header');
-        const isExplicitVisible = explicitIcon && !explicitIcon.classList.contains('hidden');
-        const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
-        const availableWidth = containerWidth - reservedSpace;
-
-        if (textWidth > availableWidth) {
-            const scrollDistance = textWidth - availableWidth + 20;
-            const pixelsPerSecond = 30;
+        if (textWidth > containerWidth) {
+            const scrollDistance = textWidth - containerWidth + 30; // +30px extra to show the end clearly
+            const pixelsPerSecond = 35; // Smooth reading speed
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
             const keyframes = [
@@ -2168,29 +2168,36 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
             const animOptions = {
                 duration: durationMs,
-                delay: 1500,
-                fill: 'forwards'
+                delay: 1500, // Pause before starting
+                fill: 'forwards',
+                easing: 'linear' // Continuous speed for reading
             };
 
-            element.marqueeAnim = element.animate(keyframes, animOptions);
+            targetToAnimate.marqueeAnim = targetToAnimate.animate(keyframes, animOptions);
 
-            element.marqueeAnim.onfinish = () => {
+            targetToAnimate.marqueeAnim.onfinish = () => {
                 const returnKeyframes = [
                     { transform: `translateX(-${scrollDistance}px)` },
                     { transform: 'translateX(0)' }
                 ];
+                // Faster return speed (e.g. 200 pixels per second), min 500ms
+                const returnDurationMs = Math.max(500, (scrollDistance / 200) * 1000); 
+                
                 const returnOptions = {
-                    duration: 500,
-                    delay: 1500
+                    duration: returnDurationMs,
+                    delay: 1500, // Pause at the end before returning
+                    easing: 'ease-in-out'
                 };
                 
-                element.marqueeReturnAnim = element.animate(returnKeyframes, returnOptions);
-                element.marqueeReturnAnim.onfinish = () => {
+                targetToAnimate.marqueeReturnAnim = targetToAnimate.animate(returnKeyframes, returnOptions);
+                targetToAnimate.marqueeReturnAnim.onfinish = () => {
+                    // Loop animation safely
                     this.setupMarquee(element); 
                 };
             };
         } else {
-            element.style.transform = 'translateX(0)';
+            // Fits perfectly, reset
+            targetToAnimate.style.transform = 'translateX(0)';
         }
     }
 
