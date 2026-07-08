@@ -1734,7 +1734,7 @@ class LySincApp {
             if (event && event.currentTarget) {
                 event.currentTarget.blur();
             }
-            if (!(false && 'documentPictureInPicture' in window)) {
+            if (!('documentPictureInPicture' in window)) {
                 if (document.pictureInPictureElement) {
                     document.exitPictureInPicture();
                 } else {
