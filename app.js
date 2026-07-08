@@ -2154,16 +2154,21 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const reservedSpace = (element.id === 'track-name' && isExplicitVisible) ? 28 : 0;
         const availableWidth = containerWidth - reservedSpace;
 
-        const originalPos = element.style.position;
-        const originalWidth = element.style.width;
-        element.style.position = 'absolute';
-        element.style.width = 'max-content';
-        const textWidth = element.getBoundingClientRect().width;
-        element.style.position = originalPos;
-        element.style.width = originalWidth;
+        const clone = element.cloneNode(true);
+        clone.style.position = 'absolute';
+        clone.style.visibility = 'hidden';
+        clone.style.whiteSpace = 'nowrap';
+        clone.style.width = 'max-content';
+        clone.style.transform = 'none';
+        clone.style.padding = '0';
+        clone.style.margin = '0';
+        clone.classList.remove('truncate', 'overflow-hidden');
+        document.body.appendChild(clone);
+        const textWidth = clone.getBoundingClientRect().width;
+        document.body.removeChild(clone);
 
         if (textWidth > availableWidth) {
-            const scrollDistance = textWidth - availableWidth + 80;
+            const scrollDistance = textWidth - availableWidth + 60;
             const pixelsPerSecond = 30;
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
@@ -2185,8 +2190,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     { transform: `translateX(-${scrollDistance}px)` },
                     { transform: 'translateX(0)' }
                 ];
+                
+                const returnDuration = Math.max(3000, durationMs * 0.4);
+                
                 const returnOptions = {
-                    duration: 2500,
+                    duration: returnDuration,
                     delay: 2000
                 };
                 
@@ -2542,7 +2550,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 const sylSpan = document.createElement('span');
                 sylSpan.className = 'lyrics-syllable instrumental-icon';
                 sylSpan.id = `word-${line.id}-0`;
-                sylSpan.innerHTML = '&#127925;';
+                sylSpan.innerHTML = '&#9836;';
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
