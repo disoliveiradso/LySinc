@@ -1555,9 +1555,18 @@ class LySincApp {
                 silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
 
                 if (document.visibilityState === 'visible') {
-                    const tick = () => {
+                    let lastFrameTime = 0;
+                    const fpsInterval = 1000 / 30; // Force max 30 FPS
+                    
+                    const tick = (timestamp) => {
                         if (!pipAnimationId) return;
-                        renderPipCanvas();
+                        
+                        // Throttle frame rate
+                        if (!lastFrameTime || timestamp - lastFrameTime >= fpsInterval) {
+                            renderPipCanvas();
+                            lastFrameTime = timestamp - ((timestamp - lastFrameTime) % fpsInterval);
+                        }
+                        
                         pipAnimationId = requestAnimationFrame(tick);
                     };
                     pipAnimationId = requestAnimationFrame(tick);
@@ -1585,8 +1594,9 @@ class LySincApp {
                 pipCanvas = document.createElement('canvas');
                 
                 // 3:4 portrait canvas — vertical rectangle, compact height on mobile
-                const pipW = 1080;
-                const pipH = 1440;
+                const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent);
+                const pipW = isMobile ? 540 : 1080;
+                const pipH = isMobile ? 720 : 1440;
                 
                 pipCanvas.width = pipW;
                 pipCanvas.height = pipH;
