@@ -246,7 +246,7 @@ class LySincApp {
         this.trackName = document.getElementById('track-name');
         this.trackArtists = document.getElementById('track-artists');
         this.explicitIconHeader = document.getElementById('explicit-icon-header');
-        this.footerExplicit = document.getElementById('footer-explicit');
+
         this.lyricsContainer = document.getElementById('lyrics-container');
         this.progressBar = document.getElementById('progress-bar');
 
@@ -2123,15 +2123,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
         this.isExplicit = !!state.explicit;
         
-        if (this.explicitIconHeader && this.footerExplicit) {
+        if (this.explicitIconHeader) {
             if (state.explicit) {
                 this.explicitIconHeader.classList.remove('hidden');
-                this.footerExplicit.classList.remove('hidden');
-                this.footerExplicit.classList.add('flex');
             } else {
                 this.explicitIconHeader.classList.add('hidden');
-                this.footerExplicit.classList.add('hidden');
-                this.footerExplicit.classList.remove('flex');
             }
         }
 
