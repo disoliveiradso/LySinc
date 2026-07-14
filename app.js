@@ -741,19 +741,7 @@ class LySincApp {
             });
         });
 
-        const btnSyncUp = document.getElementById('btn-sync-up');
-        const btnSyncDown = document.getElementById('btn-sync-down');
-        const btnSyncReset = document.getElementById('btn-sync-reset');
-
-        if (btnSyncUp) {
-            btnSyncUp.addEventListener('click', () => this.adjustSyncOffset(100));
-        }
-        if (btnSyncDown) {
-            btnSyncDown.addEventListener('click', () => this.adjustSyncOffset(-100));
-        }
-        if (btnSyncReset) {
-            btnSyncReset.addEventListener('click', () => this.adjustSyncOffset(0, true));
-        }
+        this.setupSyncControls();
 
         const btnChangeSource = document.getElementById('btn-change-source');
         if (btnChangeSource) {
@@ -1008,6 +996,36 @@ class LySincApp {
         }
 
         this.setupPiP();
+    }
+
+    setupSyncControls() {
+        const attachSyncListeners = (prefix) => {
+            const btnDown = document.getElementById(`${prefix}btn-sync-down`);
+            const btnUp = document.getElementById(`${prefix}btn-sync-up`);
+            const btnReset = document.getElementById(`${prefix}btn-sync-reset`);
+
+            if (btnDown) {
+                btnDown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.adjustSyncOffset(-100);
+                });
+            }
+            if (btnUp) {
+                btnUp.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.adjustSyncOffset(100);
+                });
+            }
+            if (btnReset) {
+                btnReset.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.adjustSyncOffset(0, true);
+                });
+            }
+        };
+
+        attachSyncListeners('');
+        attachSyncListeners('floating-');
     }
 
     setupPiP() {
@@ -1937,10 +1955,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             this.syncOffset += ms;
         }
         
-        const display = document.getElementById('sync-offset-display');
-        if (display) {
-            display.textContent = (this.syncOffset / 1000).toFixed(1) + 's';
-        }
+        this.updateSyncOffsetDisplay();
 
         this.activeLineId = null;
         if (this.lyricsContainer) {
@@ -2210,23 +2225,48 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         const mbData = this.currentMbData;
         let html = '';
         
-        if (mbData.albumName || mbData.releaseDate) {
-            html += `<div><strong>Álbum/EP:</strong> ${mbData.albumName || 'Desconhecido'}</div>`;
-            if (mbData.releaseDate) {
-                html += `<div><strong>Lançamento:</strong> ${mbData.releaseDate}</div>`;
-            }
+        const createPill = (icon, text) => {
+            return `
+                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none">
+                    ${icon ? `
+                    <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                        ${icon}
+                    </div>` : ''}
+                    <span class="font-medium whitespace-nowrap">${text}</span>
+                </div>
+            `;
+        };
+
+        const discIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>`;
+        const calendarIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+        const tagIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>`;
+        const writeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>`;
+        const prodIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`;
+        const shieldIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>`;
+
+        if (mbData.albumName) {
+            html += createPill(discIcon, mbData.albumName);
+        }
+        if (mbData.releaseDate) {
+            html += createPill(calendarIcon, mbData.releaseDate);
         }
         if (mbData.genres) {
-            html += `<div><strong>Gênero:</strong> ${mbData.genres}</div>`;
+            mbData.genres.split(',').forEach(genre => {
+                if (genre.trim()) html += createPill(tagIcon, genre.trim());
+            });
         }
         if (mbData.writers) {
-            html += `<div><strong>Composição:</strong> ${mbData.writers}</div>`;
+            mbData.writers.split(',').forEach(writer => {
+                if (writer.trim()) html += createPill(writeIcon, writer.trim());
+            });
         }
         if (mbData.producers) {
-            html += `<div><strong>Produção:</strong> ${mbData.producers}</div>`;
+            mbData.producers.split(',').forEach(prod => {
+                if (prod.trim()) html += createPill(prodIcon, prod.trim());
+            });
         }
         if (mbData.label) {
-            html += `<div><strong>Selo/Gravadora:</strong> ${mbData.label}</div>`;
+            html += createPill(shieldIcon, mbData.label);
         }
         
         // Copyright
@@ -2235,10 +2275,11 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         if (mbData.phonographicCopyright) copyrightHtml += `℗ ${mbData.phonographicCopyright}`;
         
         if (copyrightHtml) {
-            html += `<div class="mt-1 text-[9px] opacity-70">${copyrightHtml}</div>`;
+            html += `<div class="w-full text-center mt-2 text-[9px] opacity-50">${copyrightHtml}</div>`;
         }
 
         container.innerHTML = html;
+        container.className = 'w-full flex flex-wrap gap-3 items-center justify-start mt-3';
 
         // Adiciona botão do YouTube se tiver link
         if (mbData.youtubeLink) {
@@ -2956,7 +2997,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             // Container para metadados adicionais do MusicBrainz
             const mbContainer = document.createElement('div');
             mbContainer.id = 'musicbrainz-inline-metadata';
-            mbContainer.className = 'w-full flex flex-col items-center justify-center space-y-1 mt-6 text-[11px] text-white/40 pt-6 border-t border-white/5 pb-2 text-center';
+            mbContainer.className = 'w-full flex flex-wrap gap-3 items-center justify-start mt-3';
             creditsBlock.appendChild(mbContainer);
 
             this.lyricsContainer.appendChild(creditsBlock);

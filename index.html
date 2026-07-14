@@ -286,15 +286,16 @@
                         </div>
                     </div>
 
-                    <button id="btn-recenter"
-                        class="hidden shrink-0 bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white px-5 h-10 rounded-full transition-all duration-300 ease-out shadow-2xl flex items-center space-x-2 pointer-events-auto opacity-0 scale-95">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
-                    </button>
+                    <div id="btn-recenter" class="hidden shrink-0 bg-[#262626] backdrop-blur-md border border-white/10 px-2 h-10 rounded-full transition-all duration-300 ease-out shadow-2xl flex items-center space-x-1 opacity-0 scale-95 pointer-events-auto">
+                        <button id="floating-btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
+                        <span id="floating-sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
+                        <button id="floating-btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
+                        <button id="floating-btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Resetar Sincronia">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -366,7 +367,7 @@
                             </a>
                             <span>•</span>
                             <a href="https://musicbrainz.org/" target="_blank" class="hover:text-white transition-colors flex items-center space-x-1" title="Metadados por MusicBrainz">
-                                <img src="./assets/icons/musicbrainz.svg" class="h-4 w-4" alt="MusicBrainz">
+                                <img src="./assets/icons/MusicBrainz.svg" class="h-3.5 w-auto opacity-70 group-hover:opacity-100" alt="MusicBrainz">
                             </a>
                         </div>
                     </div>
