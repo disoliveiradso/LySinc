@@ -1210,7 +1210,7 @@ class LySincApp {
                                 const progress = smoothIdx - idx1;
                                 return item1.stackY * (1 - progress) + item2.stackY * progress;
                             } else if (item1) {
-                                return item1.stackY;
+                                  return item1.stackY;
                             } else if (item2) {
                                 return item2.stackY;
                             }
@@ -1462,17 +1462,17 @@ class LySincApp {
                                             }
                                             
                                             pipCtx.textAlign = 'left';
-                                            let currentBgX = alignRight ? startX - totalBgLineWidth : startX;
+                                            let currentX = alignRight ? startX - totalBgLineWidth : startX;
                                             bgLineSyls.forEach(syl => {
                                                 const sylWidth = pipCtx.measureText(syl.text).width;
                                                 const isActiveBgWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
                                                 
                                                 pipCtx.save();
                                                 
-                                                pipCtx.fillText(syl.text, currentBgX, bgStartY);
+                                                pipCtx.fillText(syl.text, currentX, bgStartY);
                                                 pipCtx.restore();
                                                 
-                                                currentBgX += sylWidth;
+                                                currentX += sylWidth;
                                             });
                                             pipCtx.restore();
                                             
@@ -1549,52 +1549,60 @@ class LySincApp {
                 pipCtx.lineTo(blX + handleSize, blY);
                 pipCtx.stroke();
                 
+                // Inner parallel accent line
+                const offset = Math.round(16 * scale);
+                pipCtx.beginPath();
+                pipCtx.moveTo(blX + offset, blY - handleSize + offset);
+                pipCtx.lineTo(blX + offset, blY - offset);
+                pipCtx.lineTo(blX + handleSize - offset, blY - offset);
+                pipCtx.stroke();
+                
                 pipCtx.restore();
             } catch (err) {
-                pipCtx.fillStyle = '#ff0000';
-                pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
-                pipCtx.fillStyle = '#ffffff';
-                pipCtx.font = '24px sans-serif';
-                pipCtx.textAlign = 'center';
-                pipCtx.textBaseline = 'middle';
-                pipCtx.fillText("Err: " + err.message, pipCanvas.width / 2, pipCanvas.height / 2);
+                console.error("Erro ao renderizar PiP Canvas:", err);
+            }
+        };
+
+        const startLoop = () => {
+            if (pipAnimationId || pipIntervalId) return;
+
+            // requestAnimationFrame loop for ultra-smooth rendering in active focus
+            const run = () => {
+                renderPipCanvas();
+                pipAnimationId = requestAnimationFrame(run);
+            };
+            pipAnimationId = requestAnimationFrame(run);
+
+            // setInterval backup loop for background browser throttle (requestAnimationFrame pauses in hidden tabs)
+            // 33ms interval guarantees ~30fps rendering even when user navigates away
+            pipIntervalId = setInterval(renderPipCanvas, 33);
+            
+            // Audio silent loop trick to prevent Android/iOS WebView from pausing canvas drawing when in background
+            if (!silentAudio) {
+                silentAudio = new Audio();
+                // 1-second completely silent base64 MP3 stream
+                silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+                silentAudio.loop = true;
+            }
+            silentAudio.play().catch(() => {});
+        };
+
+        const stopLoop = () => {
+            if (pipAnimationId) {
+                cancelAnimationFrame(pipAnimationId);
+                pipAnimationId = null;
+            }
+            if (pipIntervalId) {
+                clearInterval(pipIntervalId);
+                pipIntervalId = null;
+            }
+            if (silentAudio) {
+                silentAudio.pause();
             }
         };
 
         const startCanvasPip = async () => {
             let handleVisibilityChange = null;
-
-            const startLoop = () => {
-                stopLoop();
-                if (!silentAudio) {
-                    silentAudio = document.createElement('audio');
-                    silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAD';
-                    silentAudio.loop = true;
-                }
-                silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
-
-                if (document.visibilityState === 'visible') {
-                    let lastFrameTime = 0;
-                    const fpsInterval = 1000 / 30; // Force max 30 FPS
-                    
-                    const tick = (timestamp) => {
-                        if (!pipAnimationId) return;
-                        
-                        // Throttle frame rate
-                        if (!lastFrameTime || timestamp - lastFrameTime >= fpsInterval) {
-                            renderPipCanvas();
-                            lastFrameTime = timestamp - ((timestamp - lastFrameTime) % fpsInterval);
-                        }
-                        
-                        pipAnimationId = requestAnimationFrame(tick);
-                    };
-                    pipAnimationId = requestAnimationFrame(tick);
-                } else {
-                    // Full 30 FPS in background (prevented from throttling by silent audio)
-                    pipIntervalId = setInterval(renderPipCanvas, 1000 / 30);
-                }
-            };
-
             const stopLoop = () => {
                 if (pipAnimationId) {
                     cancelAnimationFrame(pipAnimationId);
@@ -1810,7 +1818,7 @@ class LySincApp {
                         <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
                         <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cá</button>
                     `;
-originalContainer.parentNode.insertBefore(placeholder, originalContainer);
+                    originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     pipMain.appendChild(originalContainer);
                     pipWindow.document.body.appendChild(pipMain);
 
@@ -3348,10 +3356,6 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
 
         const rect = topMenu.getBoundingClientRect();
 
-
-
-
-
         if (rect.bottom < 0) {
 
             if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
@@ -3363,12 +3367,12 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     void btnFloatingToggle.offsetWidth;
                     
                     btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
-                    btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10');
+                    btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
                 }
             }
         } else {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
-                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10');
+                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                 this.toggleFloatingMenu(false);
                 
@@ -3443,7 +3447,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         closeBtn.className = 'text-white/40 hover:text-white transition-colors focus:outline-none';
         closeBtn.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"
             </svg>
         `;
         toast.appendChild(closeBtn);

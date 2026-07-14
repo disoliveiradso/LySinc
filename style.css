@@ -168,23 +168,26 @@ body, html {
     /* Floating controls: button on left, so drawer slides in from the left */
     #floating-menu-content.menu-drawer {
         transform-origin: left center;
-        transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         max-width: 600px;
+        margin-right: 0.75rem;
         overflow: hidden;
     }
     #floating-menu-content.menu-drawer.closed {
-        transform: translateX(-20px) scale(0.95);
+        transform: scale(0.95);
         max-width: 0;
         padding-left: 0 !important;
         padding-right: 0 !important;
         border-width: 0 !important;
+        margin-right: 0 !important;
     }
     #header-controls-container.menu-drawer.open {
-        transform: translateX(0) scale(1);
+        transform: scale(1);
     }
     #floating-menu-content.menu-drawer.open {
-        transform: translateX(0) scale(1);
+        transform: scale(1);
         max-width: 600px;
+        margin-right: 0.75rem;
     }
 }
 
@@ -469,6 +472,7 @@ body, html {
         opacity: 0;
     }
 }
+.lyrics-empty-graphic {
     width: 5rem;
     height: 5rem;
     border-radius: 9999px;
@@ -795,5 +799,32 @@ input:focus {
 }
 
 .light-mode .lyrics-syllable {
-    transition: none !important;
+    background-image: none !important;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.4) !important;
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.light-mode .lyrics-syllable.passed {
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.7) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light-mode .lyric-line.active .lyrics-syllable {
+    -webkit-text-fill-color: #ffffff !important;
+    color: #ffffff !important;
+}
+
+.light-mode .lyrics-translation-container,
+.light-mode .lyrics-romanization-container {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.light-mode .lyric-line.active .lyrics-translation-container,
+.light-mode .lyric-line.active .lyrics-romanization-container {
+    color: #ffffff !important;
+}
+
+.light-mode .listening-indicator::before,
+.light-mode .listening-indicator::after {
+    display: none !important;
 }
