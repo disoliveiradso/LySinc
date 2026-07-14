@@ -1967,6 +1967,28 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
         }
     }
 
+    updateSyncOffsetDisplay() {
+        const displays = [
+            document.getElementById('sync-offset-display'),
+            document.getElementById('floating-sync-offset-display')
+        ];
+        
+        displays.forEach(display => {
+            if (display) {
+                if (this.syncOffset === 0) {
+                    display.textContent = '0.0s';
+                    display.classList.remove('text-emerald-400', 'text-amber-400');
+                    display.classList.add('text-white/70');
+                } else {
+                    const sign = this.syncOffset > 0 ? '+' : '';
+                    display.textContent = `${sign}${(this.syncOffset / 1000).toFixed(1)}s`;
+                    display.classList.remove('text-white/70', 'text-emerald-400', 'text-amber-400');
+                    display.classList.add(this.syncOffset > 0 ? 'text-emerald-400' : 'text-amber-400');
+                }
+            }
+        });
+    }
+
     loadSettings() {
         this.inputClientId.value = localStorage.getItem(Config.CLIENT_ID_KEY) || '';
 
