@@ -2259,7 +2259,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             `;
         };
 
-        const discIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>`;
+        const discIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>`;
         const calendarIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></svg>`;
         const tagIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 0 1 0 2.828l-7 7a2 2 0 0 1-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>`;
         const writeIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>`;
@@ -3363,12 +3363,12 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                     void btnFloatingToggle.offsetWidth;
                     
                     btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
-                    btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
+                    btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10');
                 }
             }
         } else {
             if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
-                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
+                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                 this.toggleFloatingMenu(false);
                 
