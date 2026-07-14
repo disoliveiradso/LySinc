@@ -2244,11 +2244,13 @@ class LySincApp {
     }
 
     updateMusicBrainzUI() {
-        const container = document.getElementById('musicbrainz-inline-metadata');
-        if (!container) return;
+        const pillsContainer = document.getElementById('musicbrainz-pills');
+        const copyrightContainer = document.getElementById('musicbrainz-copyright');
+        if (!pillsContainer) return;
         
         if (!this.currentMbData) {
-            container.innerHTML = '';
+            pillsContainer.innerHTML = '';
+            if (copyrightContainer) copyrightContainer.innerHTML = '';
             return;
         }
 
@@ -2281,35 +2283,34 @@ class LySincApp {
             html += createPill(calendarIcon, mbData.releaseDate);
         }
         if (mbData.genres) {
-            mbData.genres.split(',').forEach(genre => {
-                if (genre.trim()) html += createPill(tagIcon, genre.trim());
-            });
+            const genresList = mbData.genres.split(',').map(g => g.trim()).filter(Boolean).join(', ');
+            if (genresList) html += createPill(tagIcon, genresList);
         }
         if (mbData.writers) {
-            mbData.writers.split(',').forEach(writer => {
-                if (writer.trim()) html += createPill(writeIcon, writer.trim());
-            });
+            const writersList = mbData.writers.split(',').map(w => w.trim()).filter(Boolean).join(', ');
+            if (writersList) html += createPill(writeIcon, writersList);
         }
         if (mbData.producers) {
-            mbData.producers.split(',').forEach(prod => {
-                if (prod.trim()) html += createPill(prodIcon, prod.trim());
-            });
+            const prodList = mbData.producers.split(',').map(p => p.trim()).filter(Boolean).join(', ');
+            if (prodList) html += createPill(prodIcon, prodList);
         }
         if (mbData.label) {
             html += createPill(shieldIcon, mbData.label);
         }
         
-        // Copyright
-        let copyrightHtml = '';
-        if (mbData.copyright) copyrightHtml += `© ${mbData.copyright} `;
-        if (mbData.phonographicCopyright) copyrightHtml += `℗ ${mbData.phonographicCopyright}`;
-        
-        if (copyrightHtml) {
-            html += `<div class="w-full text-center mt-2 text-[9px] opacity-50">${copyrightHtml}</div>`;
-        }
+        pillsContainer.innerHTML = html;
 
-        container.innerHTML = html;
-        container.className = 'w-full flex flex-wrap gap-3 items-center justify-start mt-3';
+        if (copyrightContainer) {
+            let copyrightHtml = '';
+            if (mbData.copyright) copyrightHtml += `© ${mbData.copyright} `;
+            if (mbData.phonographicCopyright) copyrightHtml += `℗ ${mbData.phonographicCopyright}`;
+            
+            if (copyrightHtml) {
+                copyrightContainer.innerHTML = `<div class="w-full text-center mt-4 text-[9px] opacity-50">${copyrightHtml}</div>`;
+            } else {
+                copyrightContainer.innerHTML = '';
+            }
+        }
 
         // Adiciona botão do YouTube se tiver link
         if (mbData.youtubeLink) {
@@ -2926,7 +2927,11 @@ class LySincApp {
         if (this.lyrics.length > 0) {
             const creditsBlock = document.createElement('div');
             creditsBlock.id = 'lyrics-credits-block';
-            creditsBlock.className = 'mt-2 mb-8 pt-2 flex flex-wrap gap-3 items-center justify-start opacity-70 hover:opacity-100 transition-opacity';
+            creditsBlock.className = 'mt-2 mb-8 pt-2 opacity-70 hover:opacity-100 transition-opacity';
+
+            const mainFlex = document.createElement('div');
+            mainFlex.className = 'flex flex-wrap gap-3 items-center justify-start';
+            creditsBlock.appendChild(mainFlex);
 
             if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
                 this.currentTrackArtistsRaw.forEach(artist => {
@@ -2951,7 +2956,7 @@ class LySincApp {
                         ${iconHtml}
                         <span class="font-medium">${artist.name}</span>
                     `;
-                    creditsBlock.appendChild(artistInfo);
+                    mainFlex.appendChild(artistInfo);
                 });
             } else {
                 const artistInfo = document.createElement('div');
@@ -2962,8 +2967,14 @@ class LySincApp {
                     </svg>
                     <span class="font-medium">${this.currentTrackArtists || 'Desconhecido'}</span>
                 `;
-                creditsBlock.appendChild(artistInfo);
+                mainFlex.appendChild(artistInfo);
             }
+
+            // Container para metadados adicionais do MusicBrainz (pills)
+            const mbPills = document.createElement('div');
+            mbPills.id = 'musicbrainz-pills';
+            mbPills.className = 'contents';
+            mainFlex.appendChild(mbPills);
 
             if (this.isExplicit) {
                 const explicitInfo = document.createElement('div');
@@ -2974,7 +2985,7 @@ class LySincApp {
                     </div>
                     <span class="font-medium uppercase tracking-wider text-[11px] ml-2 mt-[1px]">Explícita</span>
                 `;
-                creditsBlock.appendChild(explicitInfo);
+                mainFlex.appendChild(explicitInfo);
             }
 
             const providerText = this.lyricsData?.source || 'Desconhecida';
@@ -2991,7 +3002,7 @@ class LySincApp {
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
             `;
-            creditsBlock.appendChild(btnChangeSource);
+            mainFlex.appendChild(btnChangeSource);
 
             const btnRestartTrack = document.createElement('button');
             btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
@@ -3009,7 +3020,7 @@ class LySincApp {
                     this.btnRecenter.classList.add('opacity-0', 'hidden');
                 }
             });
-            creditsBlock.appendChild(btnRestartTrack);
+            mainFlex.appendChild(btnRestartTrack);
             
             // Botão do YouTube (oculto por padrão até ser populado)
             const ytBtn = document.createElement('a');
@@ -3022,13 +3033,12 @@ class LySincApp {
                 </svg>
                 <span class="font-medium">Assistir no YouTube</span>
             `;
-            creditsBlock.appendChild(ytBtn);
+            mainFlex.appendChild(ytBtn);
 
-            // Container para metadados adicionais do MusicBrainz
-            const mbContainer = document.createElement('div');
-            mbContainer.id = 'musicbrainz-inline-metadata';
-            mbContainer.className = 'w-full flex flex-wrap gap-3 items-center justify-start mt-3';
-            creditsBlock.appendChild(mbContainer);
+            // Container para metadados de copyright do MusicBrainz
+            const mbCopyright = document.createElement('div');
+            mbCopyright.id = 'musicbrainz-copyright';
+            creditsBlock.appendChild(mbCopyright);
 
             this.lyricsContainer.appendChild(creditsBlock);
             
