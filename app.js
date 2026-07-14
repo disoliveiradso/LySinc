@@ -2186,11 +2186,7 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
     }
 
     async fetchAndDisplayMetadata(state) {
-        const metadataContainer = document.getElementById('musicbrainz-metadata');
-        if (!metadataContainer) return;
-
-        // Limpa o container enquanto busca
-        metadataContainer.innerHTML = '<span class="animate-pulse">Buscando metadados avançados...</span>';
+        this.currentMbData = null; // Limpa os dados atuais
 
         const mbData = await MusicBrainzService.getTrackMetadata(
             state.isrc,
@@ -2198,14 +2194,30 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             state.artists.split(',')[0].trim() // Pega apenas o primeiro artista para facilitar a busca de fallback
         );
 
-        if (!mbData) {
-            metadataContainer.innerHTML = '';
+        this.currentMbData = mbData;
+        this.updateMusicBrainzUI();
+    }
+
+    updateMusicBrainzUI() {
+        const container = document.getElementById('musicbrainz-inline-metadata');
+        if (!container) return;
+        
+        if (!this.currentMbData) {
+            container.innerHTML = '';
             return;
         }
 
+        const mbData = this.currentMbData;
         let html = '';
+        
         if (mbData.albumName || mbData.releaseDate) {
-            html += `<div><strong>Álbum/EP:</strong> ${mbData.albumName || 'Desconhecido'} ${mbData.releaseDate ? '(' + mbData.releaseDate + ')' : ''}</div>`;
+            html += `<div><strong>Álbum/EP:</strong> ${mbData.albumName || 'Desconhecido'}</div>`;
+            if (mbData.releaseDate) {
+                html += `<div><strong>Lançamento:</strong> ${mbData.releaseDate}</div>`;
+            }
+        }
+        if (mbData.genres) {
+            html += `<div><strong>Gênero:</strong> ${mbData.genres}</div>`;
         }
         if (mbData.writers) {
             html += `<div><strong>Composição:</strong> ${mbData.writers}</div>`;
@@ -2226,7 +2238,17 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
             html += `<div class="mt-1 text-[9px] opacity-70">${copyrightHtml}</div>`;
         }
 
-        metadataContainer.innerHTML = html;
+        container.innerHTML = html;
+
+        // Adiciona botão do YouTube se tiver link
+        if (mbData.youtubeLink) {
+            const ytBtn = document.getElementById('youtube-video-btn');
+            if (ytBtn) {
+                ytBtn.href = mbData.youtubeLink;
+                ytBtn.classList.remove('hidden');
+                ytBtn.classList.add('flex');
+            }
+        }
     }
 
     setupMarquee(element) {
@@ -2917,8 +2939,30 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 }
             });
             creditsBlock.appendChild(btnRestartTrack);
+            
+            // Botão do YouTube (oculto por padrão até ser populado)
+            const ytBtn = document.createElement('a');
+            ytBtn.id = 'youtube-video-btn';
+            ytBtn.target = '_blank';
+            ytBtn.className = 'hidden items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-[#FF0000]/20 hover:text-white hover:border-[#FF0000]/50 transition-colors cursor-pointer';
+            ytBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                <span class="font-medium">Assistir no YouTube</span>
+            `;
+            creditsBlock.appendChild(ytBtn);
+
+            // Container para metadados adicionais do MusicBrainz
+            const mbContainer = document.createElement('div');
+            mbContainer.id = 'musicbrainz-inline-metadata';
+            mbContainer.className = 'w-full flex flex-col items-center justify-center space-y-1 mt-6 text-[11px] text-white/40 pt-6 border-t border-white/5 pb-2 text-center';
+            creditsBlock.appendChild(mbContainer);
 
             this.lyricsContainer.appendChild(creditsBlock);
+            
+            // Preenche se já tivermos dados em cache no momento da renderização
+            setTimeout(() => this.updateMusicBrainzUI(), 0);
 
             btnChangeSource.addEventListener('click', () => {
                 if (!this.lyricsData || !this.lyricsData.availableSources || this.lyricsData.availableSources.length <= 1) {

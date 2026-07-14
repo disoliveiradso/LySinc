@@ -109,9 +109,9 @@ const MusicBrainzService = {
                 return null; // Não encontrou a gravação
             }
 
-            // 3. Busca detalhes da gravação (incluindo relacionamentos de artistas e obras)
+            // 3. Busca detalhes da gravação (incluindo relacionamentos de artistas, obras, gêneros e urls)
             const recordingData = await this.enqueueRequest(
-                `${this.API_BASE}/recording/${recordingId}?inc=releases+artist-rels+work-rels&fmt=json`
+                `${this.API_BASE}/recording/${recordingId}?inc=releases+artist-rels+work-rels+genres+url-rels&fmt=json`
             );
 
             // 4. Se tivermos um release, buscamos detalhes dele para obter gravadora e copyright
@@ -149,6 +149,22 @@ const MusicBrainzService = {
                     }
                 });
             }
+            
+            // 5b. Extrair link do YouTube (se disponível)
+            let youtubeLink = null;
+            if (recordingData.relations) {
+                const urlRels = recordingData.relations.filter(r => r["target-type"] === 'url');
+                const ytRel = urlRels.find(r => r.type === 'youtube' || (r.url && r.url.resource && r.url.resource.includes('youtube.com/watch')));
+                if (ytRel && ytRel.url) {
+                    youtubeLink = ytRel.url.resource;
+                }
+            }
+            
+            // 5c. Extrair Gêneros
+            let genres = [];
+            if (recordingData.genres && recordingData.genres.length > 0) {
+                genres = recordingData.genres.map(g => g.name);
+            }
 
             // Relacionamentos da Obra (Work) geralmente contém os compositores (lyricist, composer, writer)
             if (recordingData.relations) {
@@ -174,7 +190,9 @@ const MusicBrainzService = {
                 producers: producers.size > 0 ? Array.from(producers).join(', ') : null,
                 label: label || null,
                 copyright: copyright || null,
-                phonographicCopyright: phonographicCopyright || null
+                phonographicCopyright: phonographicCopyright || null,
+                youtubeLink: youtubeLink || null,
+                genres: genres.length > 0 ? genres.join(', ') : null
             };
 
             this.cache.set(cacheKey, metadata);
