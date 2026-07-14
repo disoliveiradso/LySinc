@@ -258,19 +258,6 @@
                         class="menu-drawer closed max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:h-10 max-md:py-3 max-md:space-y-3 md:space-x-2 max-md:px-4 md:pl-2 md:pr-4 min-w-0 origin-left">
                         
                         <div class="flex items-center gap-1 max-md:justify-center">
-                            <button id="floating-btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
-                            <span id="floating-sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
-                            <button id="floating-btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
-                            <button id="floating-btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Resetar Sincronia">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1 md:mx-1"></div>
-
-                        <div class="flex items-center gap-1 max-md:justify-center">
                             <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" /></svg>
                             </button>
@@ -283,10 +270,23 @@
 
                         <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1 md:mx-1"></div>
 
-                        <div class="flex max-md:flex-col md:flex-row items-center justify-center gap-1.5 w-full">
+                        <div class="flex flex-row items-center justify-center gap-1.5 shrink-0">
                             <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
                             <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
                             <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
+                        </div>
+
+                        <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1 md:mx-1"></div>
+
+                        <div class="flex items-center gap-1 max-md:justify-center">
+                            <button id="floating-btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
+                            <span id="floating-sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
+                            <button id="floating-btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
+                            <button id="floating-btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Resetar Sincronia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
                         </div>
 
                         <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1 md:mx-1"></div>
