@@ -1,6 +1,7 @@
 import Config from './config.js';
 import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
+import MusicBrainzService from './musicbrainz.js';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -2179,6 +2180,53 @@ originalContainer.parentNode.insertBefore(placeholder, originalContainer);
                 if (pipBlur) pipBlur.style.backgroundImage = 'none';
             }
         }
+        
+        // Dispara a busca de metadados adicionais no MusicBrainz
+        this.fetchAndDisplayMetadata(state);
+    }
+
+    async fetchAndDisplayMetadata(state) {
+        const metadataContainer = document.getElementById('musicbrainz-metadata');
+        if (!metadataContainer) return;
+
+        // Limpa o container enquanto busca
+        metadataContainer.innerHTML = '<span class="animate-pulse">Buscando metadados avançados...</span>';
+
+        const mbData = await MusicBrainzService.getTrackMetadata(
+            state.isrc,
+            state.trackName,
+            state.artists.split(',')[0].trim() // Pega apenas o primeiro artista para facilitar a busca de fallback
+        );
+
+        if (!mbData) {
+            metadataContainer.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        if (mbData.albumName || mbData.releaseDate) {
+            html += `<div><strong>Álbum/EP:</strong> ${mbData.albumName || 'Desconhecido'} ${mbData.releaseDate ? '(' + mbData.releaseDate + ')' : ''}</div>`;
+        }
+        if (mbData.writers) {
+            html += `<div><strong>Composição:</strong> ${mbData.writers}</div>`;
+        }
+        if (mbData.producers) {
+            html += `<div><strong>Produção:</strong> ${mbData.producers}</div>`;
+        }
+        if (mbData.label) {
+            html += `<div><strong>Selo/Gravadora:</strong> ${mbData.label}</div>`;
+        }
+        
+        // Copyright
+        let copyrightHtml = '';
+        if (mbData.copyright) copyrightHtml += `© ${mbData.copyright} `;
+        if (mbData.phonographicCopyright) copyrightHtml += `℗ ${mbData.phonographicCopyright}`;
+        
+        if (copyrightHtml) {
+            html += `<div class="mt-1 text-[9px] opacity-70">${copyrightHtml}</div>`;
+        }
+
+        metadataContainer.innerHTML = html;
     }
 
     setupMarquee(element) {
