@@ -146,7 +146,7 @@ body, html {
         transform-origin: top right;
     }
     .menu-drawer.closed {
-        transform: scale(0.95) translateY(-10px);
+        transform: scale(0.95) translateY(-20px);
     }
     .menu-drawer.open {
         transform: scale(1) translateY(0);
@@ -178,23 +178,17 @@ body, html {
     /* Floating controls: button on left, so drawer slides in from the left */
     #floating-menu-content.menu-drawer {
         transform-origin: left center;
-        transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         max-width: 800px;
-        overflow: hidden;
     }
     #floating-menu-content.menu-drawer.closed {
-        transform: scale(0.95);
-        max-width: 0;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        border-width: 0 !important;
+        transform: translateX(-20px) scale(0.95);
     }
     #header-controls-container.menu-drawer.open {
         transform: scale(1);
     }
     #floating-menu-content.menu-drawer.open {
         transform: scale(1);
-        max-width: 800px;
     }
 }
 
@@ -204,7 +198,7 @@ body, html {
 }
 .trackinfo-drawer.closed {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(20px) scale(0.95);
     pointer-events: none;
 }
 .trackinfo-drawer.open {
@@ -806,6 +800,7 @@ input:focus {
 .lyrics-romanization-container {
     word-break: break-word;
     white-space: pre-wrap;
+    text-wrap: pretty;
     line-height: 1.4;
     display: block;
     width: 100%;

@@ -3276,8 +3276,16 @@ class LySincApp {
 
                 const viewportHeight = this.pipWindow ? this.pipWindow.innerHeight : window.innerHeight;
 
-                const targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight * 0.4 + targetEl.offsetHeight / 2;
-                this.smoothScrollTo(targetY);
+                let targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight * 0.4 + targetEl.offsetHeight / 2;
+                
+                // Red line limit
+                const absoluteLineTop = targetEl.getBoundingClientRect().top + this.getScrollY();
+                const minViewportTop = 140;
+                if (targetY > absoluteLineTop - minViewportTop) {
+                    targetY = absoluteLineTop - minViewportTop;
+                }
+
+                this.smoothScrollTo(Math.max(0, targetY));
             }
         }
     }
@@ -3324,7 +3332,13 @@ class LySincApp {
         const absoluteLineTop = this.getAbsoluteOffsetTop(lineElement);
         const height = lineElement.offsetHeight;
 
-        const targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (height / 2);
+        let targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (height / 2);
+        
+        // Red line limit
+        const minViewportTop = 140;
+        if (targetScrollTop > absoluteLineTop - minViewportTop) {
+            targetScrollTop = absoluteLineTop - minViewportTop;
+        }
         
         this.lastAutoScrollTime = Date.now();
 
