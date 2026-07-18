@@ -478,6 +478,7 @@ class LySincApp {
                 }
                 const isDrawerOpen = this.floatingMenuContent && this.floatingMenuContent.classList.contains('open');
                 if (this.trackinfoBox) {
+                    if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
                     if (!isActive && isDrawerOpen) {
                         this.trackinfoBox.classList.remove('closed');
                         this.trackinfoBox.classList.add('open');
@@ -3460,8 +3461,11 @@ class LySincApp {
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('scale-x-[-1]');
             
             if (this.trackinfoBox && localStorage.getItem('lysinc-trackinfo-active') === 'true') {
-                this.trackinfoBox.classList.add('open');
-                this.trackinfoBox.classList.remove('closed');
+                if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
+                this.trackinfoBoxDelayId = setTimeout(() => {
+                    this.trackinfoBox.classList.add('open');
+                    this.trackinfoBox.classList.remove('closed');
+                }, 400);
             }
             
             this.floatingDrawerTimeoutId = setTimeout(() => {
@@ -3478,6 +3482,7 @@ class LySincApp {
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
             
             if (this.trackinfoBox) {
+                if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
                 this.trackinfoBox.classList.remove('open');
                 this.trackinfoBox.classList.add('closed');
             }
