@@ -3592,6 +3592,8 @@ class LySincApp {
         closeBtn.addEventListener('click', removeToast);
 
         setTimeout(removeToast, 4000);
+    }
+
     showMetadataPopup(iconHtml, text) {
         const existing = document.getElementById('lysinc-metadata-popup');
         if (existing) existing.remove();
