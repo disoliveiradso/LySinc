@@ -295,6 +295,7 @@ class LySincApp {
         this.floatingMenu = document.getElementById('floating-lyrics-menu');
         this.btnFloatingToggle = document.getElementById('btn-floating-toggle');
         this.floatingMenuContent = document.getElementById('floating-menu-content');
+        this.floatingMenusWrapper = document.getElementById('floating-menus-wrapper');
         this.floatingToggleIconMobile = document.getElementById('icon-floating-toggle-mobile');
         this.floatingToggleIconDesktop = document.getElementById('icon-floating-toggle-desktop');
 
@@ -480,11 +481,6 @@ class LySincApp {
                     if (!isActive && isDrawerOpen) {
                         this.trackinfoBox.classList.remove('closed');
                         this.trackinfoBox.classList.add('open');
-                        if (window.innerWidth < 768 && this.floatingMenuContent) {
-                            this.trackinfoBox.style.marginTop = (this.floatingMenuContent.offsetHeight + 16) + 'px';
-                        } else {
-                            this.trackinfoBox.style.marginTop = '12px';
-                        }
                     } else {
                         this.trackinfoBox.classList.remove('open');
                         this.trackinfoBox.classList.add('closed');
@@ -3456,17 +3452,16 @@ class LySincApp {
         if (show) {
             this.floatingMenuContent.classList.add('open');
             this.floatingMenuContent.classList.remove('closed');
+            if (this.floatingMenusWrapper) {
+                this.floatingMenusWrapper.classList.add('open');
+                this.floatingMenusWrapper.classList.remove('closed');
+            }
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('scale-x-[-1]');
             
             if (this.trackinfoBox && localStorage.getItem('lysinc-trackinfo-active') === 'true') {
                 this.trackinfoBox.classList.add('open');
                 this.trackinfoBox.classList.remove('closed');
-                if (window.innerWidth < 768 && this.floatingMenuContent) {
-                    this.trackinfoBox.style.marginTop = (this.floatingMenuContent.offsetHeight + 16) + 'px';
-                } else {
-                    this.trackinfoBox.style.marginTop = '12px';
-                }
             }
             
             this.floatingDrawerTimeoutId = setTimeout(() => {
@@ -3475,6 +3470,10 @@ class LySincApp {
         } else {
             this.floatingMenuContent.classList.remove('open');
             this.floatingMenuContent.classList.add('closed');
+            if (this.floatingMenusWrapper) {
+                this.floatingMenusWrapper.classList.remove('open');
+                this.floatingMenusWrapper.classList.add('closed');
+            }
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
             

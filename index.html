@@ -254,54 +254,69 @@
                         </svg>
                     </button>
 
-                    <div id="floating-menu-content"
-                        class="menu-drawer closed max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:py-1.5 max-md:py-3 max-md:space-y-3 md:gap-3 max-md:px-4 md:px-4 min-w-0 origin-left">
-                        
-                        <div class="flex items-center gap-1 max-md:justify-center">
-                            <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" /></svg>
-                            </button>
-                            <button id="btn-floating-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
-                                <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                                <svg id="icon-floating-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
-                            </button>
-                            <button id="btn-floating-next" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Próxima"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z" /></svg></button>
+                    <div id="floating-menus-wrapper" class="max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 relative menu-drawer closed">
+                        <div id="floating-menu-content"
+                            class="menu-drawer closed flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:py-1.5 max-md:py-3 max-md:space-y-3 md:gap-3 max-md:px-4 md:px-4 min-w-0 origin-left">
+                            
+                            <div class="flex items-center gap-1 max-md:justify-center">
+                                <button id="btn-floating-prev" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Anterior">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 6v12h2V6H7zm10 0l-7 6 7 6V6z" /></svg>
+                                </button>
+                                <button id="btn-floating-playpause" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Play/Pause">
+                                    <svg id="icon-floating-play" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                    <svg id="icon-floating-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                                </button>
+                                <button id="btn-floating-next" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Próxima"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 18l7-6-7-6v12zm8-12v12h2V6h-2z" /></svg></button>
+                            </div>
+
+                            <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
+
+                            <div class="flex flex-row items-center justify-center gap-1.5 shrink-0">
+                                <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
+                                <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
+                                <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
+                            </div>
+
+                            <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
+
+                            <div class="flex items-center gap-1 max-md:justify-center">
+                                <button id="floating-btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
+                                <span id="floating-sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
+                                <button id="floating-btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
+                                <button id="floating-btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Resetar Sincronia">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
+
+                            <div class="flex items-center gap-1 max-md:justify-center">
+                                <button id="btn-floating-trackinfo" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Informações da Faixa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                                <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
+                                <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
-
-                        <div class="flex flex-row items-center justify-center gap-1.5 shrink-0">
-                            <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap active" id="btn-floating-tab-original" data-mode="original">Original</button>
-                            <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-translation" data-mode="translation">Tradução</button>
-                            <button class="lyric-tab-btn px-3 py-1 rounded-full text-white/50 hover:text-white transition-colors text-xs font-medium whitespace-nowrap" id="btn-floating-tab-romanized" data-mode="romanized">Romanização</button>
-                        </div>
-
-                        <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
-
-                        <div class="flex items-center gap-1 max-md:justify-center">
-                            <button id="floating-btn-sync-down" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Atrasar letras">-</button>
-                            <span id="floating-sync-offset-display" class="w-8 text-center font-mono text-[10px] text-white/70">0.0s</span>
-                            <button id="floating-btn-sync-up" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold" title="Adiantar letras">+</button>
-                            <button id="floating-btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Resetar Sincronia">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
-
-                        <div class="flex items-center gap-1 max-md:justify-center">
-                            <button id="btn-floating-trackinfo" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Informações da Faixa">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </button>
-                            <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
-                            <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
-                            </button>
+                        <div id="trackinfo-box" class="absolute left-0 top-full menu-drawer closed bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-[24px] shadow-2xl p-4 flex-col gap-3 w-full mt-2 pointer-events-none z-50 box-border">
+                            <div class="flex items-center gap-4">
+                                <img id="trackinfo-art" src="" class="w-14 h-14 md:w-16 md:h-16 rounded-lg object-cover shadow-lg shrink-0">
+                                <div class="flex flex-col overflow-hidden">
+                                    <span id="trackinfo-title" class="font-bold text-white text-base truncate">...</span>
+                                    <span id="trackinfo-artist" class="text-white/70 text-sm truncate">...</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
+                                <div id="trackinfo-progress" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full w-0 transition-all duration-300 ease-out"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -314,19 +329,6 @@
                         </svg>
                         <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
                     </button>
-                    
-                    <div id="trackinfo-box" class="absolute left-0 top-full menu-drawer closed bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl p-3 flex-col gap-2 w-64 md:w-72 pointer-events-none z-50">
-                        <div class="flex items-center gap-3">
-                            <img id="trackinfo-art" src="" class="w-12 h-12 rounded-md object-cover shadow-md">
-                            <div class="flex flex-col overflow-hidden">
-                                <span id="trackinfo-title" class="font-bold text-white text-sm truncate">...</span>
-                                <span id="trackinfo-artist" class="text-white/70 text-xs truncate">...</span>
-                            </div>
-                        </div>
-                        <div class="w-full bg-white/10 h-[3px] rounded-full overflow-hidden mt-1">
-                            <div id="trackinfo-progress" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full w-0 transition-all duration-300 ease-out"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
