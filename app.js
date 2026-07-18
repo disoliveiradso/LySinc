@@ -837,7 +837,9 @@ class LySincApp {
                 
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
 
-                if (this.btnRecenter && !this.pipWindow) {
+                const isSongFinished = this.progressMs >= this.lyrics[this.lyrics.length - 1].timestamp;
+
+                if (this.btnRecenter && !this.pipWindow && !isSongFinished) {
                     this.btnRecenter.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         this.btnRecenter.classList.remove('opacity-0', 'scale-95');
@@ -1896,11 +1898,15 @@ class LySincApp {
                     const handlePipUserInteraction = () => {
                         this.isUserInteracting = true;
                         if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                        btnRecenterClone.classList.remove('hidden');
-                        pipWindow.requestAnimationFrame(() => {
-                            btnRecenterClone.classList.remove('opacity-0', 'scale-95');
-                            btnRecenterClone.classList.add('opacity-100', 'scale-100');
-                        });
+                        
+                        const isSongFinished = this.lyrics.length > 0 && this.progressMs >= this.lyrics[this.lyrics.length - 1].timestamp;
+                        if (!isSongFinished) {
+                            btnRecenterClone.classList.remove('hidden');
+                            pipWindow.requestAnimationFrame(() => {
+                                btnRecenterClone.classList.remove('opacity-0', 'scale-95');
+                                btnRecenterClone.classList.add('opacity-100', 'scale-100');
+                            });
+                        }
                         
                         clearTimeout(pipScrollTimeout);
                         pipScrollTimeout = setTimeout(() => {
@@ -2324,7 +2330,7 @@ class LySincApp {
             const isTooLong = text.length > maxLength;
 
             let html = `
-                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 max-md:rounded-2xl md:rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none max-w-full">
+                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none max-w-full">
                     ${icon ? `
                     <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                         ${icon}
@@ -3055,7 +3061,7 @@ class LySincApp {
             // Container para metadados adicionais do MusicBrainz (pills)
             const mbPills = document.createElement('div');
             mbPills.id = 'musicbrainz-pills';
-            mbPills.className = 'contents';
+            mbPills.className = 'flex flex-wrap gap-3';
             mainFlex.appendChild(mbPills);
 
             if (this.isExplicit) {
