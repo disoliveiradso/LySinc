@@ -2310,15 +2310,35 @@ class LySincApp {
         let html = '';
         
         const createPill = (icon, text) => {
-            return `
+            const isMobile = window.innerWidth < 768;
+            const maxLength = isMobile ? 30 : 45;
+            const isTooLong = text.length > maxLength;
+
+            let html = `
                 <div class="flex items-center space-x-2 bg-white/5 border border-white/10 max-md:rounded-2xl md:rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none max-w-full">
                     ${icon ? `
                     <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                         ${icon}
                     </div>` : ''}
                     <span class="font-medium truncate block">${text}</span>
-                </div>
             `;
+
+            if (isTooLong) {
+                const encodedIcon = encodeURIComponent(icon || '');
+                const encodedText = encodeURIComponent(text || '');
+                html += `
+                    <button class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 ml-1 text-white/80 hover:text-white" 
+                            onclick="if(window.app) window.app.showMetadataPopup(decodeURIComponent('${encodedIcon}'), decodeURIComponent('${encodedText}'))" 
+                            title="Ver completo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
+                `;
+            }
+
+            html += `</div>`;
+            return html;
         };
 
         const discIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>`;
@@ -3496,10 +3516,11 @@ class LySincApp {
                     }, 50);
                 }, 150);
             }
-            
-            this.floatingDrawerTimeoutId = setTimeout(() => {
-                this.toggleFloatingMenu(false);
-            }, 4000);
+            if (localStorage.getItem('lysinc-trackinfo-active') !== 'true') {
+                this.floatingDrawerTimeoutId = setTimeout(() => {
+                    this.toggleFloatingMenu(false);
+                }, 4000);
+            }
         } else {
             this.floatingMenuContent.classList.remove('open');
             this.floatingMenuContent.classList.add('closed');
@@ -3571,7 +3592,42 @@ class LySincApp {
         closeBtn.addEventListener('click', removeToast);
 
         setTimeout(removeToast, 4000);
+    showMetadataPopup(iconHtml, text) {
+        const existing = document.getElementById('lysinc-metadata-popup');
+        if (existing) existing.remove();
+
+        const popupHtml = `
+            <div id="lysinc-metadata-popup" class="fixed inset-0 z-[100] flex items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('lysinc-metadata-popup').classList.add('opacity-0'); setTimeout(() => document.getElementById('lysinc-metadata-popup')?.remove(), 300)"></div>
+                <div class="relative bg-[#1e1e1e] border border-white/10 rounded-[24px] shadow-2xl p-6 flex flex-col max-w-md w-full items-center text-center transform scale-95 transition-transform duration-300" id="lysinc-metadata-popup-content">
+                    <button class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10" onclick="document.getElementById('lysinc-metadata-popup').classList.add('opacity-0'); setTimeout(() => document.getElementById('lysinc-metadata-popup')?.remove(), 300)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    ${iconHtml ? `
+                    <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-4 text-emerald-400">
+                        ${iconHtml}
+                    </div>` : ''}
+                    <div class="text-white/90 text-base max-h-[60vh] overflow-y-auto w-full px-2 font-medium" style="word-break: break-word;">
+                        ${text}
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', popupHtml);
+        
+        requestAnimationFrame(() => {
+            const popup = document.getElementById('lysinc-metadata-popup');
+            if (popup) {
+                popup.classList.remove('opacity-0');
+                const content = document.getElementById('lysinc-metadata-popup-content');
+                if (content) {
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }
+            }
+        });
     }
+
 }
 
 if (document.readyState === 'loading') {
