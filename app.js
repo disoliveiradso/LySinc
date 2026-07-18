@@ -495,6 +495,10 @@ class LySincApp {
                     } else {
                         this.trackinfoBox.classList.remove('open');
                         this.trackinfoBox.classList.add('closed');
+                        
+                        if (isDrawerOpen) {
+                            this.toggleFloatingMenu(false);
+                        }
                     }
                 }
             });
