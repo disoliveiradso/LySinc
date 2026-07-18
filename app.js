@@ -500,6 +500,8 @@ class LySincApp {
             resizeTimeout = setTimeout(() => {
                 if (this.trackName) this.setupMarquee(this.trackName);
                 if (this.trackArtists) this.setupMarquee(this.trackArtists);
+                if (this.trackinfoTitle) this.setupMarquee(this.trackinfoTitle);
+                if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
             }, 300);
         });
 
@@ -2190,6 +2192,8 @@ class LySincApp {
             // Setup marquee only on track change (or resize), and only after screen is visible
             this.setupMarquee(this.trackName);
             this.setupMarquee(this.trackArtists);
+            this.setupMarquee(this.trackinfoTitle);
+            this.setupMarquee(this.trackinfoArtist);
             
             await this.loadLyricsForTrack(state);
         }
@@ -2302,12 +2306,12 @@ class LySincApp {
         
         const createPill = (icon, text) => {
             return `
-                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none">
+                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 max-md:rounded-2xl md:rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none max-w-full">
                     ${icon ? `
                     <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                         ${icon}
                     </div>` : ''}
-                    <span class="font-medium whitespace-nowrap">${text}</span>
+                    <span class="font-medium truncate block">${text}</span>
                 </div>
             `;
         };
@@ -2369,7 +2373,7 @@ class LySincApp {
     setupMarquee(element) {
         if (!element) return;
         
-        const container = element.closest('.flex-1');
+        const container = element.closest('.flex-1') || element.closest('.overflow-hidden');
         if (!container) return;
         
         // Ensure the main container clips overflowing content
