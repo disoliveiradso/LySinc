@@ -483,6 +483,11 @@ class LySincApp {
                         this.trackinfoBox.classList.remove('closed');
                         this.trackinfoBox.classList.add('open');
                         
+                        if (this.floatingDrawerTimeoutId) {
+                            clearTimeout(this.floatingDrawerTimeoutId);
+                            this.floatingDrawerTimeoutId = null;
+                        }
+                        
                         setTimeout(() => {
                             if (this.trackinfoTitle) this.setupMarquee(this.trackinfoTitle);
                             if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
@@ -926,7 +931,7 @@ class LySincApp {
         }
 
         document.querySelectorAll('#floating-lyrics-menu button').forEach(btn => {
-            if (btn.id !== 'btn-floating-toggle') {
+            if (btn.id !== 'btn-floating-toggle' && btn.id !== 'btn-floating-trackinfo') {
                 btn.addEventListener('click', () => {
                     this.toggleFloatingMenu(false);
                 });
