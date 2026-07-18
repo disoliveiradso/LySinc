@@ -482,6 +482,11 @@ class LySincApp {
                     if (!isActive && isDrawerOpen) {
                         this.trackinfoBox.classList.remove('closed');
                         this.trackinfoBox.classList.add('open');
+                        
+                        setTimeout(() => {
+                            if (this.trackinfoTitle) this.setupMarquee(this.trackinfoTitle);
+                            if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
+                        }, 50);
                     } else {
                         this.trackinfoBox.classList.remove('open');
                         this.trackinfoBox.classList.add('closed');
@@ -2401,6 +2406,7 @@ class LySincApp {
 
         // Measure true widths
         const containerWidth = container.clientWidth;
+        if (containerWidth === 0) return; // Prevent setting up when container is hidden/collapsed
         const textWidth = targetToAnimate.scrollWidth;
 
         if (textWidth > containerWidth) {
@@ -3483,6 +3489,11 @@ class LySincApp {
                 this.trackinfoBoxDelayId = setTimeout(() => {
                     this.trackinfoBox.classList.add('open');
                     this.trackinfoBox.classList.remove('closed');
+                    
+                    setTimeout(() => {
+                        if (this.trackinfoTitle) this.setupMarquee(this.trackinfoTitle);
+                        if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
+                    }, 50);
                 }, 150);
             }
             
