@@ -3465,7 +3465,7 @@ class LySincApp {
                 this.trackinfoBoxDelayId = setTimeout(() => {
                     this.trackinfoBox.classList.add('open');
                     this.trackinfoBox.classList.remove('closed');
-                }, 400);
+                }, 150);
             }
             
             this.floatingDrawerTimeoutId = setTimeout(() => {
