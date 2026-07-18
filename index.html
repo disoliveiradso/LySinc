@@ -292,6 +292,12 @@
                         <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
 
                         <div class="flex items-center gap-1 max-md:justify-center">
+                            <button id="btn-floating-trackinfo" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Informações da Faixa">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
                             <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
                             <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
@@ -308,6 +314,19 @@
                         </svg>
                         <span class="font-semibold tracking-wide text-sm">Sincronizar</span>
                     </button>
+                    
+                    <div id="trackinfo-box" class="absolute left-0 top-full menu-drawer closed bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl p-3 flex-col gap-2 w-64 md:w-72 pointer-events-none z-50">
+                        <div class="flex items-center gap-3">
+                            <img id="trackinfo-art" src="" class="w-12 h-12 rounded-md object-cover shadow-md">
+                            <div class="flex flex-col overflow-hidden">
+                                <span id="trackinfo-title" class="font-bold text-white text-sm truncate">...</span>
+                                <span id="trackinfo-artist" class="text-white/70 text-xs truncate">...</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-white/10 h-[3px] rounded-full overflow-hidden mt-1">
+                            <div id="trackinfo-progress" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full w-0 transition-all duration-300 ease-out"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

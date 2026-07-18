@@ -243,6 +243,12 @@ class LySincApp {
         this.screenIdle = document.getElementById('screen-idle');
 
         this.albumArt = document.getElementById('album-art');
+        this.trackinfoBox = document.getElementById('trackinfo-box');
+        this.trackinfoArt = document.getElementById('trackinfo-art');
+        this.trackinfoTitle = document.getElementById('trackinfo-title');
+        this.trackinfoArtist = document.getElementById('trackinfo-artist');
+        this.trackinfoProgress = document.getElementById('trackinfo-progress');
+        this.btnFloatingTrackinfo = document.getElementById('btn-floating-trackinfo');
         this.albumArtBlur = document.getElementById('album-art-blur');
         this.trackName = document.getElementById('track-name');
         this.trackArtists = document.getElementById('track-artists');
@@ -456,6 +462,41 @@ class LySincApp {
     }
 
     setupEventListeners() {
+        if (this.btnFloatingTrackinfo) {
+            this.btnFloatingTrackinfo.addEventListener('click', () => {
+                const isActive = localStorage.getItem('lysinc-trackinfo-active') === 'true';
+                localStorage.setItem('lysinc-trackinfo-active', !isActive);
+                if (this.btnFloatingTrackinfo) {
+                    if (!isActive) {
+                        this.btnFloatingTrackinfo.classList.add('text-green-400');
+                        this.btnFloatingTrackinfo.classList.remove('text-white/60');
+                    } else {
+                        this.btnFloatingTrackinfo.classList.remove('text-green-400');
+                        this.btnFloatingTrackinfo.classList.add('text-white/60');
+                    }
+                }
+                const isDrawerOpen = this.floatingMenuContent && this.floatingMenuContent.classList.contains('open');
+                if (this.trackinfoBox) {
+                    if (!isActive && isDrawerOpen) {
+                        this.trackinfoBox.classList.remove('closed');
+                        this.trackinfoBox.classList.add('open');
+                        if (window.innerWidth < 768 && this.floatingMenuContent) {
+                            this.trackinfoBox.style.marginTop = (this.floatingMenuContent.offsetHeight + 16) + 'px';
+                        } else {
+                            this.trackinfoBox.style.marginTop = '12px';
+                        }
+                    } else {
+                        this.trackinfoBox.classList.remove('open');
+                        this.trackinfoBox.classList.add('closed');
+                    }
+                }
+            });
+            if (localStorage.getItem('lysinc-trackinfo-active') === 'true') {
+                this.btnFloatingTrackinfo.classList.add('text-green-400');
+                this.btnFloatingTrackinfo.classList.remove('text-white/60');
+            }
+        }
+        
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -2166,6 +2207,9 @@ class LySincApp {
     updateTrackDetails(state) {
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
+        
+        if (this.trackinfoTitle) this.trackinfoTitle.textContent = state.trackName;
+        if (this.trackinfoArtist) this.trackinfoArtist.textContent = state.artists;
 
         this.isExplicit = !!state.explicit;
         
@@ -2179,6 +2223,7 @@ class LySincApp {
 
         if (state.albumArtUrl) {
             this.albumArt.src = state.albumArtUrl;
+            if (this.trackinfoArt) this.trackinfoArt.src = state.albumArtUrl;
             this.albumArtBlur.style.backgroundImage = `url('${state.albumArtUrl}')`;
             if (this.pipWindow) {
                 const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
@@ -2217,6 +2262,7 @@ class LySincApp {
             } catch(e) {}
         } else {
             this.albumArt.src = '';
+            if (this.trackinfoArt) this.trackinfoArt.src = '';
             this.albumArtBlur.style.backgroundImage = 'none';
             this.currentAlbumColor = '#121212';
             document.documentElement.style.setProperty('--album-color', '#121212');
@@ -3102,6 +3148,7 @@ class LySincApp {
         if (this.durationMs > 0) {
             const percentage = (currentProgressMs / this.durationMs) * 100;
             this.progressBar.style.width = `${percentage}%`;
+            if (this.trackinfoProgress) this.trackinfoProgress.style.width = `${percentage}%`;
         }
     }
 
@@ -3412,6 +3459,16 @@ class LySincApp {
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('scale-x-[-1]');
             
+            if (this.trackinfoBox && localStorage.getItem('lysinc-trackinfo-active') === 'true') {
+                this.trackinfoBox.classList.add('open');
+                this.trackinfoBox.classList.remove('closed');
+                if (window.innerWidth < 768 && this.floatingMenuContent) {
+                    this.trackinfoBox.style.marginTop = (this.floatingMenuContent.offsetHeight + 16) + 'px';
+                } else {
+                    this.trackinfoBox.style.marginTop = '12px';
+                }
+            }
+            
             this.floatingDrawerTimeoutId = setTimeout(() => {
                 this.toggleFloatingMenu(false);
             }, 4000);
@@ -3420,6 +3477,11 @@ class LySincApp {
             this.floatingMenuContent.classList.add('closed');
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
+            
+            if (this.trackinfoBox) {
+                this.trackinfoBox.classList.remove('open');
+                this.trackinfoBox.classList.add('closed');
+            }
         }
     }
 
