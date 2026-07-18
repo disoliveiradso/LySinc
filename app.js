@@ -3315,7 +3315,7 @@ class LySincApp {
                 
                 // Red line limit
                 const absoluteLineTop = targetEl.getBoundingClientRect().top + this.getScrollY();
-                const minViewportTop = 140;
+                const minViewportTop = window.innerWidth < 768 ? 95 : 140;
                 if (targetY > absoluteLineTop - minViewportTop) {
                     targetY = absoluteLineTop - minViewportTop;
                 }
@@ -3370,7 +3370,7 @@ class LySincApp {
         let targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (height / 2);
         
         // Red line limit
-        const minViewportTop = 140;
+        const minViewportTop = window.innerWidth < 768 ? 95 : 140;
         if (targetScrollTop > absoluteLineTop - minViewportTop) {
             targetScrollTop = absoluteLineTop - minViewportTop;
         }
