@@ -2402,7 +2402,7 @@ class LySincApp {
                 }
             });
         });
-        this.pillResizeObserver.observe(pillsContainer);
+        this.pillResizeObserver.observe(pillsContainer.parentElement);
 
         if (copyrightContainer) {
             let copyrightHtml = '';
@@ -3078,7 +3078,7 @@ class LySincApp {
             // Container para metadados adicionais do MusicBrainz (pills)
             const mbPills = document.createElement('div');
             mbPills.id = 'musicbrainz-pills';
-            mbPills.className = 'flex flex-wrap gap-3 max-w-full';
+            mbPills.className = 'contents';
             mainFlex.appendChild(mbPills);
 
             if (this.isExplicit) {
