@@ -256,6 +256,8 @@ class LySincApp {
 
         this.lyricsContainer = document.getElementById('lyrics-container');
         this.progressBar = document.getElementById('progress-bar');
+        
+        this.explicitIconTrackinfo = document.getElementById('explicit-icon-trackinfo');
 
         this.btnDemoMode = document.getElementById('btn-demo-mode');
         this.demoContainer = document.getElementById('demo-container');
@@ -497,7 +499,9 @@ class LySincApp {
                         this.trackinfoBox.classList.add('closed');
                         
                         if (isDrawerOpen) {
-                            this.toggleFloatingMenu(false);
+                            setTimeout(() => {
+                                this.toggleFloatingMenu(false);
+                            }, 400);
                         }
                     }
                 }
@@ -2246,8 +2250,10 @@ class LySincApp {
         if (this.explicitIconHeader) {
             if (state.explicit) {
                 this.explicitIconHeader.classList.remove('hidden');
+                if (this.explicitIconTrackinfo) this.explicitIconTrackinfo.classList.remove('hidden');
             } else {
                 this.explicitIconHeader.classList.add('hidden');
+                if (this.explicitIconTrackinfo) this.explicitIconTrackinfo.classList.add('hidden');
             }
         }
 
