@@ -3041,7 +3041,7 @@ class LySincApp {
             if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
                 this.currentTrackArtistsRaw.forEach(artist => {
                     const artistInfo = document.createElement('div');
-                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full pl-2 pr-4 py-1.5 text-sm text-white/80 max-w-full';
+                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
                     
                     const imgUrl = this.artistImages && this.artistImages[artist.id];
                     let iconHtml = '';
