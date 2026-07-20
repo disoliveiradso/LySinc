@@ -2335,7 +2335,7 @@ class LySincApp {
         
         const createPill = (icon, text) => {
             const isMobile = window.innerWidth < 768;
-            const maxLength = isMobile ? 30 : 45;
+            const maxLength = isMobile ? 22 : 65;
             const isTooLong = text.length > maxLength;
 
             let html = `
