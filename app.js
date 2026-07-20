@@ -3035,13 +3035,13 @@ class LySincApp {
             creditsBlock.className = 'mt-2 mb-8 pt-2 opacity-70 hover:opacity-100 transition-opacity';
 
             const mainFlex = document.createElement('div');
-            mainFlex.className = 'flex flex-wrap gap-3 items-center justify-start';
+            mainFlex.className = 'flex flex-wrap gap-3 items-center justify-start max-w-full';
             creditsBlock.appendChild(mainFlex);
 
             if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
                 this.currentTrackArtistsRaw.forEach(artist => {
                     const artistInfo = document.createElement('div');
-                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full pl-2 pr-4 py-1.5 text-sm text-white/80';
+                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full pl-2 pr-4 py-1.5 text-sm text-white/80 max-w-full';
                     
                     const imgUrl = this.artistImages && this.artistImages[artist.id];
                     let iconHtml = '';
@@ -3059,18 +3059,18 @@ class LySincApp {
                     
                     artistInfo.innerHTML = `
                         ${iconHtml}
-                        <span class="font-medium">${artist.name}</span>
+                        <span class="font-medium truncate min-w-0">${artist.name}</span>
                     `;
                     mainFlex.appendChild(artistInfo);
                 });
             } else {
                 const artistInfo = document.createElement('div');
-                artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80';
+                artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
                 artistInfo.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <span class="font-medium">${this.currentTrackArtists || 'Desconhecido'}</span>
+                    <span class="font-medium truncate min-w-0">${this.currentTrackArtists || 'Desconhecido'}</span>
                 `;
                 mainFlex.appendChild(artistInfo);
             }
@@ -3078,7 +3078,7 @@ class LySincApp {
             // Container para metadados adicionais do MusicBrainz (pills)
             const mbPills = document.createElement('div');
             mbPills.id = 'musicbrainz-pills';
-            mbPills.className = 'flex flex-wrap gap-3';
+            mbPills.className = 'flex flex-wrap gap-3 max-w-full';
             mainFlex.appendChild(mbPills);
 
             if (this.isExplicit) {
@@ -3097,20 +3097,20 @@ class LySincApp {
             
             const btnChangeSource = document.createElement('button');
             btnChangeSource.id = 'btn-change-source-inline';
-            btnChangeSource.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
+            btnChangeSource.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
             btnChangeSource.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
-                <span class="font-medium">Fonte: ${providerText}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <span class="font-medium truncate min-w-0">Fonte: ${providerText}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
             `;
             mainFlex.appendChild(btnChangeSource);
 
             const btnRestartTrack = document.createElement('button');
-            btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer';
+            btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
             btnRestartTrack.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" />
