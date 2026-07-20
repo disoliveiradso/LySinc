@@ -495,13 +495,11 @@ class LySincApp {
                             if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
                         }, 50);
                     } else {
-                        this.trackinfoBox.classList.remove('open');
-                        this.trackinfoBox.classList.add('closed');
-                        
                         if (isDrawerOpen) {
-                            setTimeout(() => {
-                                this.toggleFloatingMenu(false);
-                            }, 400);
+                            this.toggleFloatingMenu(false);
+                        } else {
+                            this.trackinfoBox.classList.remove('open');
+                            this.trackinfoBox.classList.add('closed');
                         }
                     }
                 }
@@ -3560,19 +3558,31 @@ class LySincApp {
                 }, 4000);
             }
         } else {
-            this.floatingMenuContent.classList.remove('open');
-            this.floatingMenuContent.classList.add('closed');
-            if (this.floatingMenusWrapper) {
-                this.floatingMenusWrapper.classList.remove('open');
-                this.floatingMenusWrapper.classList.add('closed');
-            }
-            if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('scale-y-[-1]');
-            if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
+            const trackInfoWasOpen = this.trackinfoBox && this.trackinfoBox.classList.contains('open');
             
+            const closeMenuTray = () => {
+                this.floatingMenuContent.classList.remove('open');
+                this.floatingMenuContent.classList.add('closed');
+                if (this.floatingMenusWrapper) {
+                    this.floatingMenusWrapper.classList.remove('open');
+                    this.floatingMenusWrapper.classList.add('closed');
+                }
+                if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.remove('scale-y-[-1]');
+                if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
+            };
+
             if (this.trackinfoBox) {
                 if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
                 this.trackinfoBox.classList.remove('open');
                 this.trackinfoBox.classList.add('closed');
+            }
+
+            if (trackInfoWasOpen) {
+                setTimeout(() => {
+                    closeMenuTray();
+                }, 400);
+            } else {
+                closeMenuTray();
             }
         }
     }
