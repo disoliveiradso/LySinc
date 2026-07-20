@@ -111,7 +111,7 @@ const MusicBrainzService = {
 
             // 3. Busca detalhes da gravação (incluindo relacionamentos de artistas, obras, gêneros e urls)
             const recordingData = await this.enqueueRequest(
-                `${this.API_BASE}/recording/${recordingId}?inc=releases+artist-rels+work-rels+genres+url-rels&fmt=json`
+                `${this.API_BASE}/recording/${recordingId}?inc=releases+artist-rels+work-rels+work-level-rels+genres+url-rels&fmt=json`
             );
 
             // 4. Se tivermos um release, buscamos detalhes dele para obter gravadora e copyright
@@ -147,6 +147,13 @@ const MusicBrainzService = {
                     if (rel.type === 'producer') {
                         producers.add(rel.artist.name);
                     }
+                    if (rel["target-type"] === 'work' && rel.work && rel.work.relations) {
+                        rel.work.relations.forEach(wrel => {
+                            if (['writer', 'composer', 'lyricist'].includes(wrel.type)) {
+                                writers.add(wrel.artist.name);
+                            }
+                        });
+                    }
                 });
             }
             
@@ -166,22 +173,7 @@ const MusicBrainzService = {
                 genres = recordingData.genres.map(g => g.name);
             }
 
-            // Relacionamentos da Obra (Work) geralmente contém os compositores (lyricist, composer, writer)
-            if (recordingData.relations) {
-                const workRelations = recordingData.relations.filter(r => r["target-type"] === 'work');
-                for (let wr of workRelations) {
-                    if (wr.work && wr.work.id) {
-                        const workData = await this.enqueueRequest(`${this.API_BASE}/work/${wr.work.id}?inc=artist-rels&fmt=json`);
-                        if (workData.relations) {
-                            workData.relations.forEach(rel => {
-                                if (['writer', 'composer', 'lyricist'].includes(rel.type)) {
-                                    writers.add(rel.artist.name);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
+            // O loop para buscar obras (Works) individuais foi removido, pois usamos work-level-rels
 
             const metadata = {
                 albumName: albumName || null,

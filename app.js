@@ -898,7 +898,16 @@ class LySincApp {
         window.addEventListener('wheel', handleUserInteraction, { passive: true });
         window.addEventListener('touchmove', handleUserInteraction, { passive: true });
 
+        let ignoreScrollEvents = false;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                ignoreScrollEvents = true;
+                setTimeout(() => { ignoreScrollEvents = false; }, 500);
+            }
+        });
+
         window.addEventListener('scroll', () => {
+            if (ignoreScrollEvents) return;
 
             this.updateFloatingMenuVisibility();
 
@@ -2335,7 +2344,7 @@ class LySincApp {
                     <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                         ${icon}
                     </div>` : ''}
-                    <span class="font-medium truncate block">${text}</span>
+                    <span class="font-medium truncate min-w-0">${text}</span>
             `;
 
             if (isTooLong) {
