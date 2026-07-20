@@ -2334,34 +2334,24 @@ class LySincApp {
         let html = '';
         
         const createPill = (icon, text) => {
-            const isMobile = window.innerWidth < 768;
-            const maxLength = isMobile ? 22 : 65;
-            const isTooLong = text.length > maxLength;
-
+            const encodedIcon = encodeURIComponent(icon || '');
+            const encodedText = encodeURIComponent(text || '');
             let html = `
-                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none max-w-full">
+                <div class="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-default select-none max-w-full group">
                     ${icon ? `
                     <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                         ${icon}
                     </div>` : ''}
-                    <span class="font-medium truncate min-w-0">${text}</span>
-            `;
-
-            if (isTooLong) {
-                const encodedIcon = encodeURIComponent(icon || '');
-                const encodedText = encodeURIComponent(text || '');
-                html += `
-                    <button class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 ml-1 text-white/80 hover:text-white" 
+                    <span class="font-medium truncate min-w-0 metadata-text">${text}</span>
+                    <button class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 ml-1 text-white/80 hover:text-white hidden metadata-more-btn" 
                             onclick="if(window.app) window.app.showMetadataPopup(decodeURIComponent('${encodedIcon}'), decodeURIComponent('${encodedText}'))" 
                             title="Ver completo">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
                     </button>
-                `;
-            }
-
-            html += `</div>`;
+                </div>
+            `;
             return html;
         };
 
@@ -2395,6 +2385,24 @@ class LySincApp {
         }
         
         pillsContainer.innerHTML = html;
+
+        if (this.pillResizeObserver) {
+            this.pillResizeObserver.disconnect();
+        }
+        this.pillResizeObserver = new ResizeObserver(() => {
+            const texts = pillsContainer.querySelectorAll('.metadata-text');
+            texts.forEach(span => {
+                const btn = span.nextElementSibling;
+                if (btn && btn.classList.contains('metadata-more-btn')) {
+                    if (span.scrollWidth > span.clientWidth) {
+                        btn.classList.remove('hidden');
+                    } else {
+                        btn.classList.add('hidden');
+                    }
+                }
+            });
+        });
+        this.pillResizeObserver.observe(pillsContainer);
 
         if (copyrightContainer) {
             let copyrightHtml = '';
