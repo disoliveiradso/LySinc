@@ -216,7 +216,7 @@ body, html {
     font-family: var(--font-heading);
     font-weight: 700;
     line-height: 1.4;
-    text-wrap: balance;
+    text-wrap: pretty;
     transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
                 opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
                 filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
@@ -225,13 +225,8 @@ body, html {
     cursor: pointer;
     will-change: transform, opacity, filter;
     
-    
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: break-word;
-    text-wrap: balance;
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    
     
     font-size: clamp(1.8rem, 4vw, 2.8rem);
 }
