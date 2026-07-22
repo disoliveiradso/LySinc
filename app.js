@@ -495,11 +495,13 @@ class LySincApp {
                             if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
                         }, 50);
                     } else {
+                        this.trackinfoBox.classList.remove('open');
+                        this.trackinfoBox.classList.add('closed');
+                        
                         if (isDrawerOpen) {
-                            this.toggleFloatingMenu(false);
-                        } else {
-                            this.trackinfoBox.classList.remove('open');
-                            this.trackinfoBox.classList.add('closed');
+                            setTimeout(() => {
+                                this.toggleFloatingMenu(false);
+                            }, 400);
                         }
                     }
                 }
@@ -3559,8 +3561,8 @@ class LySincApp {
             }
         } else {
             const trackInfoWasOpen = this.trackinfoBox && this.trackinfoBox.classList.contains('open');
-            
-            const closeMenuTray = () => {
+
+            const closeTray = () => {
                 this.floatingMenuContent.classList.remove('open');
                 this.floatingMenuContent.classList.add('closed');
                 if (this.floatingMenusWrapper) {
@@ -3571,18 +3573,20 @@ class LySincApp {
                 if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.remove('scale-x-[-1]');
             };
 
-            if (this.trackinfoBox) {
+            if (trackInfoWasOpen) {
                 if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
                 this.trackinfoBox.classList.remove('open');
                 this.trackinfoBox.classList.add('closed');
-            }
-
-            if (trackInfoWasOpen) {
-                setTimeout(() => {
-                    closeMenuTray();
+                
+                this.trackinfoBoxDelayId = setTimeout(() => {
+                    closeTray();
                 }, 400);
             } else {
-                closeMenuTray();
+                if (this.trackinfoBox) {
+                    this.trackinfoBox.classList.remove('open');
+                    this.trackinfoBox.classList.add('closed');
+                }
+                closeTray();
             }
         }
     }
