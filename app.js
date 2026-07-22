@@ -501,7 +501,7 @@ class LySincApp {
                         if (isDrawerOpen) {
                             setTimeout(() => {
                                 this.toggleFloatingMenu(false);
-                            }, 400);
+                            }, 150);
                         }
                     }
                 }
@@ -2532,7 +2532,7 @@ class LySincApp {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <div class="text-emerald-400/80 text-lg font-medium tracking-wide">Carregando letras sincronizadas...</div>
+                <div class="text-emerald-400/80 text-lg font-medium tracking-wide text-center px-4">Carregando letras sincronizadas...</div>
             </div>
         `;
         if (this.btnRecenter) {
@@ -3580,7 +3580,7 @@ class LySincApp {
                 
                 this.trackinfoBoxDelayId = setTimeout(() => {
                     closeTray();
-                }, 400);
+                }, 150);
             } else {
                 if (this.trackinfoBox) {
                     this.trackinfoBox.classList.remove('open');
