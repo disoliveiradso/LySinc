@@ -373,24 +373,10 @@ class LySincApp {
             }
 
             const hadRefreshToken = !!localStorage.getItem('lysinc_spotify_refresh_token');
-
             if (hadRefreshToken) {
                 const btnConnectText = this.btnConnect.querySelector('span');
                 if (btnConnectText) {
                     btnConnectText.textContent = 'Continuar com o Spotify';
-                }
-
-                try {
-                    const authenticated = await SpotifyService.isAuthenticated();
-                    if (authenticated) {
-                        this.showScreen('idle');
-                        this.startPolling();
-                        this.startTicker();
-                        this.btnLogout.classList.remove('hidden');
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Falha silenciosa ao autenticar refresh token:', e);
                 }
             }
 
@@ -2149,7 +2135,7 @@ class LySincApp {
             return;
         }
 
-        if (state.isEmpty || !state.isPlaying && !state.trackName) {
+        if (state.isEmpty || !state.trackName) {
             this.isPlaying = false;
             this.currentTrackId = null;
             this.showScreen('idle');

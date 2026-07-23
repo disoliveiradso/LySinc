@@ -242,7 +242,7 @@ const SpotifyService = {
                 artists: data.item?.artists?.map(a => a.name).join(', ') || '',
                 artistsRaw: data.item?.artists?.map(a => ({ id: a.id, name: a.name })) || [],
                 albumName: data.item?.album?.name,
-                albumArtUrl: data.item?.album?.images[0]?.url || '',
+                albumArtUrl: data.item?.album?.images?.[0]?.url || '',
                 durationMs: data.item?.duration_ms,
                 isrc: data.item?.external_ids?.isrc,
                 explicit: data.item?.explicit
