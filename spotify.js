@@ -209,7 +209,7 @@ const SpotifyService = {
 
         try {
             const requestTime = Date.now();
-            const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+            const response = await fetch('https://api.spotify.com/v1/me/player?additional_types=track,episode', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -239,8 +239,8 @@ const SpotifyService = {
                 requestTime: requestTime,
                 trackId: data.item?.id,
                 trackName: data.item?.name,
-                artists: data.item?.artists.map(a => a.name).join(', '),
-                artistsRaw: data.item?.artists.map(a => ({ id: a.id, name: a.name })) || [],
+                artists: data.item?.artists?.map(a => a.name).join(', ') || '',
+                artistsRaw: data.item?.artists?.map(a => ({ id: a.id, name: a.name })) || [],
                 albumName: data.item?.album?.name,
                 albumArtUrl: data.item?.album?.images[0]?.url || '',
                 durationMs: data.item?.duration_ms,
