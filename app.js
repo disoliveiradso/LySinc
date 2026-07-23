@@ -2135,6 +2135,17 @@ class LySincApp {
             return;
         }
 
+        if (state && state.isForbidden) {
+            if (!this.hasShownForbiddenToast) {
+                this.hasShownForbiddenToast = true;
+                this.showToast('Spotify API (Erro 403): O Client ID está em Modo de Desenvolvimento. Cadastre seu e-mail em "User Management" no painel do Spotify ou use seu próprio Client ID.', 'error', 12000);
+            }
+            this.isPlaying = false;
+            this.currentTrackId = null;
+            this.showScreen('idle');
+            return;
+        }
+
         if (state.isEmpty || !state.trackName) {
             this.isPlaying = false;
             this.currentTrackId = null;

@@ -229,6 +229,11 @@ const SpotifyService = {
                 return { isPlaying: false, isEmpty: true };
             }
 
+            if (response.status === 403) {
+                console.warn('[LySinc] Spotify API 403 Forbidden: Conta não autorizada ou Client ID em Development Mode.');
+                return { isForbidden: true };
+            }
+
             if (response.status === 401) {
                 // Token expirado/inválido de repente
                 const renewed = await this.refreshToken();
