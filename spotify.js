@@ -209,7 +209,7 @@ const SpotifyService = {
 
         try {
             const requestTime = Date.now();
-            const response = await fetch('https://api.spotify.com/v1/me/player?additional_types=track,episode', {
+            const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing?additional_types=track,episode', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
