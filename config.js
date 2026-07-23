@@ -13,6 +13,10 @@ const Config = {
     
     // Obtém o Client ID (prioriza o embutido ofuscado em Base64, senão lê do localStorage)
     getClientId() {
+        const customId = localStorage.getItem(this.CLIENT_ID_KEY);
+        if (customId && customId.trim()) {
+            return customId.trim();
+        }
         if (this.SPOTIFY_CLIENT_ID_B64) {
             try {
                 return atob(this.SPOTIFY_CLIENT_ID_B64).trim();
@@ -20,7 +24,7 @@ const Config = {
                 console.error('Erro ao decodificar SPOTIFY_CLIENT_ID_B64:', error);
             }
         }
-        return localStorage.getItem(this.CLIENT_ID_KEY) || '';
+        return '';
     },
     
     // Salva o Client ID no localStorage

@@ -209,11 +209,20 @@ const SpotifyService = {
 
         try {
             const requestTime = Date.now();
-            const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing?additional_types=track,episode', {
+            let response = await fetch('https://api.spotify.com/v1/me/player/currently-playing?additional_types=track,episode', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
+            if (response.status === 204) {
+                // Tenta fallback no endpoint do player completo caso o /currently-playing não responda
+                try {
+                    response = await fetch('https://api.spotify.com/v1/me/player?additional_types=track,episode', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                } catch (e) {}
+            }
 
             if (response.status === 204) {
                 // Nada tocando
