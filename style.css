@@ -14,6 +14,17 @@ body {
     padding: 0;
 }
 
+/* Site-wide Text Wrap Standardization */
+h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+}
+p, li, label, span {
+    text-wrap: pretty;
+}
+/* Ensure lyrics continue using their specific settings without overriding from standard */
+.lyric-line .lyrics-syllable {
+    text-wrap: wrap; /* specific lyrics logic */
+}
 
 body::-webkit-scrollbar, html::-webkit-scrollbar {
     display: none;
