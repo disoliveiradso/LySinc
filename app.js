@@ -240,6 +240,9 @@ class LySincApp {
         this.tooltipManager = new CustomTooltipManager();
 
         this.screenPreLogin = document.getElementById('screen-pre-login');
+        this.screenFlowStep1 = document.getElementById('screen-flow-step-1');
+        this.screenFlowStep2 = document.getElementById('screen-flow-step-2');
+        this.screenFlowStep3 = document.getElementById('screen-flow-step-3');
         this.screenMain = document.getElementById('screen-main');
         this.screenIdle = document.getElementById('screen-idle');
 
@@ -318,15 +321,12 @@ class LySincApp {
         this.btnFontIncreaseFloating = document.getElementById('btn-font-increase-floating');
         this.lyricsFontScale = parseFloat(localStorage.getItem('lysinc_lyrics_font_scale')) || 1.0;
 
-        // Client ID 3-Step Flow Elements
+        // Client ID 3-Step Full Page Flow Elements
         this.btnOpenClientIdFlow = document.getElementById('btn-open-client-id-flow');
         this.btnLoginSystemAccount = document.getElementById('btn-login-system-account');
-        this.clientIdFlowModal = document.getElementById('client-id-flow-modal');
-        this.btnFlowClose = document.getElementById('btn-flow-close');
-        this.flowStep1 = document.getElementById('flow-step-1');
-        this.flowStep2 = document.getElementById('flow-step-2');
-        this.flowStep3 = document.getElementById('flow-step-3');
+        this.btnFlowStep1Back = document.getElementById('btn-flow-step1-back');
         this.btnFlowStep1Next = document.getElementById('btn-flow-step1-next');
+        this.btnFlowStep2BackTop = document.getElementById('btn-flow-step2-back-top');
         this.btnFlowStep2Back = document.getElementById('btn-flow-step2-back');
         this.btnFlowStep2Save = document.getElementById('btn-flow-step2-save');
         this.btnFlowStep3Finish = document.getElementById('btn-flow-step3-finish');
@@ -589,24 +589,21 @@ class LySincApp {
         // Aplica a escala inicial de fonte no documento
         document.documentElement.style.setProperty('--lyrics-font-scale', this.lyricsFontScale);
 
-        // 3-Step Client ID Flow Handlers
+        // 3-Step Client ID Flow Handlers (Full-Page Navigation)
         if (this.btnOpenClientIdFlow) {
-            this.btnOpenClientIdFlow.addEventListener('click', () => this.openClientIdFlow());
+            this.btnOpenClientIdFlow.addEventListener('click', () => this.showScreen('flow-step-1'));
         }
-        if (this.btnFlowClose) {
-            this.btnFlowClose.addEventListener('click', () => this.closeClientIdFlow());
+        if (this.btnFlowStep1Back) {
+            this.btnFlowStep1Back.addEventListener('click', () => this.showScreen('pre-login'));
         }
         if (this.btnFlowStep1Next) {
-            this.btnFlowStep1Next.addEventListener('click', () => {
-                if (this.flowStep1) this.flowStep1.classList.add('hidden');
-                if (this.flowStep2) this.flowStep2.classList.remove('hidden');
-            });
+            this.btnFlowStep1Next.addEventListener('click', () => this.showScreen('flow-step-2'));
+        }
+        if (this.btnFlowStep2BackTop) {
+            this.btnFlowStep2BackTop.addEventListener('click', () => this.showScreen('flow-step-1'));
         }
         if (this.btnFlowStep2Back) {
-            this.btnFlowStep2Back.addEventListener('click', () => {
-                if (this.flowStep2) this.flowStep2.classList.add('hidden');
-                if (this.flowStep1) this.flowStep1.classList.remove('hidden');
-            });
+            this.btnFlowStep2Back.addEventListener('click', () => this.showScreen('flow-step-1'));
         }
         if (this.inputFlowClientId) {
             this.inputFlowClientId.addEventListener('input', (e) => {
@@ -629,33 +626,27 @@ class LySincApp {
                 const val = this.inputFlowClientId ? this.inputFlowClientId.value.trim() : '';
                 if (val) {
                     await SupabaseService.saveClientId(val);
-                    if (this.flowStep2) this.flowStep2.classList.add('hidden');
-                    if (this.flowStep3) this.flowStep3.classList.remove('hidden');
                     this.updateLoginButtonsState();
+                    this.showScreen('flow-step-3');
                 }
             });
         }
         if (this.btnFlowStep3Finish) {
             this.btnFlowStep3Finish.addEventListener('click', () => {
-                this.closeClientIdFlow();
                 this.updateLoginButtonsState();
                 SpotifyService.login();
             });
         }
         if (this.btnLoginSystemAccount) {
             this.btnLoginSystemAccount.addEventListener('click', () => {
-                if (Config.SPOTIFY_CLIENT_ID_B64) {
-                    try {
-                        const defaultId = atob(Config.SPOTIFY_CLIENT_ID_B64).trim();
-                        Config.setClientId(defaultId);
-                        this.updateLoginButtonsState();
-                        this.showToast('Autenticando via Conta do Sistema...', 'info');
-                        SpotifyService.login();
-                    } catch(e) {
-                        this.showToast('Falha ao utilizar Conta do Sistema.', 'error');
-                    }
+                const sysId = Config.getSystemClientId();
+                if (sysId) {
+                    Config.setClientId(sysId);
+                    this.updateLoginButtonsState();
+                    this.showToast('Conectando via Conta do Sistema...', 'info');
+                    SpotifyService.login();
                 } else {
-                    this.showToast('Nenhum Client ID padrão configurado.', 'error');
+                    this.showToast('Nenhum Client ID de sistema configurado.', 'error');
                 }
             });
         }
@@ -2256,16 +2247,25 @@ class LySincApp {
     }
 
     showScreen(screenName) {
-        this.screenPreLogin.classList.add('hidden');
-        this.screenMain.classList.add('hidden');
-        this.screenIdle.classList.add('hidden');
+        if (this.screenPreLogin) this.screenPreLogin.classList.add('hidden');
+        if (this.screenFlowStep1) this.screenFlowStep1.classList.add('hidden');
+        if (this.screenFlowStep2) this.screenFlowStep2.classList.add('hidden');
+        if (this.screenFlowStep3) this.screenFlowStep3.classList.add('hidden');
+        if (this.screenMain) this.screenMain.classList.add('hidden');
+        if (this.screenIdle) this.screenIdle.classList.add('hidden');
 
         if (screenName === 'pre-login') {
-            this.screenPreLogin.classList.remove('hidden');
+            if (this.screenPreLogin) this.screenPreLogin.classList.remove('hidden');
+        } else if (screenName === 'flow-step-1') {
+            if (this.screenFlowStep1) this.screenFlowStep1.classList.remove('hidden');
+        } else if (screenName === 'flow-step-2') {
+            if (this.screenFlowStep2) this.screenFlowStep2.classList.remove('hidden');
+        } else if (screenName === 'flow-step-3') {
+            if (this.screenFlowStep3) this.screenFlowStep3.classList.remove('hidden');
         } else if (screenName === 'main') {
-            this.screenMain.classList.remove('hidden');
+            if (this.screenMain) this.screenMain.classList.remove('hidden');
         } else if (screenName === 'idle') {
-            this.screenIdle.classList.remove('hidden');
+            if (this.screenIdle) this.screenIdle.classList.remove('hidden');
         }
     }
 

@@ -16,12 +16,17 @@ const Config = {
     // OPCIONAL: Client ID padrão do sistema para contas pré-cadastradas
     SPOTIFY_CLIENT_ID_B64: 'MDM1MTRkM2RiZWZlNDVmYTlmNWZjOTdiOWUwMjg4YzU=',
     
-    // Obtém o Client ID (prioriza o Client ID customizado salvo pelo usuário, senão usa o padrão)
+    // Obtém o Client ID salvo pelo usuário
     getClientId() {
         const customId = localStorage.getItem(this.CLIENT_ID_KEY);
         if (customId && customId.trim()) {
             return customId.trim();
         }
+        return '';
+    },
+
+    // Obtém o Client ID padrão da Conta do Sistema inserido no código fonte
+    getSystemClientId() {
         if (this.SPOTIFY_CLIENT_ID_B64) {
             try {
                 return atob(this.SPOTIFY_CLIENT_ID_B64).trim();
