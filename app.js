@@ -321,9 +321,12 @@ class LySincApp {
         this.btnFontIncreaseFloating = document.getElementById('btn-font-increase-floating');
         this.lyricsFontScale = parseFloat(localStorage.getItem('lysinc_lyrics_font_scale')) || 1.0;
 
-        // Client ID 3-Step Full Page Flow Elements
+        // Client ID 3-Step Full Page Flow & System Account Modal Elements
         this.btnOpenClientIdFlow = document.getElementById('btn-open-client-id-flow');
         this.btnLoginSystemAccount = document.getElementById('btn-login-system-account');
+        this.systemAccountModal = document.getElementById('system-account-modal');
+        this.btnCancelSystemLogin = document.getElementById('btn-cancel-system-login');
+        this.btnConfirmSystemLogin = document.getElementById('btn-confirm-system-login');
         this.btnFlowStep1Back = document.getElementById('btn-flow-step1-back');
         this.btnFlowStep1Next = document.getElementById('btn-flow-step1-next');
         this.btnFlowStep2BackTop = document.getElementById('btn-flow-step2-back-top');
@@ -407,7 +410,7 @@ class LySincApp {
             if (hadRefreshToken) {
                 const btnConnectText = this.btnConnect.querySelector('span');
                 if (btnConnectText) {
-                    btnConnectText.textContent = 'Continuar com o Spotify';
+                    btnConnectText.textContent = 'Conectar com o Spotify';
                 }
             }
 
@@ -638,7 +641,37 @@ class LySincApp {
             });
         }
         if (this.btnLoginSystemAccount) {
-            this.btnLoginSystemAccount.addEventListener('click', () => {
+            this.btnLoginSystemAccount.addEventListener('click', async () => {
+                const isAuth = await SpotifyService.isAuthenticated();
+                if (isAuth) {
+                    this.showScreen('idle');
+                    this.startPolling();
+                    this.startTicker();
+                    if (this.btnLogout) this.btnLogout.classList.remove('hidden');
+                } else {
+                    if (this.systemAccountModal) {
+                        this.systemAccountModal.classList.remove('hidden');
+                        this.systemAccountModal.classList.add('flex');
+                    }
+                }
+            });
+        }
+
+        if (this.btnCancelSystemLogin) {
+            this.btnCancelSystemLogin.addEventListener('click', () => {
+                if (this.systemAccountModal) {
+                    this.systemAccountModal.classList.add('hidden');
+                    this.systemAccountModal.classList.remove('flex');
+                }
+            });
+        }
+
+        if (this.btnConfirmSystemLogin) {
+            this.btnConfirmSystemLogin.addEventListener('click', () => {
+                if (this.systemAccountModal) {
+                    this.systemAccountModal.classList.add('hidden');
+                    this.systemAccountModal.classList.remove('flex');
+                }
                 const sysId = Config.getSystemClientId();
                 if (sysId) {
                     Config.setClientId(sysId);
