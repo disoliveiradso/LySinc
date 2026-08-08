@@ -2273,7 +2273,9 @@ class LySincApp {
     }
 
     loadSettings() {
-        this.inputClientId.value = localStorage.getItem(Config.CLIENT_ID_KEY) || '';
+        if (this.inputClientId) {
+            this.inputClientId.value = localStorage.getItem(Config.CLIENT_ID_KEY) || '';
+        }
 
         // Load Light Mode
         const lightModeActive = localStorage.getItem('lysinc_light_mode') === 'true';
