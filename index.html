@@ -109,7 +109,9 @@
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-lg mb-6 px-4">
                 <button id="btn-connect"
                     class="btn-spotify text-white/70 font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full sm:w-auto min-w-[220px] whitespace-nowrap opacity-50 cursor-not-allowed bg-neutral-600 pointer-events-none transition-all duration-300">
-                    <img src="assets/icons/spotify-brand.svg" alt="Spotify" class="h-5 w-5 shrink-0 grayscale opacity-70" id="btn-connect-icon">
+                    <svg id="btn-connect-icon" class="h-5 w-5 shrink-0" viewBox="0 0 352 352" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C152.887 0 130.001 4.55238 108.648 13.3972C87.2944 22.242 67.8923 35.2061 51.5492 51.5492C18.5428 84.5556 0 129.322 0 176C0 222.678 18.5428 267.444 51.5492 300.451C67.8923 316.794 87.2944 329.758 108.648 338.603C130.001 347.448 152.887 352 176 352C222.678 352 267.444 333.457 300.451 300.451C333.457 267.444 352 222.678 352 176C352 152.887 347.448 130.001 338.603 108.648C329.758 87.2944 316.794 67.8923 300.451 51.5492C284.108 35.2061 264.706 22.242 243.352 13.3972C221.999 4.55238 199.113 0 176 0Z"/>
+                    </svg>
                     <span class="whitespace-nowrap">Conectar com o Spotify</span>
                 </button>
 
@@ -752,10 +754,10 @@
         <div
             class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden">
 
-            <div class="sticky top-0 z-30 bg-[#0d0d0d]/95 backdrop-blur-md px-6 pt-6 pb-4 border-b border-white/10 flex items-start justify-between gap-4 shrink-0">
+            <div class="sticky top-0 z-30 bg-[#0d0d0d]/95 backdrop-blur-md px-6 pt-6 pb-4 border-b border-white/10 flex items-center justify-between gap-4 shrink-0">
                 <div class="flex-1 min-w-0 pr-2">
                     <h3 class="text-2xl font-bold tracking-tight text-white leading-tight">Perfil & Configurações</h3>
-                    <p class="text-white/60 text-xs mt-1">Gerencie credenciais e perfil no Lysinc 2.0</p>
+                    <p class="text-white/60 text-xs mt-1">Gerencie credenciais e perfil no LySinc 2.0</p>
                 </div>
                 <button id="btn-settings-close"
                     class="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 transition-all rounded-full p-2 shrink-0" title="Fechar">
@@ -776,21 +778,21 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label for="input-client-id-readonly" class="text-sm font-semibold text-white/80">Seu Client ID Cadastrado (Somente Leitura)</label>
+                    <label for="input-client-id-readonly" class="text-sm font-semibold text-white/80">Seu Client ID</label>
                     <input id="input-client-id-readonly" type="text" readonly value="Nenhum Client ID cadastrado"
                         class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-emerald-400 font-mono text-xs focus:outline-none select-all">
                 </div>
 
                 <div class="flex flex-col space-y-3 pt-2">
                     <button id="btn-remove-client-id"
-                        class="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2 text-sm">
+                        class="hidden w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span>Remover meu Client ID (Supabase & Local)</span>
+                        <span>Remover Client ID</span>
                     </button>
                     <button id="btn-add-client-id-settings"
-                        class="hidden w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 text-sm">
+                        class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
@@ -806,7 +808,7 @@
         <div
             class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden">
             
-            <div class="sticky top-0 z-30 bg-[#0d0d0d]/95 backdrop-blur-md px-6 pt-6 pb-4 border-b border-white/10 flex items-start justify-between gap-4 shrink-0">
+            <div class="sticky top-0 z-30 bg-[#0d0d0d]/95 backdrop-blur-md px-6 pt-6 pb-4 border-b border-white/10 flex items-center justify-between gap-4 shrink-0">
                 <div class="flex-1 min-w-0 pr-2">
                     <h3 class="text-xl font-bold tracking-tight text-emerald-400 leading-tight">Sobre a sincronização de início</h3>
                 </div>
@@ -935,12 +937,25 @@
                 </a>
                 <!-- MusicBrainz -->
                 <a href="https://musicbrainz.org/" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
-                    <div class="w-10 h-10 rounded-full bg-[#EA7B3E]/10 border border-[#EA7B3E]/20 flex items-center justify-center shrink-0 text-[#EA7B3E]">
-                        <svg class="h-6 w-auto" viewBox="0 0 191 30" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><polygon points="12 0 0 7 0 21 12 28 12 0"/><polygon points="13 0 25 7 25 21 13 28 13 0"/></svg>
+                    <div class="w-10 h-10 rounded-full bg-[#EA7B3E]/10 border border-[#EA7B3E]/20 flex items-center justify-center shrink-0">
+                        <svg class="h-6 w-6" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="12,1 0,8 0,22 12,29 12,1" fill="#EA7B3E"/>
+                            <polygon points="13,1 25,8 25,22 13,29 13,1" fill="#BA5C28"/>
+                        </svg>
                     </div>
                     <div class="flex-1">
                         <h4 class="font-bold text-sm text-white group-hover:text-[#EA7B3E] transition-colors">MusicBrainz</h4>
                         <p class="text-xs text-white/50 mt-0.5">Metadados musicais em banco de dados aberto.</p>
+                    </div>
+                </a>
+                <!-- am-lyrics -->
+                <a href="https://github.com/binimum/am-lyrics" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white group-hover:bg-white group-hover:text-black transition-colors">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z" /></svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">am-lyrics</h4>
+                        <p class="text-xs text-white/50 mt-0.5">Referência para exibição de letras sincronizadas.</p>
                     </div>
                 </a>
                 <!-- Spotify API -->

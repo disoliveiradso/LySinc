@@ -2245,21 +2245,25 @@ class LySincApp {
         const clientId = Config.getClientId();
         if (clientId) {
             if (this.btnConnect) {
-                this.btnConnect.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white', 'text-white/70');
+                this.btnConnect.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white/70');
                 this.btnConnect.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
-                const icon = document.getElementById('btn-connect-icon');
-                if (icon) icon.classList.remove('grayscale', 'opacity-70');
             }
-            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.remove('hidden');
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.add('hidden');
-            if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
         } else {
             if (this.btnConnect) {
                 this.btnConnect.classList.add('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white/70');
                 this.btnConnect.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
-                const icon = document.getElementById('btn-connect-icon');
-                if (icon) icon.classList.add('grayscale', 'opacity-70');
             }
+        }
+        this.updateSettingsModalButtons();
+    }
+
+    updateSettingsModalButtons() {
+        const clientId = Config.getClientId();
+        if (clientId) {
+            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.remove('hidden');
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.add('hidden');
+            if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
+        } else {
             if (this.btnRemoveClientId) this.btnRemoveClientId.classList.add('hidden');
             if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.remove('hidden');
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
@@ -2296,12 +2300,7 @@ class LySincApp {
             this.settingsModal.classList.remove('hidden');
             this.settingsModal.classList.add('flex');
 
-            this.updateLoginButtonsState();
-
-            const currentId = Config.getClientId();
-            if (this.inputClientIdReadonly) {
-                this.inputClientIdReadonly.value = currentId || 'Nenhum Client ID cadastrado';
-            }
+            this.updateSettingsModalButtons();
 
             const profile = await SpotifyService.getUserProfile();
             if (profile) {
