@@ -1,17 +1,22 @@
 /**
- * LySinc - Configurações Gerais da Aplicação
+ * LySinc 2.0 - Configurações Gerais da Aplicação
  */
 
 const Config = {
+    // Versão da aplicação
+    VERSION: '2.0',
+
     // Chave usada para persistir o Client ID no localStorage
     CLIENT_ID_KEY: 'lysinc_spotify_client_id',
 
-    // OPCIONAL: Insira o seu Spotify Client ID codificado em Base64 abaixo.
-    // Exemplo: SPOTIFY_CLIENT_ID_B64: 'Y2xpZW50X2lkX2hlcmU='
-    // Se deixado em branco, o sistema usará o Client ID configurado no navegador.
+    // Configurações do Supabase (Insira sua URL e Anon Key aqui)
+    SUPABASE_URL: 'https://xyzcompany.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+
+    // OPCIONAL: Client ID padrão do sistema para contas pré-cadastradas
     SPOTIFY_CLIENT_ID_B64: 'MDM1MTRkM2RiZWZlNDVmYTlmNWZjOTdiOWUwMjg4YzU=',
     
-    // Obtém o Client ID (prioriza o embutido ofuscado em Base64, senão lê do localStorage)
+    // Obtém o Client ID (prioriza o Client ID customizado salvo pelo usuário, senão usa o padrão)
     getClientId() {
         const customId = localStorage.getItem(this.CLIENT_ID_KEY);
         if (customId && customId.trim()) {
@@ -38,16 +43,17 @@ const Config = {
     
     // Detecta dinamicamente a URI de redirecionamento para o OAuth do Spotify
     getRedirectUri() {
-        // Remove parâmetros de busca (query params) ou fragmentos da URL atual
         const url = new URL(window.location.href);
         return `${url.origin}${url.pathname}`;
     },
     
-    // Escopos necessários para a API do Spotify
+    // Escopos necessários para a API do Spotify (inclui user-read-private para perfil)
     SPOTIFY_SCOPES: [
         'user-read-currently-playing',
         'user-read-playback-state',
-        'user-modify-playback-state'
+        'user-modify-playback-state',
+        'user-read-private',
+        'user-read-email'
     ].join(' ')
 };
 

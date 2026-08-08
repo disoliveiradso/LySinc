@@ -2,6 +2,7 @@ import Config from './config.js';
 import SpotifyService from './spotify.js';
 import LyricsService from './lyrics.js';
 import MusicBrainzService from './musicbrainz.js';
+import SupabaseService from './supabase.js';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -310,6 +311,35 @@ class LySincApp {
         this.infoStutterModal = document.getElementById('info-stutter-modal');
         this.btnInfoStutterClose = document.getElementById('btn-info-stutter-close');
 
+        // Font Size Controls
+        this.btnFontDecreaseTop = document.getElementById('btn-font-decrease-top');
+        this.btnFontIncreaseTop = document.getElementById('btn-font-increase-top');
+        this.btnFontDecreaseFloating = document.getElementById('btn-font-decrease-floating');
+        this.btnFontIncreaseFloating = document.getElementById('btn-font-increase-floating');
+        this.lyricsFontScale = parseFloat(localStorage.getItem('lysinc_lyrics_font_scale')) || 1.0;
+
+        // Client ID 3-Step Flow Elements
+        this.btnOpenClientIdFlow = document.getElementById('btn-open-client-id-flow');
+        this.btnLoginSystemAccount = document.getElementById('btn-login-system-account');
+        this.clientIdFlowModal = document.getElementById('client-id-flow-modal');
+        this.btnFlowClose = document.getElementById('btn-flow-close');
+        this.flowStep1 = document.getElementById('flow-step-1');
+        this.flowStep2 = document.getElementById('flow-step-2');
+        this.flowStep3 = document.getElementById('flow-step-3');
+        this.btnFlowStep1Next = document.getElementById('btn-flow-step1-next');
+        this.btnFlowStep2Back = document.getElementById('btn-flow-step2-back');
+        this.btnFlowStep2Save = document.getElementById('btn-flow-step2-save');
+        this.btnFlowStep3Finish = document.getElementById('btn-flow-step3-finish');
+        this.inputFlowClientId = document.getElementById('input-flow-client-id');
+
+        // Profile & Settings Elements
+        this.userProfileSection = document.getElementById('user-profile-section');
+        this.userAvatar = document.getElementById('user-avatar');
+        this.userDisplayName = document.getElementById('user-display-name');
+        this.userUsername = document.getElementById('user-username');
+        this.inputClientIdReadonly = document.getElementById('input-client-id-readonly');
+        this.btnRemoveClientId = document.getElementById('btn-remove-client-id');
+
         this.syncOffset = 0;
 
         this.currentTrackId = null;
@@ -360,9 +390,10 @@ class LySincApp {
 
     async init() {
         try {
-            console.log("%c LySinc v1.0.1 - Melhorias de Karaoke e Scroll Ativas ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
+            console.log("%c LySinc v2.0 - Sincronização & Supabase Ativos ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
             this.setupEventListeners();
             this.loadSettings();
+            this.updateLoginButtonsState();
 
             const urlParams = new URLSearchParams(window.location.search);
             this.isDemoMode = urlParams.get('mock') === 'true';
@@ -398,10 +429,6 @@ class LySincApp {
 
                 if (hadRefreshToken) {
                     this.showToast('Sessão expirada. Por favor, conecte-se novamente ao Spotify.', 'info');
-                }
-
-                if (!Config.getClientId()) {
-                    this.toggleSettingsModal(true);
                 }
             }
         } catch (globalError) {
@@ -547,8 +574,91 @@ class LySincApp {
         });
         
         this.btnSettings.addEventListener('click', () => this.toggleSettingsModal(true));
-        this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
-        this.btnSaveSettings.addEventListener('click', () => this.saveSettings());
+        if (this.btnSettingsClose) this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
+        
+        if (this.btnRemoveClientId) {
+            this.btnRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
+        }
+
+        // Font Size Handlers
+        if (this.btnFontDecreaseTop) this.btnFontDecreaseTop.addEventListener('click', () => this.changeLyricsFontSize(-0.1));
+        if (this.btnFontIncreaseTop) this.btnFontIncreaseTop.addEventListener('click', () => this.changeLyricsFontSize(0.1));
+        if (this.btnFontDecreaseFloating) this.btnFontDecreaseFloating.addEventListener('click', () => this.changeLyricsFontSize(-0.1));
+        if (this.btnFontIncreaseFloating) this.btnFontIncreaseFloating.addEventListener('click', () => this.changeLyricsFontSize(0.1));
+        
+        // Aplica a escala inicial de fonte no documento
+        document.documentElement.style.setProperty('--lyrics-font-scale', this.lyricsFontScale);
+
+        // 3-Step Client ID Flow Handlers
+        if (this.btnOpenClientIdFlow) {
+            this.btnOpenClientIdFlow.addEventListener('click', () => this.openClientIdFlow());
+        }
+        if (this.btnFlowClose) {
+            this.btnFlowClose.addEventListener('click', () => this.closeClientIdFlow());
+        }
+        if (this.btnFlowStep1Next) {
+            this.btnFlowStep1Next.addEventListener('click', () => {
+                if (this.flowStep1) this.flowStep1.classList.add('hidden');
+                if (this.flowStep2) this.flowStep2.classList.remove('hidden');
+            });
+        }
+        if (this.btnFlowStep2Back) {
+            this.btnFlowStep2Back.addEventListener('click', () => {
+                if (this.flowStep2) this.flowStep2.classList.add('hidden');
+                if (this.flowStep1) this.flowStep1.classList.remove('hidden');
+            });
+        }
+        if (this.inputFlowClientId) {
+            this.inputFlowClientId.addEventListener('input', (e) => {
+                const val = e.target.value.trim();
+                if (val.length > 5) {
+                    if (this.btnFlowStep2Save) {
+                        this.btnFlowStep2Save.classList.remove('opacity-50', 'pointer-events-none', 'bg-neutral-600');
+                        this.btnFlowStep2Save.classList.add('bg-emerald-500', 'hover:bg-emerald-400');
+                    }
+                } else {
+                    if (this.btnFlowStep2Save) {
+                        this.btnFlowStep2Save.classList.add('opacity-50', 'pointer-events-none', 'bg-neutral-600');
+                        this.btnFlowStep2Save.classList.remove('bg-emerald-500', 'hover:bg-emerald-400');
+                    }
+                }
+            });
+        }
+        if (this.btnFlowStep2Save) {
+            this.btnFlowStep2Save.addEventListener('click', async () => {
+                const val = this.inputFlowClientId ? this.inputFlowClientId.value.trim() : '';
+                if (val) {
+                    await SupabaseService.saveClientId(val);
+                    if (this.flowStep2) this.flowStep2.classList.add('hidden');
+                    if (this.flowStep3) this.flowStep3.classList.remove('hidden');
+                    this.updateLoginButtonsState();
+                }
+            });
+        }
+        if (this.btnFlowStep3Finish) {
+            this.btnFlowStep3Finish.addEventListener('click', () => {
+                this.closeClientIdFlow();
+                this.updateLoginButtonsState();
+                SpotifyService.login();
+            });
+        }
+        if (this.btnLoginSystemAccount) {
+            this.btnLoginSystemAccount.addEventListener('click', () => {
+                if (Config.SPOTIFY_CLIENT_ID_B64) {
+                    try {
+                        const defaultId = atob(Config.SPOTIFY_CLIENT_ID_B64).trim();
+                        Config.setClientId(defaultId);
+                        this.updateLoginButtonsState();
+                        this.showToast('Autenticando via Conta do Sistema...', 'info');
+                        SpotifyService.login();
+                    } catch(e) {
+                        this.showToast('Falha ao utilizar Conta do Sistema.', 'error');
+                    }
+                } else {
+                    this.showToast('Nenhum Client ID padrão configurado.', 'error');
+                }
+            });
+        }
 
         const btnConfirmLogout = document.getElementById('btn-confirm-logout');
         const btnCancelLogout = document.getElementById('btn-cancel-logout');
@@ -2067,17 +2177,78 @@ class LySincApp {
         }
     }
 
-    saveSettings() {
-        const id = this.inputClientId.value.trim();
-        Config.setClientId(id);
-        this.toggleSettingsModal(false);
-        this.showToast('Configurações salvas! Agora você pode conectar sua conta do Spotify.', 'success');
+    changeLyricsFontSize(delta) {
+        this.lyricsFontScale = Math.min(1.8, Math.max(0.7, parseFloat((this.lyricsFontScale + delta).toFixed(1))));
+        localStorage.setItem('lysinc_lyrics_font_scale', this.lyricsFontScale);
+        document.documentElement.style.setProperty('--lyrics-font-scale', this.lyricsFontScale);
+        this.showToast(`Tamanho da fonte: ${Math.round(this.lyricsFontScale * 100)}%`, 'info');
     }
 
-    toggleSettingsModal(show) {
+    updateLoginButtonsState() {
+        const clientId = Config.getClientId();
+        if (clientId) {
+            if (this.btnConnect) {
+                this.btnConnect.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none');
+                this.btnConnect.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+                const icon = document.getElementById('btn-connect-icon');
+                if (icon) icon.classList.remove('grayscale', 'opacity-70');
+            }
+        } else {
+            if (this.btnConnect) {
+                this.btnConnect.classList.add('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none');
+                this.btnConnect.classList.remove('bg-emerald-500', 'hover:bg-emerald-400');
+                const icon = document.getElementById('btn-connect-icon');
+                if (icon) icon.classList.add('grayscale', 'opacity-70');
+            }
+        }
+    }
+
+    openClientIdFlow() {
+        if (!this.clientIdFlowModal) return;
+        this.clientIdFlowModal.classList.remove('hidden');
+        this.clientIdFlowModal.classList.add('flex');
+        if (this.flowStep1) this.flowStep1.classList.remove('hidden');
+        if (this.flowStep2) this.flowStep2.classList.add('hidden');
+        if (this.flowStep3) this.flowStep3.classList.add('hidden');
+    }
+
+    closeClientIdFlow() {
+        if (!this.clientIdFlowModal) return;
+        this.clientIdFlowModal.classList.add('hidden');
+        this.clientIdFlowModal.classList.remove('flex');
+    }
+
+    async handleRemoveClientId() {
+        if (window.confirm('Deseja realmente remover seu Client ID salvo?')) {
+            await SupabaseService.removeClientId();
+            this.updateLoginButtonsState();
+            this.toggleSettingsModal(false);
+            this.showToast('Client ID removido do Supabase e do navegador.', 'info');
+        }
+    }
+
+    async toggleSettingsModal(show) {
+        if (!this.settingsModal) return;
         if (show) {
             this.settingsModal.classList.remove('hidden');
             this.settingsModal.classList.add('flex');
+
+            const currentId = Config.getClientId();
+            if (this.inputClientIdReadonly) {
+                this.inputClientIdReadonly.value = currentId || 'Nenhum Client ID cadastrado';
+            }
+
+            const profile = await SpotifyService.getUserProfile();
+            if (profile) {
+                if (this.userProfileSection) this.userProfileSection.classList.remove('hidden');
+                if (this.userDisplayName) this.userDisplayName.textContent = profile.display_name;
+                if (this.userUsername) this.userUsername.textContent = `@${profile.id}`;
+                if (this.userAvatar && profile.images && profile.images[0]?.url) {
+                    this.userAvatar.src = profile.images[0].url;
+                }
+            } else if (this.userProfileSection) {
+                this.userProfileSection.classList.add('hidden');
+            }
         } else {
             this.settingsModal.classList.add('hidden');
             this.settingsModal.classList.remove('flex');

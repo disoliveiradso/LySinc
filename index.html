@@ -9,9 +9,10 @@
     <link rel="icon" type="image/svg+xml" href="assets/icons/lysinc-logo.svg">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.0.10">
+    <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
 
 <body class="bg-[#050505] text-white flex flex-col min-h-screen">
@@ -31,8 +32,6 @@
                 <img src="assets/icons/lysinc-logo.svg" alt="LySinc Icon" class="h-8 w-8" id="lysinc-icon">
                 <span
                     class="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">LySinc</span>
-                <span
-                    class="text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-white/60">v1.0</span>
             </div>
 
             <div class="flex items-center relative" style="justify-content: flex-end;">
@@ -97,19 +96,38 @@
         </header>
 
         
-        <section id="screen-pre-login" class="flex-1 flex flex-col items-center text-center pt-24 md:pt-32 pb-12">
+        <section id="screen-pre-login" class="flex-1 flex flex-col items-center text-center pt-20 md:pt-28 pb-12">
             <h1
                 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 font-sans bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
                 Suas letras. Em perfeita sintonia.
             </h1>
-            <p class="text-neutral-400 text-lg md:text-xl max-w-md mb-10 font-light">
+            <p class="text-neutral-400 text-lg md:text-xl max-w-md mb-8 font-light">
                 Veja as letras das músicas do Spotify sincronizadas palavra por palavra em tempo real, com o estilo
                 visual fluido do Apple Music.
             </p>
-            <button id="btn-connect"
-                class="btn-spotify text-black font-bold py-4 px-8 rounded-full text-lg shadow-lg flex items-center space-x-3">
-                <img src="assets/icons/spotify-brand.svg" alt="Spotify" class="h-6 w-6">
-                <span>Conectar com o Spotify</span>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-md mb-6">
+                <button id="btn-connect"
+                    class="btn-spotify text-black font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 flex-1 opacity-50 cursor-not-allowed bg-neutral-600 pointer-events-none transition-all duration-300">
+                    <img src="assets/icons/spotify-brand.svg" alt="Spotify" class="h-5 w-5 grayscale opacity-70" id="btn-connect-icon">
+                    <span>Conectar com o Spotify</span>
+                </button>
+
+                <button id="btn-open-client-id-flow"
+                    class="bg-white/10 hover:bg-white/20 border border-white/15 text-white font-semibold py-3.5 px-6 rounded-full text-base transition-all duration-300 flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    <span>Inserir Client ID</span>
+                </button>
+            </div>
+
+            <button id="btn-login-system-account"
+                class="text-xs text-white/50 hover:text-emerald-400 transition-colors underline underline-offset-4 flex items-center space-x-1 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Login via Conta do Sistema</span>
             </button>
         </section>
 
@@ -216,7 +234,7 @@
                     <div class="flex items-center space-x-1.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity ml-1 pr-2">
                             
                             <button id="btn-pip-top"
-                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden flex items-center justify-center"
+                                class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden max-md:hidden flex items-center justify-center"
                                 title="Picture-in-Picture">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                     stroke-width="2">
@@ -233,6 +251,13 @@
                                         d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
                                 </svg>
                             </button>
+                            
+                            <button id="btn-font-decrease-top"
+                                class="hover:bg-white/10 hover:text-white text-white/60 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px]"
+                                title="Diminuir Tamanho da Fonte">A-</button>
+                            <button id="btn-font-increase-top"
+                                class="hover:bg-white/10 hover:text-white text-white/60 transition-colors w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs"
+                                title="Aumentar Tamanho da Fonte">A+</button>
                         </div>
                     </div>
                 </div>
@@ -299,10 +324,12 @@
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
                                 </button>
-                                <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
+                                <button id="btn-floating-pip" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full hidden max-md:hidden flex items-center justify-center" title="Picture-in-Picture"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" /></svg></button>
                                 <button id="btn-fullscreen" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Tela Cheia">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
                                 </button>
+                                <button id="btn-font-decrease-floating" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs" title="Diminuir Fonte">A-</button>
+                                <button id="btn-font-increase-floating" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm" title="Aumentar Fonte">A+</button>
                             </div>
                         </div>
 
@@ -379,14 +406,17 @@
 
             <div class="flex flex-col items-center space-y-1 text-white/30 text-[11px] md:text-xs">
                 <div class="flex flex-col items-center gap-1">
-                    <a href="https://github.com/disoliveiradso/LySinc" target="_blank"
-                        class="hover:text-white transition-colors flex items-center space-x-1 font-medium text-white/60 mb-1" title="Repositório Principal do LySinc">
-                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-                            <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z" />
-                        </svg>
-                        <span>LySinc</span>
-                    </a>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <a href="https://github.com/disoliveiradso/LySinc" target="_blank"
+                            class="hover:text-white transition-colors flex items-center space-x-1 font-medium text-white/60" title="Repositório Principal do LySinc">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z" />
+                            </svg>
+                            <span>LySinc</span>
+                        </a>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold tracking-wider">v2.0</span>
+                    </div>
                     
                     <div class="flex flex-col items-center mt-2">
                         <span class="text-white/20 text-[10px] mb-2">Fontes base utilizadas para a criação deste projeto:</span>
@@ -433,73 +463,158 @@
     <div id="settings-modal"
         class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div
-            class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden py-4">
+            class="glass-panel w-full max-w-md max-h-[85vh] rounded-3xl flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden p-6 md:p-8">
 
             
             <button id="btn-settings-close"
-                class="absolute top-5 right-5 z-10 text-white/50 hover:text-white transition-colors bg-black/20 rounded-full p-1 backdrop-blur-sm">
+                class="sticky top-0 right-0 float-right z-50 text-white/50 hover:text-white transition-colors bg-black/40 hover:bg-black/60 rounded-full p-1.5 backdrop-blur-sm -mr-2 -mt-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
 
-            <div class="flex-1 min-h-0 overflow-y-auto modal-scrollbar pl-6 pr-4 mr-2 my-2 md:pl-8 md:pr-6">
-                <h3 class="text-2xl font-bold tracking-tight mb-2 mt-2 pr-12 text-balance text-left">Configurar Spotify API</h3>
-                <p class="text-white/60 text-sm mb-6">Para conectar ao Spotify, você precisa fornecer o seu próprio
-                    <strong>Client ID</strong> de desenvolvedor.</p>
+            <div class="flex-1 min-h-0 overflow-y-auto modal-scrollbar pr-2 my-2">
+                <h3 class="text-2xl font-bold tracking-tight mb-2 mt-2 text-balance text-left">Perfil & Configurações</h3>
+                <p class="text-white/60 text-sm mb-6">Gerencie sua integração do Spotify e credenciais salvas no Lysinc 2.0.</p>
+
+                
+                <div id="user-profile-section" class="hidden bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 flex items-center space-x-4">
+                    <img id="user-avatar" src="assets/icons/lysinc-logo.svg" alt="Perfil Spotify" class="w-14 h-14 rounded-full object-cover border border-white/20 shadow-md">
+                    <div class="flex-1 min-w-0">
+                        <h4 id="user-display-name" class="font-bold text-white text-base truncate">Usuário Spotify</h4>
+                        <p id="user-username" class="text-white/50 text-xs truncate">@spotify_user</p>
+                        <span class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium">Conta Conectada</span>
+                    </div>
+                </div>
 
                 
                 <div class="space-y-2 mb-6">
-                    <label for="input-client-id" class="text-sm font-semibold text-white/80">Spotify Client ID</label>
-                    <input id="input-client-id" type="text" placeholder="Cole o seu Client ID aqui"
-                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors">
+                    <label for="input-client-id-readonly" class="text-sm font-semibold text-white/80">Seu Client ID Cadastrado (Somente Leitura)</label>
+                    <input id="input-client-id-readonly" type="text" readonly value="Nenhum Client ID cadastrado"
+                        class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-emerald-400 font-mono text-xs focus:outline-none select-all">
                 </div>
-
-                
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2.5 mb-4 text-white/70">
-                    <p class="font-semibold text-white">Como obter e configurar seu Client ID:</p>
-                    <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
-                        <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank"
-                                class="text-emerald-400 hover:underline">Spotify Developer Dashboard</a> e faça login.
-                        </li>
-                        <li>Clique em <strong>Create app</strong>.</li>
-                        <li>Defina um nome e descrição de sua escolha.</li>
-                        <li>No campo <strong>Redirect URIs</strong>, adicione exatamente o seguinte endereço:
-                            <code
-                                class="block bg-black/50 p-1.5 rounded mt-1 select-all text-emerald-300 font-mono text-[10px]"
-                                id="current-uri-label">Carregando endereço...</code>
-                        </li>
-                        <li>Marque as caixas de termos e clique em <strong>Save</strong>.</li>
-                        <li>Vá em <strong>Settings</strong> do seu aplicativo no Spotify, copie o <strong>Client
-                                ID</strong> e cole no campo acima.</li>
-                        <li>Pronto! Ao criar o app na sua conta, seu e-mail já fica automaticamente autorizado.</li>
-                    </ol>
-                </div>
-
-                
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6 text-white/70">
-                    <p class="font-semibold text-white">Como desassociar este site da sua conta Spotify:</p>
-                    <ol class="list-decimal pl-4 space-y-1.5 leading-relaxed">
-                        <li>Acesse a página de aplicativos da sua conta do Spotify: <a
-                                href="https://www.spotify.com/account/apps/" target="_blank"
-                                class="text-emerald-400 hover:underline">Spotify Apps</a>.</li>
-                        <li>Localize o aplicativo que você criou (ou o padrão "LySinc") e clique em <strong>Remover
-                                acesso</strong>.</li>
-                    </ol>
-                    <p class="text-[10px] text-white/40 mt-2">Isso revoga a autorização do site de acessar seu player em
-                        tempo real.</p>
-                </div>
-
-
 
                 
                 <div class="flex flex-col space-y-3">
-                    <button id="btn-save-settings"
-                        class="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-neutral-100 transition-colors">
-                        Salvar Configurações
+                    <button id="btn-remove-client-id"
+                        class="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold py-3 rounded-xl transition-colors flex items-center justify-center space-x-2 text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Remover meu Client ID (Supabase & Local)</span>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="client-id-flow-modal"
+        class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div
+            class="glass-panel w-full max-w-lg rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl overflow-hidden">
+            
+            <button id="btn-flow-close"
+                class="sticky top-0 right-0 float-right z-50 text-white/50 hover:text-white transition-colors bg-black/40 hover:bg-black/60 rounded-full p-1.5 backdrop-blur-sm -mr-2 -mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            
+            <div id="flow-step-1" class="flex flex-col space-y-4">
+                <div class="flex items-center space-x-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+                    <span>Etapa 1 de 3</span>
+                    <span>•</span>
+                    <span>Instruções</span>
+                </div>
+                <h3 class="text-2xl font-bold tracking-tight text-white">Como obter seu Client ID</h3>
+                <p class="text-white/70 text-sm leading-relaxed">
+                    Siga o passo a passo abaixo para criar sua chave gratuita no portal de desenvolvedores do Spotify:
+                </p>
+
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2.5 text-white/80 max-h-[40vh] overflow-y-auto modal-scrollbar">
+                    <ol class="list-decimal pl-4 space-y-2 leading-relaxed">
+                        <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-emerald-400 hover:underline font-semibold">Spotify Developer Dashboard</a> e faça login com sua conta.</li>
+                        <li>Clique no botão <strong>Create app</strong>.</li>
+                        <li>Preencha o Nome e Descrição de sua escolha (ex: <em>Lysinc App</em>).</li>
+                        <li>No campo <strong>Redirect URIs</strong>, insira exatamente o endereço abaixo:
+                            <code class="block bg-black/60 p-2 rounded mt-1 select-all text-emerald-300 font-mono text-[11px] break-all" id="flow-uri-label">https://disoliveiradso.github.io/LySinc/</code>
+                        </li>
+                        <li>Marque os termos e clique em <strong>Save</strong>.</li>
+                        <li>Vá em <strong>Settings</strong> do seu aplicativo no Spotify e copie o <strong>Client ID</strong>.</li>
+                    </ol>
+                </div>
+
+                <button id="btn-flow-step1-next"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
+                    <span>Já consegui meu Client ID</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+            </div>
+
+            
+            <div id="flow-step-2" class="hidden flex flex-col space-y-4">
+                <div class="flex items-center space-x-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+                    <span>Etapa 2 de 3</span>
+                    <span>•</span>
+                    <span>Inserção & Validação</span>
+                </div>
+                <h3 class="text-2xl font-bold tracking-tight text-white">Insira seu Client ID</h3>
+                <p class="text-white/70 text-sm leading-relaxed">
+                    Cole abaixo a chave Client ID copiada do seu painel do Spotify:
+                </p>
+
+                <div class="space-y-2 py-2">
+                    <label for="input-flow-client-id" class="text-xs font-semibold text-white/80 uppercase tracking-wider">Spotify Client ID</label>
+                    <input id="input-flow-client-id" type="text" placeholder="Ex: 03514d3dbefe45fa9f5fc97b9e0288c5"
+                        class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors font-mono text-sm">
+                </div>
+
+                <div class="flex space-x-3 pt-2">
+                    <button id="btn-flow-step2-back"
+                        class="px-5 py-3.5 rounded-xl font-semibold text-sm text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
+                        Voltar
+                    </button>
+                    <button id="btn-flow-step2-save"
+                        class="flex-1 bg-neutral-600 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 opacity-50 pointer-events-none">
+                        <span>Salvar Client ID</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            
+            <div id="flow-step-3" class="hidden flex flex-col items-center text-center space-y-4 py-2">
+                <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Etapa 3 de 3 • Sucesso</div>
+                <h3 class="text-2xl font-bold tracking-tight text-white">Chave Salva no Supabase!</h3>
+                <p class="text-white/70 text-sm leading-relaxed max-w-sm">
+                    Seu Client ID foi gravado e sincronizado com segurança no banco de dados do <strong>Lysinc 2.0 (Supabase)</strong>. Ele estará disponível automaticamente para qualquer navegador ou dispositivo que você usar.
+                </p>
+                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-emerald-300 text-left w-full flex items-start space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span><strong>Segurança Garantida:</strong> Seu Client ID é apenas uma chave de aplicação pública do Spotify. Ele não oferece nenhum risco à sua conta nem concede acesso a dados sensíveis.</span>
+                </div>
+
+                <button id="btn-flow-step3-finish"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
+                    <span>Conectar ao Spotify Agora</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
@@ -510,7 +625,7 @@
         <div
             class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl text-center">
             <button id="btn-info-stutter-close"
-                class="absolute top-5 right-5 z-10 text-white/50 hover:text-white transition-colors bg-black/20 rounded-full p-1 backdrop-blur-sm">
+                class="sticky top-0 right-0 float-right z-50 text-white/50 hover:text-white transition-colors bg-black/40 hover:bg-black/60 rounded-full p-1.5 backdrop-blur-sm -mr-2 -mt-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -555,13 +670,16 @@
     </div>
 
     
-    <script type="module" src="app.js?v=1.0.10"></script>
+    <script type="module" src="app.js?v=2.0.0"></script>
     <script>
         // Preenche dinamicamente a URI atual no tutorial de configuração
         document.addEventListener('DOMContentLoaded', () => {
             const url = new URL(window.location.href);
             const redirectUri = `${url.origin}${url.pathname}`;
-            document.getElementById('current-uri-label').textContent = redirectUri;
+            const label = document.getElementById('current-uri-label');
+            if (label) label.textContent = redirectUri;
+            const flowLabel = document.getElementById('flow-uri-label');
+            if (flowLabel) flowLabel.textContent = redirectUri;
         });
     </script>
     <div id="custom-tooltip"></div>

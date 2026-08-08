@@ -1182,6 +1182,15 @@ const LyricsService = {
   async translateLyrics(lines) {
     if (!lines || lines.length === 0) return [];
     try {
+      // Verifica se já existem traduções nativas fornecidas pela fonte oficial
+      const hasNativeTranslations = lines.some(l => l.nativeTranslation && l.nativeTranslation.trim());
+      if (hasNativeTranslations) {
+        return lines.map(line => ({
+          ...line,
+          translation: line.nativeTranslation || line.translation || line.text.map(s => s.text).join('')
+        }));
+      }
+
       const textsToTranslate = lines.map(line => line.text.map(s => s.text).join(''));
       const translatedBatch = await GoogleService.translate(textsToTranslate, 'pt');
 

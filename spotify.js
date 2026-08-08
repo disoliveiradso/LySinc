@@ -354,6 +354,33 @@ const SpotifyService = {
             console.error('Erro ao buscar imagens dos artistas:', error);
             return {};
         }
+    },
+
+    // Busca dados do perfil do usuário logado no Spotify (Nome, Usuário, Email, Avatar)
+    async getUserProfile() {
+        const token = await this.getValidToken();
+        if (!token) return null;
+
+        try {
+            const response = await fetch('https://api.spotify.com/v1/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) return null;
+            const data = await response.json();
+            return {
+                id: data.id,
+                display_name: data.display_name || data.id,
+                email: data.email || null,
+                images: data.images || [],
+                product: data.product
+            };
+        } catch (error) {
+            console.error('[LySinc 2.0] Erro ao buscar perfil do Spotify:', error);
+            return null;
+        }
     }
 };
 
