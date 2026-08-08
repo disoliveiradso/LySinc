@@ -10,8 +10,8 @@ const Config = {
     CLIENT_ID_KEY: 'lysinc_spotify_client_id',
 
     // Configurações do Supabase (Insira sua URL e Anon Key aqui)
-    SUPABASE_URL: 'https://xyzcompany.supabase.co',
-    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    SUPABASE_URL: 'https://zfljlvcsrhmpkngxfazl.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbGpsdmNzcmhtcGtuZ3hmYXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYyMDg0NDAsImV4cCI6MjEwMTc4NDQ0MH0.OTnfhGSywoBzRWcY1TMV1SkgW6rjQAyZ5vn75e_m5G8',
 
     // OPCIONAL: Client ID padrão do sistema para contas pré-cadastradas
     SPOTIFY_CLIENT_ID_B64: 'MDM1MTRkM2RiZWZlNDVmYTlmNWZjOTdiOWUwMjg4YzU=',
