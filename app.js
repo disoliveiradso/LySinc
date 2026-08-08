@@ -2281,12 +2281,12 @@ class LySincApp {
     updateSettingsModalButtons() {
         const clientId = Config.getClientId();
         if (clientId) {
-            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.remove('hidden');
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.add('hidden');
+            if (this.btnRemoveClientId) this.btnRemoveClientId.style.display = 'flex';
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.style.display = 'none';
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
         } else {
-            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.add('hidden');
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.remove('hidden');
+            if (this.btnRemoveClientId) this.btnRemoveClientId.style.display = 'none';
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.style.display = 'flex';
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
         }
     }
