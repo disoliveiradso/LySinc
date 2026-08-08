@@ -344,6 +344,10 @@ class LySincApp {
         this.btnRemoveClientId = document.getElementById('btn-remove-client-id');
         this.btnAddClientIdSettings = document.getElementById('btn-add-client-id-settings');
 
+        this.btnOpenRepos = document.getElementById('btn-open-repos');
+        this.btnReposClose = document.getElementById('btn-repos-close');
+        this.reposModal = document.getElementById('repos-modal');
+
         this.syncOffset = 0;
 
         this.currentTrackId = null;
@@ -576,10 +580,31 @@ class LySincApp {
                 }
             }
         });
+            if (this.btnSettings) {
+            this.btnSettings.addEventListener('click', () => this.toggleSettingsModal(true));
+        }
+        if (this.btnSettingsClose) {
+            this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
+        }
+
+        if (this.btnOpenRepos) {
+            this.btnOpenRepos.addEventListener('click', () => {
+                if (this.reposModal) {
+                    this.reposModal.classList.remove('hidden');
+                    this.reposModal.classList.add('flex');
+                }
+            });
+        }
         
-        this.btnSettings.addEventListener('click', () => this.toggleSettingsModal(true));
-        if (this.btnSettingsClose) this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
-        
+        if (this.btnReposClose) {
+            this.btnReposClose.addEventListener('click', () => {
+                if (this.reposModal) {
+                    this.reposModal.classList.add('hidden');
+                    this.reposModal.classList.remove('flex');
+                }
+            });
+        }
+
         if (this.btnRemoveClientId) {
             this.btnRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
         }
@@ -2270,6 +2295,8 @@ class LySincApp {
         if (show) {
             this.settingsModal.classList.remove('hidden');
             this.settingsModal.classList.add('flex');
+
+            this.updateLoginButtonsState();
 
             const currentId = Config.getClientId();
             if (this.inputClientIdReadonly) {
