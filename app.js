@@ -342,6 +342,7 @@ class LySincApp {
         this.userUsername = document.getElementById('user-username');
         this.inputClientIdReadonly = document.getElementById('input-client-id-readonly');
         this.btnRemoveClientId = document.getElementById('btn-remove-client-id');
+        this.btnAddClientIdSettings = document.getElementById('btn-add-client-id-settings');
 
         this.syncOffset = 0;
 
@@ -581,6 +582,13 @@ class LySincApp {
         
         if (this.btnRemoveClientId) {
             this.btnRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
+        }
+
+        if (this.btnAddClientIdSettings) {
+            this.btnAddClientIdSettings.addEventListener('click', () => {
+                this.toggleSettingsModal(false);
+                this.showScreen('flow-step-1');
+            });
         }
 
         // Font Size Handlers
@@ -2212,18 +2220,24 @@ class LySincApp {
         const clientId = Config.getClientId();
         if (clientId) {
             if (this.btnConnect) {
-                this.btnConnect.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none');
+                this.btnConnect.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white', 'text-white/70');
                 this.btnConnect.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
                 const icon = document.getElementById('btn-connect-icon');
                 if (icon) icon.classList.remove('grayscale', 'opacity-70');
             }
+            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.remove('hidden');
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.add('hidden');
+            if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
         } else {
             if (this.btnConnect) {
-                this.btnConnect.classList.add('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none');
-                this.btnConnect.classList.remove('bg-emerald-500', 'hover:bg-emerald-400');
+                this.btnConnect.classList.add('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white/70');
+                this.btnConnect.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
                 const icon = document.getElementById('btn-connect-icon');
                 if (icon) icon.classList.add('grayscale', 'opacity-70');
             }
+            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.add('hidden');
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.remove('hidden');
+            if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
         }
     }
 
