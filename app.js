@@ -2281,12 +2281,24 @@ class LySincApp {
     updateSettingsModalButtons() {
         const clientId = Config.getClientId();
         if (clientId) {
-            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.remove('hidden');
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.add('hidden');
+            if (this.btnRemoveClientId) {
+                this.btnRemoveClientId.classList.remove('hidden');
+                this.btnRemoveClientId.classList.add('flex');
+            }
+            if (this.btnAddClientIdSettings) {
+                this.btnAddClientIdSettings.classList.add('hidden');
+                this.btnAddClientIdSettings.classList.remove('flex');
+            }
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
         } else {
-            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.add('hidden');
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.remove('hidden');
+            if (this.btnRemoveClientId) {
+                this.btnRemoveClientId.classList.add('hidden');
+                this.btnRemoveClientId.classList.remove('flex');
+            }
+            if (this.btnAddClientIdSettings) {
+                this.btnAddClientIdSettings.classList.remove('hidden');
+                this.btnAddClientIdSettings.classList.add('flex');
+            }
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
         }
     }
