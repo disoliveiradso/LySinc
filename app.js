@@ -336,13 +336,23 @@ class LySincApp {
         this.inputFlowClientId = document.getElementById('input-flow-client-id');
 
         // Profile & Settings Elements
-        this.userProfileSection = document.getElementById('user-profile-section');
-        this.userAvatar = document.getElementById('user-avatar');
-        this.userDisplayName = document.getElementById('user-display-name');
-        this.userUsername = document.getElementById('user-username');
-        this.inputClientIdReadonly = document.getElementById('input-client-id-readonly');
-        this.btnRemoveClientId = document.getElementById('btn-delete-credential');
-        this.btnAddClientIdSettings = document.getElementById('btn-insert-credential-settings');
+        // Elementos da tela Idle
+        this.idleUserProfileSection = document.getElementById('idle-user-profile-section');
+        this.idleUserAvatar = document.getElementById('idle-user-avatar');
+        this.idleUserDisplayName = document.getElementById('idle-user-display-name');
+        this.idleUserUsername = document.getElementById('idle-user-username');
+        this.idleInputClientIdReadonly = document.getElementById('idle-input-client-id-readonly');
+        this.idleBtnRemoveClientId = document.getElementById('idle-btn-delete-credential');
+        this.idleBtnAddClientIdSettings = document.getElementById('idle-btn-insert-credential-settings');
+
+        // Elementos do Settings Modal
+        this.settingsUserProfileSection = document.getElementById('settings-user-profile-section');
+        this.settingsUserAvatar = document.getElementById('settings-user-avatar');
+        this.settingsUserDisplayName = document.getElementById('settings-user-display-name');
+        this.settingsUserUsername = document.getElementById('settings-user-username');
+        this.settingsInputClientIdReadonly = document.getElementById('settings-input-client-id-readonly');
+        this.settingsBtnRemoveClientId = document.getElementById('settings-btn-delete-credential');
+        this.settingsBtnAddClientIdSettings = document.getElementById('settings-btn-insert-credential-settings');
         this.confirmRemoveClientIdModal = document.getElementById('confirm-remove-client-id-modal');
         this.btnCancelRemoveClientId = document.getElementById('btn-cancel-remove-client-id');
         this.btnConfirmRemoveClientId = document.getElementById('btn-confirm-remove-client-id');
@@ -431,6 +441,7 @@ class LySincApp {
             
             if (authenticated) {
                 this.showScreen('idle');
+                await this.updateUserProfile();
                 this.startPolling();
                 this.startTicker();
                 this.btnLogout.classList.remove('hidden');
@@ -608,8 +619,17 @@ class LySincApp {
             });
         }
 
-        if (this.btnRemoveClientId) {
-            this.btnRemoveClientId.addEventListener('click', () => {
+        if (this.idleBtnRemoveClientId) {
+            this.idleBtnRemoveClientId.addEventListener('click', () => {
+                if (this.confirmRemoveClientIdModal) {
+                    this.confirmRemoveClientIdModal.classList.remove('hidden');
+                    this.confirmRemoveClientIdModal.classList.add('flex');
+                }
+            });
+        }
+        
+        if (this.settingsBtnRemoveClientId) {
+            this.settingsBtnRemoveClientId.addEventListener('click', () => {
                 if (this.confirmRemoveClientIdModal) {
                     this.confirmRemoveClientIdModal.classList.remove('hidden');
                     this.confirmRemoveClientIdModal.classList.add('flex');
@@ -630,8 +650,15 @@ class LySincApp {
             this.btnConfirmRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
         }
 
-        if (this.btnAddClientIdSettings) {
-            this.btnAddClientIdSettings.addEventListener('click', () => {
+        if (this.idleBtnAddClientIdSettings) {
+            this.idleBtnAddClientIdSettings.addEventListener('click', () => {
+                this.toggleSettingsModal(false);
+                this.showScreen('flow-step-1');
+            });
+        }
+        
+        if (this.settingsBtnAddClientIdSettings) {
+            this.settingsBtnAddClientIdSettings.addEventListener('click', () => {
                 this.toggleSettingsModal(false);
                 this.showScreen('flow-step-1');
             });
@@ -699,6 +726,7 @@ class LySincApp {
                 const isAuth = await SpotifyService.isAuthenticated();
                 if (isAuth) {
                     this.showScreen('idle');
+                    await this.updateUserProfile();
                     this.startPolling();
                     this.startTicker();
                     if (this.btnLogout) this.btnLogout.classList.remove('hidden');
@@ -2284,28 +2312,56 @@ class LySincApp {
         const isSystemAccount = clientId && sysId && clientId === sysId;
 
         if (clientId) {
-            if (this.btnRemoveClientId) {
-                this.btnRemoveClientId.classList.remove('hidden');
-                this.btnRemoveClientId.classList.add('flex');
+            // Idle screen
+            if (this.idleBtnRemoveClientId) {
+                this.idleBtnRemoveClientId.classList.remove('hidden');
+                this.idleBtnRemoveClientId.classList.add('flex');
             }
-            if (this.btnAddClientIdSettings) {
-                this.btnAddClientIdSettings.classList.add('hidden');
-                this.btnAddClientIdSettings.classList.remove('flex');
+            if (this.idleBtnAddClientIdSettings) {
+                this.idleBtnAddClientIdSettings.classList.add('hidden');
+                this.idleBtnAddClientIdSettings.classList.remove('flex');
             }
-            if (this.inputClientIdReadonly) {
-                this.inputClientIdReadonly.value = isSystemAccount ? 'Conta do Sistema' : clientId;
+            if (this.idleInputClientIdReadonly) {
+                this.idleInputClientIdReadonly.value = isSystemAccount ? 'Conta do Sistema' : clientId;
+            }
+
+            // Settings modal
+            if (this.settingsBtnRemoveClientId) {
+                this.settingsBtnRemoveClientId.classList.remove('hidden');
+                this.settingsBtnRemoveClientId.classList.add('flex');
+            }
+            if (this.settingsBtnAddClientIdSettings) {
+                this.settingsBtnAddClientIdSettings.classList.add('hidden');
+                this.settingsBtnAddClientIdSettings.classList.remove('flex');
+            }
+            if (this.settingsInputClientIdReadonly) {
+                this.settingsInputClientIdReadonly.value = isSystemAccount ? 'Conta do Sistema' : clientId;
             }
         } else {
-            if (this.btnRemoveClientId) {
-                this.btnRemoveClientId.classList.add('hidden');
-                this.btnRemoveClientId.classList.remove('flex');
+            // Idle screen
+            if (this.idleBtnRemoveClientId) {
+                this.idleBtnRemoveClientId.classList.add('hidden');
+                this.idleBtnRemoveClientId.classList.remove('flex');
             }
-            if (this.btnAddClientIdSettings) {
-                this.btnAddClientIdSettings.classList.remove('hidden');
-                this.btnAddClientIdSettings.classList.add('flex');
+            if (this.idleBtnAddClientIdSettings) {
+                this.idleBtnAddClientIdSettings.classList.remove('hidden');
+                this.idleBtnAddClientIdSettings.classList.add('flex');
             }
-            if (this.inputClientIdReadonly) {
-                this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
+            if (this.idleInputClientIdReadonly) {
+                this.idleInputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
+            }
+
+            // Settings modal
+            if (this.settingsBtnRemoveClientId) {
+                this.settingsBtnRemoveClientId.classList.add('hidden');
+                this.settingsBtnRemoveClientId.classList.remove('flex');
+            }
+            if (this.settingsBtnAddClientIdSettings) {
+                this.settingsBtnAddClientIdSettings.classList.remove('hidden');
+                this.settingsBtnAddClientIdSettings.classList.add('flex');
+            }
+            if (this.settingsInputClientIdReadonly) {
+                this.settingsInputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
             }
         }
     }
@@ -2337,25 +2393,50 @@ class LySincApp {
         this.showToast('Client ID removido com sucesso.', 'info');
     }
 
+    async updateUserProfile() {
+        const profile = await SpotifyService.getUserProfile();
+        if (profile) {
+            // Update idle screen
+            if (this.idleUserProfileSection) {
+                this.idleUserProfileSection.classList.remove('hidden');
+                this.idleUserProfileSection.classList.add('flex');
+            }
+            if (this.idleUserDisplayName) this.idleUserDisplayName.textContent = profile.display_name;
+            if (this.idleUserUsername) this.idleUserUsername.textContent = `@${profile.id}`;
+            if (this.idleUserAvatar && profile.images && profile.images[0]?.url) {
+                this.idleUserAvatar.src = profile.images[0].url;
+            }
+
+            // Update settings modal
+            if (this.settingsUserProfileSection) {
+                this.settingsUserProfileSection.classList.remove('hidden');
+                this.settingsUserProfileSection.classList.add('flex');
+            }
+            if (this.settingsUserDisplayName) this.settingsUserDisplayName.textContent = profile.display_name;
+            if (this.settingsUserUsername) this.settingsUserUsername.textContent = `@${profile.id}`;
+            if (this.settingsUserAvatar && profile.images && profile.images[0]?.url) {
+                this.settingsUserAvatar.src = profile.images[0].url;
+            }
+        } else {
+            if (this.idleUserProfileSection) {
+                this.idleUserProfileSection.classList.add('hidden');
+                this.idleUserProfileSection.classList.remove('flex');
+            }
+            if (this.settingsUserProfileSection) {
+                this.settingsUserProfileSection.classList.add('hidden');
+                this.settingsUserProfileSection.classList.remove('flex');
+            }
+        }
+    }
+
     async toggleSettingsModal(show) {
         if (!this.settingsModal) return;
         if (show) {
             this.settingsModal.classList.remove('hidden');
             this.settingsModal.classList.add('flex');
 
-            this.updateSettingsModalButtons();
-
-            const profile = await SpotifyService.getUserProfile();
-            if (profile) {
-                if (this.userProfileSection) this.userProfileSection.classList.remove('hidden');
-                if (this.userDisplayName) this.userDisplayName.textContent = profile.display_name;
-                if (this.userUsername) this.userUsername.textContent = `@${profile.id}`;
-                if (this.userAvatar && profile.images && profile.images[0]?.url) {
-                    this.userAvatar.src = profile.images[0].url;
-                }
-            } else if (this.userProfileSection) {
-                this.userProfileSection.classList.add('hidden');
-            }
+            this.updateLoginButtonsState();
+            await this.updateUserProfile();
         } else {
             this.settingsModal.classList.add('hidden');
             this.settingsModal.classList.remove('flex');

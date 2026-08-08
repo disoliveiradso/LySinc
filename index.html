@@ -768,29 +768,29 @@
             </div>
 
             <div class="flex-1 min-h-0 overflow-y-auto modal-scrollbar p-6 space-y-6">
-                <div id="user-profile-section" class="hidden bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center space-x-4">
-                    <img id="user-avatar" src="assets/icons/lysinc-logo.svg" alt="Perfil Spotify" class="w-14 h-14 rounded-full object-cover border border-white/20 shadow-md">
+                <div id="settings-user-profile-section" class="hidden bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center space-x-4">
+                    <img id="settings-user-avatar" src="assets/icons/lysinc-logo.svg" alt="Perfil Spotify" class="w-14 h-14 rounded-full object-cover border border-white/20 shadow-md">
                     <div class="flex-1 min-w-0">
-                        <h4 id="user-display-name" class="font-bold text-white text-base truncate">Usuário Spotify</h4>
-                        <p id="user-username" class="text-white/50 text-xs truncate">@spotify_user</p>
+                        <h4 id="settings-user-display-name" class="font-bold text-white text-base truncate">Usuário Spotify</h4>
+                        <p id="settings-user-username" class="text-white/50 text-xs truncate">@spotify_user</p>
                         <span class="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium">Conta Conectada</span>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <label for="input-client-id-readonly" class="text-sm font-semibold text-white/80">Seu Client ID</label>
-                    <input id="input-client-id-readonly" type="text" readonly value="Nenhum Client ID cadastrado"
+                    <label for="settings-input-client-id-readonly" class="text-sm font-semibold text-white/80">Seu Client ID</label>
+                    <input id="settings-input-client-id-readonly" type="text" readonly value="Nenhum Client ID cadastrado"
                         class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-emerald-400 font-mono text-xs focus:outline-none select-all">
                 </div>
 
                 <div class="flex flex-col space-y-3 mt-4">
-                    <button id="btn-delete-credential" class="hidden w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold py-3 rounded-xl transition-colors items-center justify-center space-x-2 text-sm">
+                    <button id="settings-btn-delete-credential" class="hidden w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold py-3 rounded-xl transition-colors items-center justify-center space-x-2 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                         <span>Remover Client ID</span>
                     </button>
-                    <button id="btn-insert-credential-settings" class="flex w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg items-center justify-center space-x-2 text-sm">
+                    <button id="settings-btn-insert-credential-settings" class="flex w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg items-center justify-center space-x-2 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
