@@ -343,6 +343,9 @@ class LySincApp {
         this.inputClientIdReadonly = document.getElementById('input-client-id-readonly');
         this.btnRemoveClientId = document.getElementById('btn-remove-client-id');
         this.btnAddClientIdSettings = document.getElementById('btn-add-client-id-settings');
+        this.confirmRemoveClientIdModal = document.getElementById('confirm-remove-client-id-modal');
+        this.btnCancelRemoveClientId = document.getElementById('btn-cancel-remove-client-id');
+        this.btnConfirmRemoveClientId = document.getElementById('btn-confirm-remove-client-id');
 
         this.btnOpenRepos = document.getElementById('btn-open-repos');
         this.btnReposClose = document.getElementById('btn-repos-close');
@@ -606,7 +609,25 @@ class LySincApp {
         }
 
         if (this.btnRemoveClientId) {
-            this.btnRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
+            this.btnRemoveClientId.addEventListener('click', () => {
+                if (this.confirmRemoveClientIdModal) {
+                    this.confirmRemoveClientIdModal.classList.remove('hidden');
+                    this.confirmRemoveClientIdModal.classList.add('flex');
+                }
+            });
+        }
+
+        if (this.btnCancelRemoveClientId) {
+            this.btnCancelRemoveClientId.addEventListener('click', () => {
+                if (this.confirmRemoveClientIdModal) {
+                    this.confirmRemoveClientIdModal.classList.add('hidden');
+                    this.confirmRemoveClientIdModal.classList.remove('flex');
+                }
+            });
+        }
+
+        if (this.btnConfirmRemoveClientId) {
+            this.btnConfirmRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
         }
 
         if (this.btnAddClientIdSettings) {
@@ -2286,12 +2307,15 @@ class LySincApp {
     }
 
     async handleRemoveClientId() {
-        if (window.confirm('Deseja realmente remover seu Client ID salvo?')) {
-            await SupabaseService.removeClientId();
-            this.updateLoginButtonsState();
-            this.toggleSettingsModal(false);
-            this.showToast('Client ID removido do Supabase e do navegador.', 'info');
+        // Fechar o modal de confirmação
+        if (this.confirmRemoveClientIdModal) {
+            this.confirmRemoveClientIdModal.classList.add('hidden');
+            this.confirmRemoveClientIdModal.classList.remove('flex');
         }
+        await SupabaseService.removeClientId();
+        this.updateLoginButtonsState();
+        this.toggleSettingsModal(false);
+        this.showToast('Client ID removido com sucesso.', 'info');
     }
 
     async toggleSettingsModal(show) {

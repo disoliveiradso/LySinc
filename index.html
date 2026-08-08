@@ -859,6 +859,33 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFIRMAÇÃO DE REMOÇÃO DO CLIENT ID -->
+    <div id="confirm-remove-client-id-modal"
+        class="fixed inset-0 bg-black/85 backdrop-blur-md z-[75] hidden items-center justify-center p-4">
+        <div
+            class="glass-panel w-full max-w-sm rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl text-left space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold tracking-tight">Remover Client ID</h3>
+            </div>
+            <p class="text-white/60 text-sm leading-relaxed">Tem certeza? Seu Client ID será removido do servidor e do navegador. Você precisará inserir um novo para conectar com o Spotify.</p>
+            <div class="flex space-x-3 w-full pt-2">
+                <button id="btn-cancel-remove-client-id"
+                    class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white/70 bg-white/5 hover:bg-white/10 border border-white/10 hover:text-white transition-all">
+                    Cancelar
+                </button>
+                <button id="btn-confirm-remove-client-id"
+                    class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all">
+                    Sim, Remover
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE ALERTA DE LOGIN VIA CONTA DO SISTEMA -->
     <div id="system-account-modal"
         class="fixed inset-0 bg-black/85 backdrop-blur-md z-[65] hidden items-center justify-center p-4">
@@ -925,6 +952,16 @@
             </p>
             
             <div class="flex flex-col space-y-3 max-h-[50vh] overflow-y-auto modal-scrollbar pr-1">
+                <!-- am-lyrics -->
+                <a href="https://github.com/binimum/am-lyrics" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white group-hover:bg-white group-hover:text-black transition-colors">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z" /></svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">am-lyrics</h4>
+                        <p class="text-xs text-white/50 mt-0.5">Referência para exibição de letras sincronizadas.</p>
+                    </div>
+                </a>
                 <!-- YouLyPlus -->
                 <a href="https://github.com/ibratabian17/YouLyPlus" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
                     <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white group-hover:bg-white group-hover:text-black transition-colors">
@@ -933,6 +970,16 @@
                     <div class="flex-1">
                         <h4 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">YouLyPlus</h4>
                         <p class="text-xs text-white/50 mt-0.5">Lógica de sincronização e estrutura visual de letras.</p>
+                    </div>
+                </a>
+                <!-- Spotify API -->
+                <a href="https://developer.spotify.com/" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
+                    <div class="w-10 h-10 rounded-full bg-[#1DB954]/10 border border-[#1DB954]/20 flex items-center justify-center shrink-0 text-[#1DB954]">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm text-white group-hover:text-[#1DB954] transition-colors">Spotify Web API</h4>
+                        <p class="text-xs text-white/50 mt-0.5">Controle de reprodução e login com a conta.</p>
                     </div>
                 </a>
                 <!-- MusicBrainz -->
@@ -946,26 +993,6 @@
                     <div class="flex-1">
                         <h4 class="font-bold text-sm text-white group-hover:text-[#EA7B3E] transition-colors">MusicBrainz</h4>
                         <p class="text-xs text-white/50 mt-0.5">Metadados musicais em banco de dados aberto.</p>
-                    </div>
-                </a>
-                <!-- am-lyrics -->
-                <a href="https://github.com/binimum/am-lyrics" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
-                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 text-white group-hover:bg-white group-hover:text-black transition-colors">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.197 22 16.44 22 12.017 22 6.484 17.522 2 12 2z" /></svg>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">am-lyrics</h4>
-                        <p class="text-xs text-white/50 mt-0.5">Referência para exibição de letras sincronizadas.</p>
-                    </div>
-                </a>
-                <!-- Spotify API -->
-                <a href="https://developer.spotify.com/" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
-                    <div class="w-10 h-10 rounded-full bg-[#1DB954]/10 border border-[#1DB954]/20 flex items-center justify-center shrink-0 text-[#1DB954]">
-                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-bold text-sm text-white group-hover:text-[#1DB954] transition-colors">Spotify Web API</h4>
-                        <p class="text-xs text-white/50 mt-0.5">Controle de reprodução e login com a conta.</p>
                     </div>
                 </a>
                 <!-- Supabase -->
