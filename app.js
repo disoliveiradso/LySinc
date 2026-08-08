@@ -2280,6 +2280,9 @@ class LySincApp {
 
     updateSettingsModalButtons() {
         const clientId = Config.getClientId();
+        const sysId = Config.getSystemClientId();
+        const isSystemAccount = clientId && sysId && clientId === sysId;
+
         if (clientId) {
             if (this.btnRemoveClientId) {
                 this.btnRemoveClientId.classList.remove('hidden');
@@ -2289,7 +2292,9 @@ class LySincApp {
                 this.btnAddClientIdSettings.classList.add('hidden');
                 this.btnAddClientIdSettings.classList.remove('flex');
             }
-            if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
+            if (this.inputClientIdReadonly) {
+                this.inputClientIdReadonly.value = isSystemAccount ? 'Conta do Sistema' : clientId;
+            }
         } else {
             if (this.btnRemoveClientId) {
                 this.btnRemoveClientId.classList.add('hidden');
@@ -2299,7 +2304,9 @@ class LySincApp {
                 this.btnAddClientIdSettings.classList.remove('hidden');
                 this.btnAddClientIdSettings.classList.add('flex');
             }
-            if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
+            if (this.inputClientIdReadonly) {
+                this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
+            }
         }
     }
 
