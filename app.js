@@ -341,8 +341,8 @@ class LySincApp {
         this.userDisplayName = document.getElementById('user-display-name');
         this.userUsername = document.getElementById('user-username');
         this.inputClientIdReadonly = document.getElementById('input-client-id-readonly');
-        this.btnRemoveClientId = document.getElementById('btn-remove-client-id');
-        this.btnAddClientIdSettings = document.getElementById('btn-add-client-id-settings');
+        this.btnRemoveClientId = document.getElementById('btn-delete-credential');
+        this.btnAddClientIdSettings = document.getElementById('btn-insert-credential-settings');
         this.confirmRemoveClientIdModal = document.getElementById('confirm-remove-client-id-modal');
         this.btnCancelRemoveClientId = document.getElementById('btn-cancel-remove-client-id');
         this.btnConfirmRemoveClientId = document.getElementById('btn-confirm-remove-client-id');
@@ -2281,12 +2281,12 @@ class LySincApp {
     updateSettingsModalButtons() {
         const clientId = Config.getClientId();
         if (clientId) {
-            if (this.btnRemoveClientId) this.btnRemoveClientId.style.display = 'flex';
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.style.display = 'none';
+            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.remove('hidden');
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.add('hidden');
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = clientId;
         } else {
-            if (this.btnRemoveClientId) this.btnRemoveClientId.style.display = 'none';
-            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.style.display = 'flex';
+            if (this.btnRemoveClientId) this.btnRemoveClientId.classList.add('hidden');
+            if (this.btnAddClientIdSettings) this.btnAddClientIdSettings.classList.remove('hidden');
             if (this.inputClientIdReadonly) this.inputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
         }
     }
