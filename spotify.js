@@ -59,6 +59,20 @@ const SpotifyService = {
     // Executado no carregamento da página para verificar se há código de callback ou tokens salvos
     async handleCallback() {
         const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error')) {
+            const errorMsg = urlParams.get('error');
+            console.error('Erro retornado pelo Spotify:', errorMsg);
+            if (errorMsg === 'access_denied') {
+                window.showToast('Acesso negado pelo Spotify. Verifique se o seu e-mail está cadastrado no painel de desenvolvedores.', 'error');
+            } else {
+                window.showToast(`Erro do Spotify: ${errorMsg}`, 'error');
+            }
+            Config.setClientId(''); // Clear the client ID since it's invalid or user denied
+            const cleanUrl = Config.getRedirectUri();
+            window.history.replaceState({}, document.title, cleanUrl);
+            return false;
+        }
+
         const code = urlParams.get('code');
         
         if (code) {
