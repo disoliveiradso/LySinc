@@ -87,6 +87,7 @@ const SpotifyService = {
                 } catch (error) {
                     console.error('Erro ao autenticar com o Spotify:', error);
                     window.showToast('Falha na autenticação com o Spotify. Verifique se o seu Client ID e Redirect URI estão corretos.', 'error');
+                    Config.setClientId('');
                 }
             }
         }
