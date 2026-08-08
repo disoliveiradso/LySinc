@@ -1152,7 +1152,12 @@ class LySincApp {
         }
 
         document.querySelectorAll('#floating-lyrics-menu button').forEach(btn => {
-            if (btn.id !== 'btn-floating-toggle' && btn.id !== 'btn-floating-trackinfo') {
+            if (btn.id !== 'btn-floating-toggle' && 
+                btn.id !== 'btn-floating-trackinfo' &&
+                btn.id !== 'btn-font-decrease-floating' &&
+                btn.id !== 'btn-font-increase-floating' &&
+                btn.id !== 'floating-btn-sync-up' &&
+                btn.id !== 'floating-btn-sync-down') {
                 btn.addEventListener('click', () => {
                     this.toggleFloatingMenu(false);
                 });
@@ -3976,15 +3981,36 @@ class LySincApp {
         const container = document.getElementById('toast-container');
         if (!container) return;
 
-        const toast = document.createElement('div');
+        const isFontToast = message.startsWith('Tamanho da fonte:');
+        let toast = null;
+
+        if (isFontToast) {
+            toast = document.getElementById('toast-font-size');
+        }
+
+        if (toast) {
+            const textEl = toast.querySelector('.toast-message-text');
+            if (textEl) textEl.textContent = message;
+            
+            clearTimeout(toast.removeTimeout);
+            toast.removeTimeout = setTimeout(() => {
+                if (toast.classList.contains('toast-hide')) return;
+                toast.classList.add('toast-hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+            return;
+        }
+
+        toast = document.createElement('div');
         toast.className = `toast-notification toast-${type}`;
+        if (isFontToast) toast.id = 'toast-font-size';
 
         const indicator = document.createElement('div');
         indicator.className = 'toast-type-indicator';
         toast.appendChild(indicator);
 
         const textContainer = document.createElement('div');
-        textContainer.className = 'flex-1 text-sm font-medium mr-4';
+        textContainer.className = 'flex-1 text-sm font-medium mr-4 toast-message-text';
         textContainer.textContent = message;
         toast.appendChild(textContainer);
 
@@ -3992,7 +4018,7 @@ class LySincApp {
         closeBtn.className = 'text-white/40 hover:text-white transition-colors focus:outline-none';
         closeBtn.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         `;
         toast.appendChild(closeBtn);
@@ -4010,7 +4036,7 @@ class LySincApp {
 
         closeBtn.addEventListener('click', removeToast);
 
-        setTimeout(removeToast, 4000);
+        toast.removeTimeout = setTimeout(removeToast, 4000);
     }
 
     showMetadataPopup(iconHtml, text) {
