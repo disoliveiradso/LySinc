@@ -245,6 +245,9 @@ class LySincApp {
         this.screenFlowStep3 = document.getElementById('screen-flow-step-3');
         this.screenMain = document.getElementById('screen-main');
         this.screenIdle = document.getElementById('screen-idle');
+        this.screenError = document.getElementById('screen-error');
+        this.errorScreenMessage = document.getElementById('error-screen-message');
+        this.btnErrorBackHome = document.getElementById('btn-error-back-home');
 
         this.albumArt = document.getElementById('album-art');
         this.trackinfoBox = document.getElementById('trackinfo-box');
@@ -362,9 +365,6 @@ class LySincApp {
         this.btnRemoveBoth = document.getElementById('btn-remove-both');
         this.btnCancelRemoveOptions = document.getElementById('btn-cancel-remove-options');
         
-        this.missingClientIdModal = document.getElementById('missing-client-id-modal');
-        this.btnMissingClientIdCreate = document.getElementById('btn-missing-client-id-create');
-        this.btnMissingClientIdCancel = document.getElementById('btn-missing-client-id-cancel');
 
         this.btnOpenRepos = document.getElementById('btn-open-repos');
         this.btnReposClose = document.getElementById('btn-repos-close');
@@ -825,21 +825,13 @@ class LySincApp {
             });
         }
 
-        if (this.btnMissingClientIdCreate) {
-            this.btnMissingClientIdCreate.addEventListener('click', () => {
-                if (this.missingClientIdModal) {
-                    this.missingClientIdModal.classList.add('hidden');
-                    this.missingClientIdModal.classList.remove('flex');
-                }
-                this.showScreen('flow-step-1');
-            });
-        }
-        if (this.btnMissingClientIdCancel) {
-            this.btnMissingClientIdCancel.addEventListener('click', () => {
-                if (this.missingClientIdModal) {
-                    this.missingClientIdModal.classList.add('hidden');
-                    this.missingClientIdModal.classList.remove('flex');
-                }
+
+        
+        if (this.btnErrorBackHome) {
+            this.btnErrorBackHome.addEventListener('click', () => {
+                this.stopPolling();
+                this.showScreen('pre-login');
+                if (this.btnLogout) this.btnLogout.classList.add('hidden');
             });
         }
 
@@ -2525,10 +2517,8 @@ class LySincApp {
                     }, 2000);
                     return; // Stop rendering, page will reload
                 } else if (!recoveredId) {
-                    if (this.missingClientIdModal) {
-                        this.missingClientIdModal.classList.remove('hidden');
-                        this.missingClientIdModal.classList.add('flex');
-                    }
+                    this.showErrorScreen('Para utilizar o LySinc com a sua conta, é necessário configurar um Client ID próprio. Nenhum Client ID foi encontrado no seu navegador ou vinculado à sua conta no servidor. Configure seu Client ID para continuar.');
+                    return;
                 }
             } else if (currentClientId !== systemId) {
                 // Se está usando um Client ID próprio, atualiza/vincula no Supabase
@@ -2589,6 +2579,7 @@ class LySincApp {
         if (this.screenFlowStep3) this.screenFlowStep3.classList.add('hidden');
         if (this.screenMain) this.screenMain.classList.add('hidden');
         if (this.screenIdle) this.screenIdle.classList.add('hidden');
+        if (this.screenError) this.screenError.classList.add('hidden');
 
         if (screenName === 'pre-login') {
             if (this.screenPreLogin) this.screenPreLogin.classList.remove('hidden');
@@ -2602,8 +2593,17 @@ class LySincApp {
             if (this.screenMain) this.screenMain.classList.remove('hidden');
         } else if (screenName === 'idle') {
             if (this.screenIdle) this.screenIdle.classList.remove('hidden');
+        } else if (screenName === 'error') {
+            if (this.screenError) this.screenError.classList.remove('hidden');
         }
         window.scrollTo(0, 0);
+    }
+
+    showErrorScreen(message) {
+        if (this.errorScreenMessage) {
+            this.errorScreenMessage.textContent = message;
+        }
+        this.showScreen('error');
     }
 
     startPolling() {
@@ -2644,14 +2644,11 @@ class LySincApp {
         }
 
         if (state && state.isForbidden) {
-            if (!this.hasShownForbiddenToast) {
-                this.hasShownForbiddenToast = true;
-                const errorMsg = state.errorReason || 'Spotify API (Erro 403): O Spotify exige conta Premium OU que você adicione seu e-mail no "User Management" do painel de desenvolvedor (se o seu Client ID for novo).';
-                this.showToast(errorMsg, 'error', 15000);
-            }
+            this.hasShownForbiddenToast = true;
             this.isPlaying = false;
             this.currentTrackId = null;
-            this.showScreen('idle');
+            const errorMsg = state.errorReason || 'O Spotify exige conta Premium ou que você adicione seu e-mail no "User Management" do painel de desenvolvedor (se o seu Client ID for novo).';
+            this.showErrorScreen(errorMsg);
             return;
         }
 
