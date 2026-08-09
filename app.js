@@ -1197,7 +1197,7 @@ class LySincApp {
 
         const customTooltip = document.createElement('div');
         customTooltip.id = 'custom-tooltip';
-        customTooltip.className = 'fixed pointer-events-none z-[100] opacity-0 transition-opacity duration-200 bg-[#141414]/70 backdrop-blur-sm text-white/70 text-[11px] px-2.5 py-1.5 rounded-lg shadow-md border border-white/5 whitespace-nowrap font-normal';
+        customTooltip.className = 'fixed pointer-events-none z-[100] opacity-0 transition-opacity duration-200 bg-zinc-800 text-white text-xs px-3 py-2 rounded-lg shadow-xl border border-white/10 whitespace-nowrap font-normal';
         document.body.appendChild(customTooltip);
 
         let tooltipTarget = null;
@@ -4408,11 +4408,26 @@ class LySincApp {
             balloon.style.top = `${top}px`;
             balloon.style.left = `${left}px`;
             balloon.style.opacity = '1';
-            
-            setTimeout(() => {
+            let timeoutId = setTimeout(() => {
+                removeBalloon();
+            }, 3000);
+
+            const removeBalloon = () => {
                 balloon.style.opacity = '0';
                 setTimeout(() => balloon.remove(), 200);
-            }, 3000);
+                document.removeEventListener('click', outsideClickListener);
+            };
+
+            const outsideClickListener = (e) => {
+                if (e.target !== element && !element.contains(e.target)) {
+                    clearTimeout(timeoutId);
+                    removeBalloon();
+                }
+            };
+
+            setTimeout(() => {
+                document.addEventListener('click', outsideClickListener);
+            }, 100);
         });
     }
 
