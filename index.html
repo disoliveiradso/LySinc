@@ -152,11 +152,19 @@
 
                 <div class="bg-white/5 border border-white/10 rounded-2xl p-5 md:p-6 text-xs md:text-sm space-y-3 text-white/80">
                     <ol class="list-decimal pl-4 space-y-3 leading-relaxed">
-                        <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-emerald-400 hover:underline font-semibold">Spotify Developer Dashboard</a> e faça login com sua conta.</li>
+                        <li>Acesse o <a href="https://developer.spotify.com/dashboard" target="_blank" class="text-emerald-400 hover:underline font-semibold">Spotify Developer Dashboard</a> e faça login (Não é necessário ter Premium para isso).</li>
                         <li>Clique no botão <strong>Create app</strong>.</li>
-                        <li>Preencha o Nome e Descrição de sua escolha (ex: <em>Lysinc App</em>).</li>
+                        <li>Preencha o Nome de sua escolha (ex: <em>Lysinc App</em>).</li>
+                        <li>Preencha uma Descrição curta (ex: <em>App para letras</em>).</li>
                         <li>No campo <strong>Redirect URIs</strong>, insira exatamente o endereço abaixo:
-                            <code class="block bg-black/60 p-3 rounded-xl mt-2 select-all text-emerald-300 font-mono text-xs break-all border border-white/10" id="flow-uri-label">https://disoliveiradso.github.io/LySinc/</code>
+                            <div class="relative flex items-center mt-2">
+                                <code class="block w-full bg-black/60 p-3 pr-12 rounded-xl text-emerald-300 font-mono text-xs break-all border border-white/10" id="flow-uri-label">https://disoliveiradso.github.io/LySinc/</code>
+                                <button id="btn-copy-uri-flow" class="absolute right-2 p-2 text-white/50 hover:text-white transition-colors rounded-lg hover:bg-white/10" title="Copiar URI">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </button>
+                            </div>
                         </li>
                         <li>Marque os termos de uso e clique em <strong>Save</strong>.</li>
                         <li>Vá nas <strong>Settings</strong> do aplicativo criado no Spotify e copie o <strong>Client ID</strong>.</li>
@@ -749,8 +757,15 @@
 
                 <div class="space-y-2">
                     <label for="settings-input-client-id-readonly" class="text-sm font-semibold text-white/80">Seu Client ID</label>
-                    <input id="settings-input-client-id-readonly" type="text" readonly value="Nenhum Client ID cadastrado"
-                        class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-emerald-400 font-mono text-xs focus:outline-none select-all">
+                    <div class="relative flex items-center">
+                        <input id="settings-input-client-id-readonly" type="text" readonly value="Nenhum Client ID cadastrado"
+                            class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 pr-12 text-emerald-400 font-mono text-xs focus:outline-none cursor-default selection:bg-transparent selection:text-emerald-400">
+                        <button id="btn-copy-client-id" class="absolute right-2 p-2 text-white/50 hover:text-white transition-colors rounded-lg hover:bg-white/10" title="Copiar Client ID">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex flex-col space-y-3 mt-4">
@@ -966,11 +981,7 @@
                 <!-- MusicBrainz -->
                 <a href="https://musicbrainz.org/" target="_blank" class="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-xl p-4 flex items-center space-x-4 transition-all group">
                     <div class="w-10 h-10 rounded-full bg-[#EA7B3E]/10 border border-[#EA7B3E]/20 flex items-center justify-center shrink-0">
-                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Hexágono flat-top dividido ao meio verticalmente -->
-                            <polygon points="12,2 3,7 3,17 12,22" fill="#EA7B3E"/>
-                            <polygon points="12,2 21,7 21,17 12,22" fill="#BA5C28"/>
-                        </svg>
+                        <img src="assets/icons/MusicBrainzIcon.svg" alt="MusicBrainz" class="h-5 w-5">
                     </div>
                     <div class="flex-1">
                         <h4 class="font-bold text-sm text-white group-hover:text-[#EA7B3E] transition-colors">MusicBrainz</h4>

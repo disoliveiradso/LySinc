@@ -500,6 +500,34 @@ class LySincApp {
     }
 
     setupEventListeners() {
+        const btnCopyClientId = document.getElementById('btn-copy-client-id');
+        if (btnCopyClientId) {
+            btnCopyClientId.addEventListener('click', () => {
+                const input = document.getElementById('settings-input-client-id-readonly');
+                if (input && input.value) {
+                    navigator.clipboard.writeText(input.value).then(() => {
+                        this.showToast('Client ID copiado!', 'success');
+                    }).catch(() => {
+                        this.showToast('Erro ao copiar Client ID', 'error');
+                    });
+                }
+            });
+        }
+
+        const btnCopyUriFlow = document.getElementById('btn-copy-uri-flow');
+        if (btnCopyUriFlow) {
+            btnCopyUriFlow.addEventListener('click', () => {
+                const uriCode = document.getElementById('flow-uri-label');
+                if (uriCode && uriCode.innerText) {
+                    navigator.clipboard.writeText(uriCode.innerText.trim()).then(() => {
+                        this.showToast('URI copiada!', 'success');
+                    }).catch(() => {
+                        this.showToast('Erro ao copiar URI', 'error');
+                    });
+                }
+            });
+        }
+
         if (this.btnFloatingTrackinfo) {
             this.btnFloatingTrackinfo.addEventListener('click', () => {
                 const isActive = localStorage.getItem('lysinc-trackinfo-active') === 'true';
