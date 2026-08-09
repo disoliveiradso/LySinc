@@ -258,13 +258,13 @@ const SpotifyService = {
                     }
                 } catch(e) {}
                 
-                let finalMsg = 'Conta não autorizada ou Client ID em Development Mode.';
-                if (errorMsg) {
-                    if (errorMsg.toLowerCase().includes('premium')) {
-                        finalMsg = 'O Spotify exige uma assinatura Premium para acessar a reprodução atual.';
-                    } else {
-                        finalMsg = `Spotify: ${errorMsg}. Verifique o "User Management" no painel de desenvolvedor.`;
-                    }
+                let finalMsg = '';
+                if (this.currentUserProfile && this.currentUserProfile.product !== 'premium') {
+                    finalMsg = 'Sua conta do Spotify é Gratuita (Free). O Spotify exige uma assinatura Premium para que o LySinc acesse a reprodução atual.';
+                } else if (Config.getClientId() !== Config.getSystemClientId()) {
+                    finalMsg = 'Você não adicionou o seu e-mail do Spotify na aba "User Management" do seu Client ID no painel de desenvolvedor. Isso é obrigatório para contas Premium.';
+                } else {
+                    finalMsg = 'Sua conta não tem autorização ou o Client ID está em Development Mode e você não está na lista branca.';
                 }
                 
                 console.warn('[LySinc] Spotify API 403 Forbidden:', finalMsg);
@@ -407,13 +407,15 @@ const SpotifyService = {
 
             if (!response.ok) return null;
             const data = await response.json();
-            return {
+            const profile = {
                 id: data.id,
                 display_name: data.display_name || data.id,
                 email: data.email || null,
                 images: data.images || [],
                 product: data.product
             };
+            this.currentUserProfile = profile;
+            return profile;
         } catch (error) {
             console.error('[LySinc 2.0] Erro ao buscar perfil do Spotify:', error);
             return null;
