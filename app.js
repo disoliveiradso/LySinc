@@ -579,6 +579,10 @@ class LySincApp {
                     }
                 }
                 keysToRemove.forEach(k => localStorage.removeItem(k));
+                
+                this.currentTrackId = null;
+                this.lyrics = [];
+                
                 this.showToast('Cache de letras apagado do navegador.', 'success');
             });
         }
