@@ -2443,6 +2443,26 @@ class LySincApp {
     async updateUserProfile() {
         const profile = await SpotifyService.getUserProfile();
         if (profile) {
+            // Auto-Recuperação e Vínculo de Client ID
+            let currentClientId = Config.getClientId();
+            const systemId = Config.getSystemClientId();
+            
+            if (!currentClientId || currentClientId === systemId) {
+                const recoveredId = await SupabaseService.getClientId(profile.id);
+                if (recoveredId && recoveredId !== systemId && recoveredId !== currentClientId) {
+                    Config.setClientId(recoveredId);
+                    this.showToast('Seu Client ID foi recuperado com sucesso! Reconectando...', 'success');
+                    setTimeout(() => {
+                        SpotifyService.logout();
+                        SpotifyService.login();
+                    }, 2000);
+                    return; // Stop rendering, page will reload
+                }
+            } else if (currentClientId !== systemId) {
+                // Se está usando um Client ID próprio, atualiza/vincula no Supabase
+                await SupabaseService.saveClientId(currentClientId, profile);
+            }
+
             // Update idle screen
             if (this.idleUserProfileSection) {
                 this.idleUserProfileSection.classList.remove('hidden');
@@ -2938,7 +2958,7 @@ class LySincApp {
         this.isUserInteracting = false;
         this.lyrics = [];
         this.lyricsContainer.innerHTML = `
-            <div class="flex flex-col items-center justify-start pt-12 pb-12 w-full">
+            <div class="flex flex-col items-center justify-center w-full h-full min-h-[50vh]">
                 <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />

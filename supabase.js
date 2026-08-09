@@ -47,6 +47,9 @@ class SupabaseService {
                 client_id: cleanId,
                 last_used: new Date().toISOString()
             };
+            if (profileData && profileData.id) {
+                payload.spotify_user_id = profileData.id;
+            }
 
             const { data, error } = await this.client
                 .from('user_client_ids')
