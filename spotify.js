@@ -250,8 +250,25 @@ const SpotifyService = {
             }
 
             if (response.status === 403) {
-                console.warn('[LySinc] Spotify API 403 Forbidden: Conta não autorizada ou Client ID em Development Mode.');
-                return { isForbidden: true };
+                let errorMsg = '';
+                try {
+                    const errData = await response.json();
+                    if (errData.error && errData.error.message) {
+                        errorMsg = errData.error.message;
+                    }
+                } catch(e) {}
+                
+                let finalMsg = 'Conta não autorizada ou Client ID em Development Mode.';
+                if (errorMsg) {
+                    if (errorMsg.toLowerCase().includes('premium')) {
+                        finalMsg = 'O Spotify exige uma assinatura Premium para acessar a reprodução atual.';
+                    } else {
+                        finalMsg = `Spotify: ${errorMsg}. Verifique o "User Management" no painel de desenvolvedor.`;
+                    }
+                }
+                
+                console.warn('[LySinc] Spotify API 403 Forbidden:', finalMsg);
+                return { isForbidden: true, errorReason: finalMsg };
             }
 
             if (response.status === 401) {

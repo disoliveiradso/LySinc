@@ -2646,7 +2646,8 @@ class LySincApp {
         if (state && state.isForbidden) {
             if (!this.hasShownForbiddenToast) {
                 this.hasShownForbiddenToast = true;
-                this.showToast('Spotify API (Erro 403): O Client ID está em Modo de Desenvolvimento. Cadastre seu e-mail em "User Management" no painel do Spotify ou use seu próprio Client ID.', 'error', 12000);
+                const errorMsg = state.errorReason || 'Spotify API (Erro 403): O Spotify exige conta Premium OU que você adicione seu e-mail no "User Management" do painel de desenvolvedor (se o seu Client ID for novo).';
+                this.showToast(errorMsg, 'error', 15000);
             }
             this.isPlaying = false;
             this.currentTrackId = null;
