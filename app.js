@@ -56,7 +56,7 @@ const wrapText = (ctx, text, maxWidth) => {
     const balanceOrphans = (linesArray) => {
         if (linesArray.length <= 1) return linesArray;
         let wordsPerLine = linesArray.map(l => l.trim().split(/\s+/).filter(Boolean));
-        
+
         if (wordsPerLine[wordsPerLine.length - 1].length === 1 && wordsPerLine.length > 1) {
             if (wordsPerLine[wordsPerLine.length - 2].length > 1) {
                 let word = wordsPerLine[wordsPerLine.length - 2][wordsPerLine[wordsPerLine.length - 2].length - 1];
@@ -67,7 +67,7 @@ const wrapText = (ctx, text, maxWidth) => {
                 }
             }
         }
-        
+
         if (wordsPerLine[0].length === 1 && wordsPerLine.length > 1) {
             if (wordsPerLine[1].length > 1) {
                 let word = wordsPerLine[1][0];
@@ -78,7 +78,7 @@ const wrapText = (ctx, text, maxWidth) => {
                 }
             }
         }
-        
+
         return wordsPerLine.map(wArr => wArr.join(' '));
     };
 
@@ -88,16 +88,16 @@ const wrapText = (ctx, text, maxWidth) => {
 const groupSyllablesByLines = (syllables, wrappedStrings) => {
     const lines = [];
     let sylIdx = 0;
-    
+
     wrappedStrings.forEach(lineStr => {
         const lineSyls = [];
         let currentText = '';
         const targetText = lineStr.replace(/\s+/g, '').toLowerCase();
-        
+
         while (sylIdx < syllables.length) {
             const syl = syllables[sylIdx];
             const sylClean = syl.text.replace(/\s+/g, '').toLowerCase();
-            
+
             if (currentText.length + sylClean.length <= targetText.length || lineSyls.length === 0) {
                 lineSyls.push(syl);
                 currentText += sylClean;
@@ -108,14 +108,14 @@ const groupSyllablesByLines = (syllables, wrappedStrings) => {
         }
         lines.push(lineSyls);
     });
-    
+
     while (sylIdx < syllables.length) {
         if (lines.length > 0) {
             lines[lines.length - 1].push(syllables[sylIdx]);
         }
         sylIdx++;
     }
-    
+
     return lines;
 };
 
@@ -172,7 +172,7 @@ class CustomTooltipManager {
         this.activeElement = null;
         this.showTimeout = null;
         this.isTouch = window.matchMedia("(hover: none)").matches;
-        
+
         if (this.isTouch) {
             this.setupTouchTooltips();
         }
@@ -205,20 +205,20 @@ class CustomTooltipManager {
 
     show(element) {
         if (!this.tooltip || !element.dataset.title) return;
-        
+
         this.tooltip.textContent = element.dataset.title;
         const rect = element.getBoundingClientRect();
-        
+
         const tooltipWidth = this.tooltip.offsetWidth || 100;
         const tooltipHeight = this.tooltip.offsetHeight || 30;
-        
+
         let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
         let top = rect.top - tooltipHeight - 10;
-        
+
         if (left < 10) left = 10;
         if (left + tooltipWidth > window.innerWidth - 10) left = window.innerWidth - tooltipWidth - 10;
         if (top < 10) top = rect.bottom + 10;
-        
+
         this.tooltip.style.left = `${left}px`;
         this.tooltip.style.top = `${top}px`;
         this.tooltip.classList.add('visible');
@@ -260,7 +260,7 @@ class LySincApp {
 
         this.lyricsContainer = document.getElementById('lyrics-container');
         this.progressBar = document.getElementById('progress-bar');
-        
+
         this.explicitIconTrackinfo = document.getElementById('explicit-icon-trackinfo');
 
         this.btnDemoMode = document.getElementById('btn-demo-mode');
@@ -269,7 +269,7 @@ class LySincApp {
         this.btnTopPrev = document.getElementById('btn-top-prev');
         this.btnTopPlayPause = document.getElementById('btn-top-playpause');
         this.btnTopNext = document.getElementById('btn-top-next');
-        
+
         this.btnFloatingPrev = document.getElementById('btn-floating-prev');
         this.btnFloatingPlayPause = document.getElementById('btn-floating-playpause');
         this.btnFloatingNext = document.getElementById('btn-floating-next');
@@ -356,6 +356,11 @@ class LySincApp {
         this.confirmRemoveClientIdModal = document.getElementById('confirm-remove-client-id-modal');
         this.btnCancelRemoveClientId = document.getElementById('btn-cancel-remove-client-id');
         this.btnConfirmRemoveClientId = document.getElementById('btn-confirm-remove-client-id');
+        
+        this.removeClientIdOptionsModal = document.getElementById('remove-client-id-options-modal');
+        this.btnRemoveLocalOnly = document.getElementById('btn-remove-local-only');
+        this.btnRemoveBoth = document.getElementById('btn-remove-both');
+        this.btnCancelRemoveOptions = document.getElementById('btn-cancel-remove-options');
 
         this.btnOpenRepos = document.getElementById('btn-open-repos');
         this.btnReposClose = document.getElementById('btn-repos-close');
@@ -438,7 +443,7 @@ class LySincApp {
             } catch (e) {
                 console.error('Falha no handleCallback:', e);
             }
-            
+
             if (authenticated) {
                 this.showScreen('idle');
                 await this.updateUserProfile();
@@ -460,7 +465,7 @@ class LySincApp {
 
     setupDemoMode() {
         this.showScreen('main');
-        
+
         const state = {
             isPlaying: true,
             isEmpty: false,
@@ -551,12 +556,12 @@ class LySincApp {
                     if (!isActive && isDrawerOpen) {
                         this.trackinfoBox.classList.remove('closed');
                         this.trackinfoBox.classList.add('open');
-                        
+
                         if (this.floatingDrawerTimeoutId) {
                             clearTimeout(this.floatingDrawerTimeoutId);
                             this.floatingDrawerTimeoutId = null;
                         }
-                        
+
                         setTimeout(() => {
                             if (this.trackinfoTitle) this.setupMarquee(this.trackinfoTitle);
                             if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
@@ -564,7 +569,7 @@ class LySincApp {
                     } else {
                         this.trackinfoBox.classList.remove('open');
                         this.trackinfoBox.classList.add('closed');
-                        
+
                         if (isDrawerOpen) {
                             setTimeout(() => {
                                 this.toggleFloatingMenu(false);
@@ -578,7 +583,7 @@ class LySincApp {
                 this.btnFloatingTrackinfo.classList.remove('text-white/60');
             }
         }
-        
+
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -618,10 +623,10 @@ class LySincApp {
                     }
                 }
                 keysToRemove.forEach(k => localStorage.removeItem(k));
-                
+
                 this.currentTrackId = null;
                 this.lyrics = [];
-                
+
                 this.showToast('Cache de letras apagado do navegador.', 'success');
             });
         }
@@ -637,7 +642,7 @@ class LySincApp {
                 }
             }
         });
-            if (this.btnSettings) {
+        if (this.btnSettings) {
             this.btnSettings.addEventListener('click', () => this.toggleSettingsModal(true));
         }
         if (this.btnSettingsClose) {
@@ -652,7 +657,7 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.btnReposClose) {
             this.btnReposClose.addEventListener('click', () => {
                 if (this.reposModal) {
@@ -670,9 +675,41 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.settingsBtnRemoveClientId) {
             this.settingsBtnRemoveClientId.addEventListener('click', () => {
+                if (this.removeClientIdOptionsModal) {
+                    this.removeClientIdOptionsModal.classList.remove('hidden');
+                    this.removeClientIdOptionsModal.classList.add('flex');
+                }
+            });
+        }
+        
+        if (this.btnCancelRemoveOptions) {
+            this.btnCancelRemoveOptions.addEventListener('click', () => {
+                if (this.removeClientIdOptionsModal) {
+                    this.removeClientIdOptionsModal.classList.add('hidden');
+                    this.removeClientIdOptionsModal.classList.remove('flex');
+                }
+            });
+        }
+        
+        if (this.btnRemoveLocalOnly) {
+            this.btnRemoveLocalOnly.addEventListener('click', () => {
+                if (this.removeClientIdOptionsModal) {
+                    this.removeClientIdOptionsModal.classList.add('hidden');
+                    this.removeClientIdOptionsModal.classList.remove('flex');
+                }
+                this.handleRemoveClientId(false);
+            });
+        }
+        
+        if (this.btnRemoveBoth) {
+            this.btnRemoveBoth.addEventListener('click', () => {
+                if (this.removeClientIdOptionsModal) {
+                    this.removeClientIdOptionsModal.classList.add('hidden');
+                    this.removeClientIdOptionsModal.classList.remove('flex');
+                }
                 if (this.confirmRemoveClientIdModal) {
                     this.confirmRemoveClientIdModal.classList.remove('hidden');
                     this.confirmRemoveClientIdModal.classList.add('flex');
@@ -690,7 +727,7 @@ class LySincApp {
         }
 
         if (this.btnConfirmRemoveClientId) {
-            this.btnConfirmRemoveClientId.addEventListener('click', () => this.handleRemoveClientId());
+            this.btnConfirmRemoveClientId.addEventListener('click', () => this.handleRemoveClientId(true));
         }
 
         if (this.idleBtnAddClientIdSettings) {
@@ -699,7 +736,7 @@ class LySincApp {
                 this.showScreen('flow-step-1');
             });
         }
-        
+
         if (this.settingsBtnAddClientIdSettings) {
             this.settingsBtnAddClientIdSettings.addEventListener('click', () => {
                 this.toggleSettingsModal(false);
@@ -712,7 +749,7 @@ class LySincApp {
         if (this.btnFontIncreaseTop) this.btnFontIncreaseTop.addEventListener('click', () => this.changeLyricsFontSize(0.1));
         if (this.btnFontDecreaseFloating) this.btnFontDecreaseFloating.addEventListener('click', () => this.changeLyricsFontSize(-0.1));
         if (this.btnFontIncreaseFloating) this.btnFontIncreaseFloating.addEventListener('click', () => this.changeLyricsFontSize(0.1));
-        
+
         // Aplica a escala inicial de fonte no documento
         document.documentElement.style.setProperty('--lyrics-font-scale', this.lyricsFontScale);
 
@@ -764,7 +801,7 @@ class LySincApp {
                 SpotifyService.login();
             });
         }
-        
+
         this.btnFlowStep3Back = document.getElementById('btn-flow-step3-back');
         if (this.btnFlowStep3Back) {
             this.btnFlowStep3Back.addEventListener('click', () => this.showScreen('pre-login'));
@@ -816,17 +853,17 @@ class LySincApp {
 
         const btnConfirmLogout = document.getElementById('btn-confirm-logout');
         const btnCancelLogout = document.getElementById('btn-cancel-logout');
-        
+
         if (btnConfirmLogout) {
             btnConfirmLogout.addEventListener('click', () => {
                 window.localStorage.removeItem(Config.CLIENT_ID_KEY);
                 this.confirmLogoutModal.classList.add('hidden');
                 this.confirmLogoutModal.classList.remove('flex');
-                
+
                 SpotifyService.logout();
             });
         }
-        
+
         if (btnCancelLogout) {
             btnCancelLogout.addEventListener('click', () => {
                 this.confirmLogoutModal.classList.add('hidden');
@@ -870,7 +907,7 @@ class LySincApp {
             if (this.headerControlsContainer && !this.headerControlsContainer.classList.contains('closed')) {
                 const isClickInside = this.headerControlsContainer.contains(e.target);
                 const isClickOnToggle = this.btnToggleControls && this.btnToggleControls.contains(e.target);
-                
+
                 if (!isClickInside && !isClickOnToggle) {
                     closeControls();
                 }
@@ -905,7 +942,7 @@ class LySincApp {
         }
 
         let mouseHideTimeout = null;
-        
+
         const hideMousePointer = () => {
             if (document.fullscreenElement) {
                 document.body.style.cursor = 'none';
@@ -928,9 +965,9 @@ class LySincApp {
                 this.btnFloatingToggle.style.pointerEvents = '';
             }
             this.updateFloatingMenuVisibility();
-            
+
             if (mouseHideTimeout) clearTimeout(mouseHideTimeout);
-            
+
             if (document.fullscreenElement) {
                 mouseHideTimeout = setTimeout(hideMousePointer, 3000);
             }
@@ -951,7 +988,7 @@ class LySincApp {
         document.addEventListener('touchmove', handleScrollAction, { passive: true });
         document.addEventListener('scroll', handleScrollAction, { passive: true });
         document.addEventListener('touchstart', resetMousePointer, { passive: true });
-        
+
         const iconFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>`;
         const iconExitFullscreen = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h4V4m12 4h-4V4M4 16h4v4m12-4h-4v4" /></svg>`;
 
@@ -991,23 +1028,23 @@ class LySincApp {
                 if (text) {
                     if (tooltipTimeout) clearTimeout(tooltipTimeout);
                     tooltipTarget = target;
-                    
+
                     tooltipTimeout = setTimeout(() => {
                         if (tooltipTarget === target) {
                             customTooltip.textContent = text;
 
-                            customTooltip.style.opacity = '0'; 
+                            customTooltip.style.opacity = '0';
 
                             setTimeout(() => {
                                 const rect = target.getBoundingClientRect();
                                 const tooltipRect = customTooltip.getBoundingClientRect();
                                 let top = rect.top - tooltipRect.height - 8;
                                 let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-                                
+
                                 if (top < 0) top = rect.bottom + 8;
                                 if (left < 0) left = 8;
                                 if (left + tooltipRect.width > window.innerWidth) left = window.innerWidth - tooltipRect.width - 8;
-                                
+
                                 customTooltip.style.top = `${top}px`;
                                 customTooltip.style.left = `${left}px`;
                                 customTooltip.style.opacity = '1';
@@ -1058,14 +1095,14 @@ class LySincApp {
                 const currentIndex = providers.indexOf(this.currentLyricsProvider);
                 const nextIndex = (currentIndex + 1) % providers.length;
                 this.currentLyricsProvider = providers[nextIndex];
-                
+
                 const providerLabels = {
                     'apple': 'Apple',
                     'musixmatch': 'Musixmatch',
                     'lrclib': 'LrcLib',
                     'netease': 'NetEase'
                 };
-                
+
                 this.showToast(`Buscando letras via ${providerLabels[this.currentLyricsProvider]}...`, 'info');
 
                 if (this.currentTrackId || this.isDemoMode) {
@@ -1088,7 +1125,7 @@ class LySincApp {
                 this.isUserInteracting = true;
 
                 if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
-                
+
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
 
                 const isSongFinished = this.progressMs >= this.lyrics[this.lyrics.length - 1].timestamp;
@@ -1108,19 +1145,19 @@ class LySincApp {
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
             this.btnRecenter.classList.remove('opacity-100', 'scale-100');
             this.btnRecenter.classList.add('opacity-0', 'scale-95');
-            
+
             if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
             this.btnRecenterTimeoutId = setTimeout(() => {
                 this.btnRecenter.classList.add('hidden');
             }, 500);
-            
+
             let targetLineId = this.activeLineId;
 
 
             if (targetLineId === null && this.lyrics.length > 0) {
                 let closestLine = null;
                 let minDiff = Infinity;
-                
+
                 const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
                 const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
 
@@ -1131,12 +1168,12 @@ class LySincApp {
                         closestLine = line;
                     }
                 });
-                
+
                 if (closestLine) {
                     targetLineId = closestLine.id;
                 }
             }
-            
+
             if (targetLineId !== null) {
                 const activeEl = document.getElementById(`line-${targetLineId}`);
                 if (activeEl) {
@@ -1184,7 +1221,7 @@ class LySincApp {
             this.btnFloatingScrollTop.addEventListener('click', () => {
                 this.isUserInteracting = true;
                 if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
-                
+
                 if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
 
                 if (this.btnRecenter && !this.pipWindow) {
@@ -1200,7 +1237,7 @@ class LySincApp {
         }
 
         document.querySelectorAll('#floating-lyrics-menu button').forEach(btn => {
-            if (btn.id !== 'btn-floating-toggle' && 
+            if (btn.id !== 'btn-floating-toggle' &&
                 btn.id !== 'btn-floating-trackinfo' &&
                 btn.id !== 'btn-font-decrease-floating' &&
                 btn.id !== 'btn-font-increase-floating' &&
@@ -1246,16 +1283,16 @@ class LySincApp {
                             const elapsed = this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
                             this.progressMs = Math.min(this.progressMs + elapsed + this.syncOffset, this.durationMs);
                             this.lastSyncTime = 0;
-                            
+
                             this.updatePlayPauseUI();
                             this.updateProgressBar(this.progressMs);
                             this.updateLyricsSync(this.progressMs);
-                            
+
                             await SpotifyService.pauseTrack().catch(err => console.error(err));
                         } else {
                             this.isPlaying = true;
                             this.lastSyncTime = Date.now();
-                            
+
                             this.updatePlayPauseUI();
                             await SpotifyService.playTrack().catch(err => console.error(err));
                         }
@@ -1366,18 +1403,18 @@ class LySincApp {
 
         const renderPipCanvas = () => {
             if (!pipCanvas || !pipCtx) return;
-            
+
             try {
                 pipCtx.fillStyle = this.currentAlbumColor || '#121212';
                 pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
-                
+
                 const scale = pipCanvas.width / 1080;
                 // Wider margin space (88% width, 6% each side)
                 const maxWidth = pipCanvas.width * 0.88;
                 const activeFontSize = Math.round(85 * scale);
                 const activeLineHeight = Math.round(110 * scale);
                 const activeSpacing = Math.round(60 * scale);
-                
+
                 if (this.lyrics && this.lyrics.length > 0) {
                     const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
                     const smoothProgress = this.progressMs + elapsedSinceSync + this.syncOffset;
@@ -1389,10 +1426,10 @@ class LySincApp {
                     if (activeIndex === -1) {
                         activeIndex = 0;
                     }
-                    
+
                     if (activeIndex !== -1) {
                         const mode = this.currentLyricsMode;
-                        
+
                         // Frame-independent delta-time smooth active index interpolation
                         const now = Date.now();
                         if (this.pipLastFrameTime === undefined) {
@@ -1413,7 +1450,7 @@ class LySincApp {
 
                         const baseIndex = Math.floor(this.pipActiveIndexSmooth);
                         const centerY = pipCanvas.height / 2;
-                        
+
                         // Pre-calculate wrapped lines and active-scale heights for nearby lines (with layout caching to prevent stutters)
                         const linesToDraw = [];
                         const getWrapped = (lyric) => {
@@ -1423,13 +1460,13 @@ class LySincApp {
                             if (lyric._wrapCache && lyric._wrapCache.key === cacheKey) {
                                 return lyric._wrapCache.lines;
                             }
-                            
+
                             let lines = [];
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
-                            
+
                             const text = getLineText(lyric, 'original');
                             lines = wrapText(pipCtx, text, maxWidth);
-                            
+
                             lyric._wrapCache = { key: cacheKey, lines: lines };
                             return lines;
                         };
@@ -1441,12 +1478,12 @@ class LySincApp {
                                 const lyric = this.lyrics[i];
                                 const wrapped = getWrapped(lyric);
                                 const mainHeight = wrapped.length * activeLineHeight;
-                                
+
                                 // Calculate background vocals (backing vocals) or translation/romanized subtitle height and layout info
                                 let bgWrapped = [];
                                 let bgHeight = 0;
                                 let bgOpacity = 0;
-                                
+
                                 const hasSubText = (mode === 'translation' && lyric.translation) || (mode === 'romanized' && lyric.romanizedText);
                                 if (hasSubText) {
                                     const subText = mode === 'translation' ? lyric.translation : lyric.romanizedText;
@@ -1458,10 +1495,10 @@ class LySincApp {
                                         bgWrapped = wrapText(pipCtx, subText, maxWidth);
                                         lyric._subWrapCache = { key: bgCacheKey, lines: bgWrapped };
                                     }
-                                    
+
                                     const bgFullHeight = bgWrapped.length * (activeLineHeight * 0.65) + activeSpacing * 0.25;
                                     bgHeight = bgFullHeight;
-                                    bgOpacity = 1.0; 
+                                    bgOpacity = 1.0;
                                 } else if (lyric.background && lyric.backgroundText && lyric.backgroundText.length > 0) {
                                     // Fallback to background vocals if no translation/romanized subtitle is active
                                     const bgCacheKey = `bg_original_${maxWidth}_${activeFontSize}`;
@@ -1473,9 +1510,9 @@ class LySincApp {
                                         bgWrapped = wrapText(pipCtx, bgText, maxWidth);
                                         lyric._bgWrapCache = { key: bgCacheKey, lines: bgWrapped };
                                     }
-                                    
+
                                     const bgFullHeight = bgWrapped.length * (activeLineHeight * 0.65) + activeSpacing * 0.25;
-                                    
+
                                     // Background vocals should ONLY appear when their exact time window is active
                                     let bgFactor = 0;
                                     if (i === activeIndex) {
@@ -1492,11 +1529,11 @@ class LySincApp {
                                             }
                                         }
                                     }
-                                    
+
                                     bgHeight = bgFullHeight * bgFactor;
                                     bgOpacity = bgFactor;
                                 }
-                                
+
                                 linesToDraw.push({
                                     index: i,
                                     lyric: lyric,
@@ -1515,9 +1552,9 @@ class LySincApp {
                         if (linesToDraw.length > 0) {
                             linesToDraw[0].stackY = 0;
                             for (let j = 1; j < linesToDraw.length; j++) {
-                                linesToDraw[j].stackY = linesToDraw[j-1].stackY + 
-                                                        (linesToDraw[j-1].height + linesToDraw[j].height) / 2 + 
-                                                        activeSpacing;
+                                linesToDraw[j].stackY = linesToDraw[j - 1].stackY +
+                                    (linesToDraw[j - 1].height + linesToDraw[j].height) / 2 +
+                                    activeSpacing;
                             }
                         }
 
@@ -1525,16 +1562,16 @@ class LySincApp {
                         const getInterpolatedStackY = (smoothIdx) => {
                             const idx1 = Math.floor(smoothIdx);
                             const idx2 = Math.ceil(smoothIdx);
-                            
+
                             const item1 = linesToDraw.find(item => item.index === idx1);
                             const item2 = linesToDraw.find(item => item.index === idx2);
-                            
+
                             if (item1 && item2) {
-                                  if (idx1 === idx2) return item1.stackY;
+                                if (idx1 === idx2) return item1.stackY;
                                 const progress = smoothIdx - idx1;
                                 return item1.stackY * (1 - progress) + item2.stackY * progress;
                             } else if (item1) {
-                                  return item1.stackY;
+                                return item1.stackY;
                             } else if (item2) {
                                 return item2.stackY;
                             }
@@ -1548,7 +1585,7 @@ class LySincApp {
                         linesToDraw.forEach(item => {
                             const distance = Math.abs(item.index - this.pipActiveIndexSmooth);
                             const isItemActive = activeLineIndices.has(item.index);
-                            
+
                             // Smoothly animate scale down transition when active lines end (except in light mode)
                             const targetScaleMult = (isItemActive || isLightMode) ? 1.0 : 0.72;
                             if (item.lyric._scaleMult === undefined || isLightMode) {
@@ -1557,22 +1594,22 @@ class LySincApp {
                                 const lerpVal = 1 - Math.exp(-10 * clampedDelta);
                                 item.lyric._scaleMult += (targetScaleMult - item.lyric._scaleMult) * lerpVal;
                             }
-                            
+
                             const s = Math.max(0.45, 1.0 - distance * 0.25) * item.lyric._scaleMult;
                             const op = Math.max(0.15, 1.0 - distance * 0.30);
-                            
+
                             pipCtx.save();
                             pipCtx.globalAlpha = op;
-                            
+
                             const canvasY = centerY + (item.stackY - scrollY);
                             pipCtx.translate(pipCanvas.width / 2, canvasY);
                             pipCtx.scale(s, s);
-                            
+
                             // Align LEFT by default, align RIGHT only for opposite voice turn / end alignment
                             const alignRight = item.lyric.oppositeTurn || item.lyric.alignment === 'end';
                             // 88% width means half-width is 44%
                             const halfWidth = (pipCanvas.width * 0.44) / s;
-                            
+
                             let startX;
                             if (alignRight) {
                                 pipCtx.textAlign = 'right';
@@ -1582,30 +1619,30 @@ class LySincApp {
                                 startX = -halfWidth;
                             }
                             pipCtx.textBaseline = 'middle';
-                            
+
                             const mainHeight = item.mainHeight;
                             const bgHeight = item.bgHeight;
-                            
+
                             // Main Vocal start Y centered relative to the combined block
                             let startY = -bgHeight / 2 - (mainHeight / 2) + (activeLineHeight / 2);
-                            
+
                             pipCtx.font = `bold ${activeFontSize}px Satoshi, Inter, sans-serif`;
-                            
+
                             if (isItemActive) {
                                 // Draw active main lyrics (word-synced or line-synced)
                                 if (item.lyric.isWordSynced && Array.isArray(item.lyric.text)) {
                                     const syllables = item.lyric.text;
                                     const wrappedStrings = item.wrapped;
                                     const wrappedSyllableLines = groupSyllablesByLines(syllables, wrappedStrings);
-                                    
+
                                     wrappedStrings.forEach((lineStr, r) => {
                                         const lineSyls = wrappedSyllableLines[r] || [];
                                         const totalLineWidth = pipCtx.measureText(lineStr).width;
-                                        
+
                                         // 1. Measure completed syllable progress width
                                         let completedW = 0;
                                         let sumSyllablesWidth = 0;
-                                        
+
                                         lineSyls.forEach(syl => {
                                             const sylWidth = pipCtx.measureText(syl.text).width;
                                             sumSyllablesWidth += sylWidth;
@@ -1616,16 +1653,16 @@ class LySincApp {
                                                 completedW += sylWidth * pct;
                                             }
                                         });
-                                        
+
                                         if (sumSyllablesWidth > 0) {
                                             completedW = completedW * (totalLineWidth / sumSyllablesWidth);
                                         }
-                                        
+
                                         // 2. Draw using Linear Gradient for soft feathered color transition
                                         let grad;
                                         const completedPct = completedW / totalLineWidth;
                                         const isInstrumental = item.lyric.isInstrumental || lineStr.trim() === '♪';
-                                        
+
                                         if (isInstrumental) {
                                             // Vertical gradient (to bottom / de cima para baixo) for instrumental notes
                                             grad = pipCtx.createLinearGradient(0, startY - activeFontSize * 0.45, 0, startY + activeFontSize * 0.45);
@@ -1644,7 +1681,7 @@ class LySincApp {
                                                 0
                                             );
                                             grad.addColorStop(0, '#ffffff');
-                                            
+
                                             // 15% soft transition zone (feathered highlight edge)
                                             const transitionStart = Math.max(0, (completedW - 15 * scale) / totalLineWidth);
                                             const transitionEnd = Math.min(1, completedW / totalLineWidth);
@@ -1652,10 +1689,10 @@ class LySincApp {
                                             grad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.45)');
                                             grad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
                                         }
-                                        
+
                                         pipCtx.save();
                                         pipCtx.fillStyle = grad;
-                                        
+
                                         const isLightMode = document.body.classList.contains('light-mode');
                                         if (!isLightMode) {
                                             // Bright, centered glowing shadow on active text
@@ -1664,22 +1701,22 @@ class LySincApp {
                                             pipCtx.shadowOffsetX = 0;
                                             pipCtx.shadowOffsetY = 0;
                                         }
-                                        
+
                                         pipCtx.textAlign = 'left';
                                         let currentX = alignRight ? startX - totalLineWidth : startX;
                                         lineSyls.forEach(syl => {
                                             const sylWidth = pipCtx.measureText(syl.text).width;
                                             const isActiveWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
                                             const isLightMode = document.body.classList.contains('light-mode');
-                                            
+
                                             pipCtx.save();
-                                            
+
                                             pipCtx.fillText(syl.text, currentX, startY);
                                             pipCtx.restore();
                                             currentX += sylWidth;
                                         });
                                         pipCtx.restore();
-                                        
+
                                         startY += activeLineHeight;
                                     });
                                 } else {
@@ -1706,20 +1743,20 @@ class LySincApp {
                                     pipCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
                                 }
                                 pipCtx.shadowBlur = 0;
-                                
+
                                 item.wrapped.forEach(lineStr => {
                                     pipCtx.fillText(lineStr, startX, startY);
                                     startY += activeLineHeight;
                                 });
                             }
-                            
+
                             // Draw background vocals (backing vocals) or subtitles (translation/romanized) if present
                             if (item.bgWrapped.length > 0 && item.bgHeight > 0) {
                                 // startY is already pointing past the last main line at this point
                                 // Add a small gap (half the bg font size) to position bg text right below
                                 let bgStartY = startY + (activeLineHeight * 0.65) * 0.1;
                                 pipCtx.font = `bold ${Math.round(activeFontSize * 0.65)}px Satoshi, Inter, sans-serif`;
-                                
+
                                 if (isItemActive) {
                                     if (item.hasSubText) {
                                         // Draw active translation or romanization subtitle (brighter white, line-based)
@@ -1735,15 +1772,15 @@ class LySincApp {
                                         // Word-synced background vocal check
                                         const bgSyllables = item.lyric.backgroundText;
                                         const wrappedBgSyllableLines = groupSyllablesByLines(bgSyllables, item.bgWrapped);
-                                        
+
                                         item.bgWrapped.forEach((bgLineStr, r) => {
                                             const bgLineSyls = wrappedBgSyllableLines[r] || [];
                                             const totalBgLineWidth = pipCtx.measureText(bgLineStr).width;
-                                            
+
                                             // Measure completed bg progress
                                             let completedBgW = 0;
                                             let sumBgSyllablesWidth = 0;
-                                            
+
                                             bgLineSyls.forEach(syl => {
                                                 const sylWidth = pipCtx.measureText(syl.text).width;
                                                 sumBgSyllablesWidth += sylWidth;
@@ -1754,11 +1791,11 @@ class LySincApp {
                                                     completedBgW += sylWidth * pct;
                                                 }
                                             });
-                                            
+
                                             if (sumBgSyllablesWidth > 0) {
                                                 completedBgW = completedBgW * (totalBgLineWidth / sumBgSyllablesWidth);
                                             }
-                                            
+
                                             // Linear gradient for background vocals highlight
                                             const bgGrad = pipCtx.createLinearGradient(
                                                 alignRight ? startX - totalBgLineWidth : startX,
@@ -1772,11 +1809,11 @@ class LySincApp {
                                             bgGrad.addColorStop(transitionStart, '#ffffff');
                                             bgGrad.addColorStop(transitionEnd, 'rgba(255, 255, 255, 0.45)');
                                             bgGrad.addColorStop(1, 'rgba(255, 255, 255, 0.45)');
-                                            
+
                                             pipCtx.save();
                                             pipCtx.globalAlpha = op * item.bgOpacity;
                                             pipCtx.fillStyle = bgGrad;
-                                            
+
                                             const isLightMode = document.body.classList.contains('light-mode');
                                             if (!isLightMode) {
                                                 pipCtx.shadowColor = 'rgba(255, 255, 255, 0.75)';
@@ -1784,22 +1821,22 @@ class LySincApp {
                                                 pipCtx.shadowOffsetX = 0;
                                                 pipCtx.shadowOffsetY = 0;
                                             }
-                                            
+
                                             pipCtx.textAlign = 'left';
                                             let currentX = alignRight ? startX - totalBgLineWidth : startX;
                                             bgLineSyls.forEach(syl => {
                                                 const sylWidth = pipCtx.measureText(syl.text).width;
                                                 const isActiveBgWord = (smoothProgress >= syl.timestamp && smoothProgress < syl.endtime);
-                                                
+
                                                 pipCtx.save();
-                                                
+
                                                 pipCtx.fillText(syl.text, currentX, bgStartY);
                                                 pipCtx.restore();
-                                                
+
                                                 currentX += sylWidth;
                                             });
                                             pipCtx.restore();
-                                            
+
                                             bgStartY += activeLineHeight * 0.65;
                                         });
                                     } else {
@@ -1825,7 +1862,7 @@ class LySincApp {
                                         pipCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
                                     }
                                     pipCtx.shadowBlur = 0;
-                                    
+
                                     item.bgWrapped.forEach(bgLineStr => {
                                         pipCtx.save();
                                         pipCtx.globalAlpha = op * item.bgOpacity;
@@ -1835,7 +1872,7 @@ class LySincApp {
                                     });
                                 }
                             }
-                            
+
                             pipCtx.restore();
                         });
                     } else {
@@ -1854,25 +1891,25 @@ class LySincApp {
                     pipCtx.textBaseline = 'middle';
                     pipCtx.fillText('Carregando letras...', pipCanvas.width / 2, pipCanvas.height / 2);
                 }
-                
+
                 // Draw single large L resize handle in bottom-left corner
                 pipCtx.save();
                 pipCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
                 pipCtx.lineWidth = Math.round(10 * scale); // slightly thicker
                 pipCtx.lineCap = 'round';
-                
+
                 const handleSize = Math.round(48 * scale); // smaller size
                 const pad = Math.round(30 * scale);
                 const blX = pad;
                 const blY = pipCanvas.height - pad;
-                
+
                 // Outer angle
                 pipCtx.beginPath();
                 pipCtx.moveTo(blX, blY - handleSize);
                 pipCtx.lineTo(blX, blY);
                 pipCtx.lineTo(blX + handleSize, blY);
                 pipCtx.stroke();
-                
+
                 // Inner parallel accent line
                 const offset = Math.round(16 * scale);
                 pipCtx.beginPath();
@@ -1880,7 +1917,7 @@ class LySincApp {
                 pipCtx.lineTo(blX + offset, blY - offset);
                 pipCtx.lineTo(blX + handleSize - offset, blY - offset);
                 pipCtx.stroke();
-                
+
                 pipCtx.restore();
             } catch (err) {
                 console.error("Erro ao renderizar PiP Canvas:", err);
@@ -1900,7 +1937,7 @@ class LySincApp {
             // setInterval backup loop for background browser throttle (requestAnimationFrame pauses in hidden tabs)
             // 33ms interval guarantees ~30fps rendering even when user navigates away
             pipIntervalId = setInterval(renderPipCanvas, 33);
-            
+
             // Audio silent loop trick to prevent Android/iOS WebView from pausing canvas drawing when in background
             if (!silentAudio) {
                 silentAudio = new Audio();
@@ -1908,7 +1945,7 @@ class LySincApp {
                 silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
                 silentAudio.loop = true;
             }
-            silentAudio.play().catch(() => {});
+            silentAudio.play().catch(() => { });
         };
 
         const stopLoop = () => {
@@ -1943,15 +1980,15 @@ class LySincApp {
 
             if (!pipVideo) {
                 pipCanvas = document.createElement('canvas');
-                
+
                 // 3:4 portrait canvas — vertical rectangle, compact height on mobile
                 const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent);
                 const pipW = isMobile ? 540 : 1080;
                 const pipH = isMobile ? 720 : 1440;
-                
+
                 pipCanvas.width = pipW;
                 pipCanvas.height = pipH;
-                
+
                 pipCanvas.style.position = 'fixed';
                 pipCanvas.style.top = '0';
                 pipCanvas.style.left = '0';
@@ -1969,12 +2006,12 @@ class LySincApp {
                 pipVideo.style.position = 'fixed';
                 pipVideo.style.top = '0';
                 pipVideo.style.left = '0';
-                
+
                 // Adapts initial PiP window size based on screen size (small on phone, larger on tablet)
                 const screenWidth = window.screen.width || window.innerWidth;
                 const videoW = Math.round(screenWidth * 0.32);
                 const videoH = Math.round(videoW * (pipH / pipW)); // 3:4 portrait (vertical)
-                
+
                 pipVideo.style.width = videoW + 'px';
                 pipVideo.style.height = videoH + 'px';
                 pipVideo.style.opacity = '0.001';
@@ -1984,21 +2021,21 @@ class LySincApp {
 
                 pipVideo.addEventListener('enterpictureinpicture', () => {
                     startLoop();
-                    
+
                     handleVisibilityChange = () => {
                         startLoop();
                     };
                     document.addEventListener('visibilitychange', handleVisibilityChange);
-                    
+
                     const btnPipTop = document.getElementById('btn-pip-top');
                     if (btnPipTop) {
                         btnPipTop.classList.add('!text-green-500');
                         btnPipTop.classList.remove('text-white/50');
                     }
-                    
+
                     const lyricsContainer = document.getElementById('lyrics-container');
                     const floatingControls = document.getElementById('floating-controls-wrapper');
-                    
+
                     if (lyricsContainer) {
                         lyricsContainer.style.display = 'none';
                     }
@@ -2017,13 +2054,13 @@ class LySincApp {
                             Voltar para cá
                         </button>
                     `;
-                    
+
                     if (lyricsContainer && lyricsContainer.parentNode) {
                         lyricsContainer.parentNode.insertBefore(placeholder, lyricsContainer);
                     } else {
                         document.body.appendChild(placeholder);
                     }
-                    
+
                     document.getElementById('btn-mobile-pip-return').addEventListener('click', () => {
                         if (document.pictureInPictureElement) {
                             document.exitPictureInPicture();
@@ -2037,16 +2074,16 @@ class LySincApp {
                         document.removeEventListener('visibilitychange', handleVisibilityChange);
                         handleVisibilityChange = null;
                     }
-                    
+
                     const btnPipTop = document.getElementById('btn-pip-top');
                     if (btnPipTop) {
                         btnPipTop.classList.remove('!text-green-500');
                         btnPipTop.classList.add('text-white/50');
                     }
-                    
+
                     const lyricsContainer = document.getElementById('lyrics-container');
                     const floatingControls = document.getElementById('floating-controls-wrapper');
-                    
+
                     if (lyricsContainer) {
                         lyricsContainer.style.display = '';
                     }
@@ -2054,7 +2091,7 @@ class LySincApp {
 
                     const placeholder = document.getElementById('mobile-pip-placeholder');
                     if (placeholder) placeholder.remove();
-                    
+
                     this.currentActiveIdsKey = '';
                     setTimeout(() => {
                         this.isUserInteracting = false;
@@ -2070,7 +2107,7 @@ class LySincApp {
 
             const stream = pipCanvas.captureStream(30);
             pipVideo.srcObject = stream;
-            
+
             try {
                 await pipVideo.play();
                 await pipVideo.requestPictureInPicture();
@@ -2080,7 +2117,7 @@ class LySincApp {
                 stopLoop();
             }
         };
-        
+
         const handlePipClick = async (event) => {
             if (event && event.currentTarget) {
                 event.currentTarget.blur();
@@ -2096,45 +2133,45 @@ class LySincApp {
             try {
 
                 if (window.documentPictureInPicture.window) return;
-                    
-                    const pipWindow = await window.documentPictureInPicture.requestWindow({
-                        width: 400,
-                        height: 600,
-                    });
-                    this.pipWindow = pipWindow;
 
-                    [...document.styleSheets].forEach((styleSheet) => {
-                        try {
-                            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
-                            const style = document.createElement('style');
-                            style.textContent = cssRules;
-                            pipWindow.document.head.appendChild(style);
-                        } catch (e) {
-                            const link = document.createElement('link');
-                            link.rel = 'stylesheet';
-                            link.type = styleSheet.type;
-                            link.media = styleSheet.media;
-                            link.href = styleSheet.href;
-                            pipWindow.document.head.appendChild(link);
-                        }
-                    });
+                const pipWindow = await window.documentPictureInPicture.requestWindow({
+                    width: 400,
+                    height: 600,
+                });
+                this.pipWindow = pipWindow;
 
-                    pipWindow.document.body.className = 'pip-mode bg-[#050505] text-white flex flex-col min-h-screen relative';
-                    document.body.classList.add('pip-active');
+                [...document.styleSheets].forEach((styleSheet) => {
+                    try {
+                        const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+                        const style = document.createElement('style');
+                        style.textContent = cssRules;
+                        pipWindow.document.head.appendChild(style);
+                    } catch (e) {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.type = styleSheet.type;
+                        link.media = styleSheet.media;
+                        link.href = styleSheet.href;
+                        pipWindow.document.head.appendChild(link);
+                    }
+                });
 
-                    const bgClone = document.querySelector('.blur-background-container').cloneNode(true);
-                    pipWindow.document.body.appendChild(bgClone);
+                pipWindow.document.body.className = 'pip-mode bg-[#050505] text-white flex flex-col min-h-screen relative';
+                document.body.classList.add('pip-active');
 
-                    const originalContainer = document.getElementById('lyrics-container');
+                const bgClone = document.querySelector('.blur-background-container').cloneNode(true);
+                pipWindow.document.body.appendChild(bgClone);
 
-                    const pipMain = document.createElement('main');
-                    pipMain.className = 'flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-8 relative z-10';
-                    
-                    const placeholder = document.createElement('div');
-                    placeholder.id = 'pip-placeholder';
-                    placeholder.className = 'flex-1 flex flex-col justify-center items-center text-white/50 text-center px-4';
-                    placeholder.style.order = '3';
-                    placeholder.innerHTML = `
+                const originalContainer = document.getElementById('lyrics-container');
+
+                const pipMain = document.createElement('main');
+                pipMain.className = 'flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-8 relative z-10';
+
+                const placeholder = document.createElement('div');
+                placeholder.id = 'pip-placeholder';
+                placeholder.className = 'flex-1 flex flex-col justify-center items-center text-white/50 text-center px-4';
+                placeholder.style.order = '3';
+                placeholder.innerHTML = `
                         <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2zM12 11h7v6h-7z" />
                         </svg>
@@ -2142,146 +2179,146 @@ class LySincApp {
                         <p class="text-sm">As letras estão sendo exibidas na janela flutuante.</p>
                         <button id="btn-close-pip" class="mt-6 bg-white text-black font-bold py-2 px-6 rounded-full hover:scale-105 transition-transform">Voltar para cá</button>
                     `;
-                    originalContainer.parentNode.insertBefore(placeholder, originalContainer);
-                    pipMain.appendChild(originalContainer);
-                    pipWindow.document.body.appendChild(pipMain);
+                originalContainer.parentNode.insertBefore(placeholder, originalContainer);
+                pipMain.appendChild(originalContainer);
+                pipWindow.document.body.appendChild(pipMain);
 
-                    if (this.btnRecenter) {
-                        this.btnRecenter.classList.add('hidden');
+                if (this.btnRecenter) {
+                    this.btnRecenter.classList.add('hidden');
+                }
+
+                const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
+                btnRecenterClone.id = 'btn-recenter-pip';
+                btnRecenterClone.style.position = 'fixed';
+                btnRecenterClone.style.bottom = '2rem';
+                btnRecenterClone.style.left = '1.5rem';
+                btnRecenterClone.style.zIndex = '50';
+                btnRecenterClone.style.display = 'flex';
+                btnRecenterClone.style.alignItems = 'center';
+                btnRecenterClone.style.justifyContent = 'center';
+                btnRecenterClone.style.whiteSpace = 'nowrap';
+                pipMain.appendChild(btnRecenterClone);
+
+                let pipScrollTimeout;
+                const handlePipUserInteraction = () => {
+                    this.isUserInteracting = true;
+                    if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
+
+                    const isSongFinished = this.lyrics.length > 0 && this.progressMs >= this.lyrics[this.lyrics.length - 1].timestamp;
+                    if (!isSongFinished) {
+                        btnRecenterClone.classList.remove('hidden');
+                        pipWindow.requestAnimationFrame(() => {
+                            btnRecenterClone.classList.remove('opacity-0', 'scale-95');
+                            btnRecenterClone.classList.add('opacity-100', 'scale-100');
+                        });
                     }
 
-                    const btnRecenterClone = document.getElementById('btn-recenter').cloneNode(true);
-                    btnRecenterClone.id = 'btn-recenter-pip';
-                    btnRecenterClone.style.position = 'fixed';
-                    btnRecenterClone.style.bottom = '2rem';
-                    btnRecenterClone.style.left = '1.5rem';
-                    btnRecenterClone.style.zIndex = '50';
-                    btnRecenterClone.style.display = 'flex';
-                    btnRecenterClone.style.alignItems = 'center';
-                    btnRecenterClone.style.justifyContent = 'center';
-                    btnRecenterClone.style.whiteSpace = 'nowrap';
-                    pipMain.appendChild(btnRecenterClone);
-
-                    let pipScrollTimeout;
-                    const handlePipUserInteraction = () => {
-                        this.isUserInteracting = true;
-                        if (this.lyricsContainer) this.lyricsContainer.classList.add('user-scrolling');
-                        
-                        const isSongFinished = this.lyrics.length > 0 && this.progressMs >= this.lyrics[this.lyrics.length - 1].timestamp;
-                        if (!isSongFinished) {
-                            btnRecenterClone.classList.remove('hidden');
-                            pipWindow.requestAnimationFrame(() => {
-                                btnRecenterClone.classList.remove('opacity-0', 'scale-95');
-                                btnRecenterClone.classList.add('opacity-100', 'scale-100');
-                            });
-                        }
-                        
-                        clearTimeout(pipScrollTimeout);
-                        pipScrollTimeout = setTimeout(() => {
-                            if (!this.isUserInteracting) {
-                                btnRecenterClone.classList.remove('opacity-100', 'scale-100');
-                                btnRecenterClone.classList.add('opacity-0', 'scale-95');
-                                setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
-                            }
-                        }, 3000);
-                    };
-
-                    pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
-                    pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
-                    let isAbsolute = false;
-                    pipWindow.addEventListener('scroll', () => {
-                        const credits = pipWindow.document.getElementById('lyrics-credits-block');
-                        if (credits) {
-                            const rect = credits.getBoundingClientRect();
-                            const threshold = pipWindow.innerHeight - 16;
-                            
-                            if (rect.top <= threshold) {
-                                if (!isAbsolute) {
-                                    btnRecenterClone.style.position = 'absolute';
-                                    btnRecenterClone.style.bottom = 'auto';
-                                    btnRecenterClone.style.top = (credits.offsetTop - btnRecenterClone.offsetHeight - 16) + 'px';
-                                    isAbsolute = true;
-                                }
-                            } else {
-                                if (isAbsolute) {
-                                    btnRecenterClone.style.position = 'fixed';
-                                    btnRecenterClone.style.top = 'auto';
-                                    btnRecenterClone.style.bottom = '2rem';
-                                    isAbsolute = false;
-                                }
-                            }
-                        } else if (isAbsolute) {
-                            btnRecenterClone.style.position = 'fixed';
-                            btnRecenterClone.style.top = 'auto';
-                            btnRecenterClone.style.bottom = '2rem';
-                            isAbsolute = false;
-                        }
-
-                        if (Date.now() - this.lastAutoScrollTime < 800) {
-                            return;
-                        }
-                        handlePipUserInteraction();
-                    }, { passive: true });
-
-                    btnRecenterClone.addEventListener('click', () => {
-                        this.isUserInteracting = false;
-                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-                        btnRecenterClone.classList.remove('opacity-100', 'scale-100');
-                        btnRecenterClone.classList.add('opacity-0', 'scale-95');
-                        setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
-                        this.updateLyricsSync(this.progressMs);
-                    });
-
-                    if (this.btnFloatingRestart) this.btnFloatingRestart.classList.add('hidden');
-                    const btnPipTop = document.getElementById('btn-pip-top');
-                    if (btnPipTop) {
-                        btnPipTop.classList.add('text-green-500');
-                    }
-
-                    placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
-                        pipWindow.close();
-                    });
-
-                    pipWindow.addEventListener("pagehide", (event) => {
-                        document.body.classList.remove('pip-active');
-                        placeholder.parentNode.insertBefore(originalContainer, placeholder);
-                        placeholder.remove();
-                        this.pipWindow = null;
-                        if (this.btnFloatingRestart) this.btnFloatingRestart.classList.remove('hidden');
-                        const btnPipTop = document.getElementById('btn-pip-top');
-                        if (btnPipTop) {
-                            btnPipTop.classList.remove('text-green-500');
-                        }
-
-                        this.isUserInteracting = false;
-                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-                        if (this.btnRecenter) {
-                            this.btnRecenter.classList.remove('opacity-100', 'scale-100');
-                            this.btnRecenter.classList.add('opacity-0', 'scale-95');
-                            setTimeout(() => this.btnRecenter.classList.remove('hidden'), 300);
-                        }
-                        this.updateLyricsSync(this.progressMs);
-                    });
-                    
-                    setTimeout(() => {
-                        this.isUserInteracting = false;
-                        this.lastAutoScrollTime = Date.now();
-                        if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-                        if (btnRecenterClone) {
+                    clearTimeout(pipScrollTimeout);
+                    pipScrollTimeout = setTimeout(() => {
+                        if (!this.isUserInteracting) {
                             btnRecenterClone.classList.remove('opacity-100', 'scale-100');
                             btnRecenterClone.classList.add('opacity-0', 'scale-95');
+                            setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
                         }
-                        this.updateLyricsSync(this.progressMs);
-                    }, 150);
-                    
-                } catch (error) {
-                    console.error('Erro ao iniciar PiP:', error);
-                    this.showToast('Erro ao abrir Picture-in-Picture.', 'error');
+                    }, 3000);
+                };
+
+                pipWindow.addEventListener('wheel', handlePipUserInteraction, { passive: true });
+                pipWindow.addEventListener('touchmove', handlePipUserInteraction, { passive: true });
+                let isAbsolute = false;
+                pipWindow.addEventListener('scroll', () => {
+                    const credits = pipWindow.document.getElementById('lyrics-credits-block');
+                    if (credits) {
+                        const rect = credits.getBoundingClientRect();
+                        const threshold = pipWindow.innerHeight - 16;
+
+                        if (rect.top <= threshold) {
+                            if (!isAbsolute) {
+                                btnRecenterClone.style.position = 'absolute';
+                                btnRecenterClone.style.bottom = 'auto';
+                                btnRecenterClone.style.top = (credits.offsetTop - btnRecenterClone.offsetHeight - 16) + 'px';
+                                isAbsolute = true;
+                            }
+                        } else {
+                            if (isAbsolute) {
+                                btnRecenterClone.style.position = 'fixed';
+                                btnRecenterClone.style.top = 'auto';
+                                btnRecenterClone.style.bottom = '2rem';
+                                isAbsolute = false;
+                            }
+                        }
+                    } else if (isAbsolute) {
+                        btnRecenterClone.style.position = 'fixed';
+                        btnRecenterClone.style.top = 'auto';
+                        btnRecenterClone.style.bottom = '2rem';
+                        isAbsolute = false;
+                    }
+
+                    if (Date.now() - this.lastAutoScrollTime < 800) {
+                        return;
+                    }
+                    handlePipUserInteraction();
+                }, { passive: true });
+
+                btnRecenterClone.addEventListener('click', () => {
+                    this.isUserInteracting = false;
+                    if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                    btnRecenterClone.classList.remove('opacity-100', 'scale-100');
+                    btnRecenterClone.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => btnRecenterClone.classList.add('hidden'), 300);
+                    this.updateLyricsSync(this.progressMs);
+                });
+
+                if (this.btnFloatingRestart) this.btnFloatingRestart.classList.add('hidden');
+                const btnPipTop = document.getElementById('btn-pip-top');
+                if (btnPipTop) {
+                    btnPipTop.classList.add('text-green-500');
                 }
-            };
-            
-            if (this.btnPipTop) this.btnPipTop.addEventListener('click', handlePipClick);
-            if (this.btnFloatingPip) this.btnFloatingPip.addEventListener('click', handlePipClick);
+
+                placeholder.querySelector('#btn-close-pip').addEventListener('click', () => {
+                    pipWindow.close();
+                });
+
+                pipWindow.addEventListener("pagehide", (event) => {
+                    document.body.classList.remove('pip-active');
+                    placeholder.parentNode.insertBefore(originalContainer, placeholder);
+                    placeholder.remove();
+                    this.pipWindow = null;
+                    if (this.btnFloatingRestart) this.btnFloatingRestart.classList.remove('hidden');
+                    const btnPipTop = document.getElementById('btn-pip-top');
+                    if (btnPipTop) {
+                        btnPipTop.classList.remove('text-green-500');
+                    }
+
+                    this.isUserInteracting = false;
+                    if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                    if (this.btnRecenter) {
+                        this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+                        this.btnRecenter.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => this.btnRecenter.classList.remove('hidden'), 300);
+                    }
+                    this.updateLyricsSync(this.progressMs);
+                });
+
+                setTimeout(() => {
+                    this.isUserInteracting = false;
+                    this.lastAutoScrollTime = Date.now();
+                    if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                    if (btnRecenterClone) {
+                        btnRecenterClone.classList.remove('opacity-100', 'scale-100');
+                        btnRecenterClone.classList.add('opacity-0', 'scale-95');
+                    }
+                    this.updateLyricsSync(this.progressMs);
+                }, 150);
+
+            } catch (error) {
+                console.error('Erro ao iniciar PiP:', error);
+                this.showToast('Erro ao abrir Picture-in-Picture.', 'error');
+            }
+        };
+
+        if (this.btnPipTop) this.btnPipTop.addEventListener('click', handlePipClick);
+        if (this.btnFloatingPip) this.btnFloatingPip.addEventListener('click', handlePipClick);
     }
 
     adjustSyncOffset(ms, reset = false) {
@@ -2290,14 +2327,14 @@ class LySincApp {
         } else {
             this.syncOffset += ms;
         }
-        
+
         this.updateSyncOffsetDisplay();
 
         this.activeLineId = null;
         if (this.lyricsContainer) {
             const els = this.lyricsContainer.querySelectorAll('.lyric-line, .lyrics-syllable');
             els.forEach(el => el.classList.remove('active', 'passed', 'current'));
-            
+
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
         }
@@ -2308,7 +2345,7 @@ class LySincApp {
             document.getElementById('sync-offset-display'),
             document.getElementById('floating-sync-offset-display')
         ];
-        
+
         displays.forEach(display => {
             if (display) {
                 if (this.syncOffset === 0) {
@@ -2428,16 +2465,27 @@ class LySincApp {
         this.clientIdFlowModal.classList.remove('flex');
     }
 
-    async handleRemoveClientId() {
-        // Fechar o modal de confirmação
+    async handleRemoveClientId(removeFromGlobal = false) {
+        // Fechar o modal de confirmação se estiver aberto
         if (this.confirmRemoveClientIdModal) {
             this.confirmRemoveClientIdModal.classList.add('hidden');
             this.confirmRemoveClientIdModal.classList.remove('flex');
         }
-        await SupabaseService.removeClientId();
+        
+        if (removeFromGlobal) {
+            await SupabaseService.removeClientId();
+        } else {
+            Config.setClientId('');
+        }
+        
         this.updateLoginButtonsState();
         this.toggleSettingsModal(false);
         this.showToast('Client ID removido com sucesso.', 'info');
+        
+        // Fazer logout para garantir que o estado local está limpo
+        setTimeout(() => {
+            SpotifyService.logout();
+        }, 1500);
     }
 
     async updateUserProfile() {
@@ -2446,7 +2494,7 @@ class LySincApp {
             // Auto-Recuperação e Vínculo de Client ID
             let currentClientId = Config.getClientId();
             const systemId = Config.getSystemClientId();
-            
+
             if (!currentClientId || currentClientId === systemId) {
                 const recoveredId = await SupabaseService.getClientId(profile.id);
                 if (recoveredId && recoveredId !== systemId && recoveredId !== currentClientId) {
@@ -2620,12 +2668,12 @@ class LySincApp {
             this.currentTrackId = stateTrackId;
             this.hasAutoSeekedToFirstLine = false;
             this.adjustSyncOffset(0, true);
-            
+
             this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
-            
+
             if (isAutoSkip) {
-                this.seekToTime(this.progressMs, true).catch(() => {});
+                this.seekToTime(this.progressMs, true).catch(() => { });
             }
 
             this.updateTrackDetails(state);
@@ -2660,7 +2708,7 @@ class LySincApp {
             this.setupMarquee(this.trackArtists);
             this.setupMarquee(this.trackinfoTitle);
             this.setupMarquee(this.trackinfoArtist);
-            
+
             await this.loadLyricsForTrack(state);
         }
 
@@ -2674,12 +2722,12 @@ class LySincApp {
     updateTrackDetails(state) {
         this.trackName.textContent = state.trackName;
         this.trackArtists.textContent = state.artists;
-        
+
         if (this.trackinfoTitle) this.trackinfoTitle.textContent = state.trackName;
         if (this.trackinfoArtist) this.trackinfoArtist.textContent = state.artists;
 
         this.isExplicit = !!state.explicit;
-        
+
         if (this.explicitIconHeader) {
             if (state.explicit) {
                 this.explicitIconHeader.classList.remove('hidden');
@@ -2698,7 +2746,7 @@ class LySincApp {
                 const pipBlur = this.pipWindow.document.getElementById('album-art-blur');
                 if (pipBlur) pipBlur.style.backgroundImage = `url('${state.albumArtUrl}')`;
             }
-            
+
             this.currentAlbumColor = '#121212';
             try {
                 const img = new Image();
@@ -2714,21 +2762,21 @@ class LySincApp {
                         let r = 0, g = 0, b = 0, count = 0;
                         for (let i = 0; i < data.data.length; i += 20) {
                             r += data.data[i];
-                            g += data.data[i+1];
-                            b += data.data[i+2];
+                            g += data.data[i + 1];
+                            b += data.data[i + 2];
                             count++;
                         }
                         if (count > 0) {
-                            r = Math.floor((r/count) * 0.4);
-                            g = Math.floor((g/count) * 0.4);
-                            b = Math.floor((b/count) * 0.4);
+                            r = Math.floor((r / count) * 0.4);
+                            g = Math.floor((g / count) * 0.4);
+                            b = Math.floor((b / count) * 0.4);
                             this.currentAlbumColor = `rgb(${r}, ${g}, ${b})`;
                             document.documentElement.style.setProperty('--album-color', this.currentAlbumColor);
                         }
-                    } catch(e) {}
+                    } catch (e) { }
                 };
                 img.src = state.albumArtUrl;
-            } catch(e) {}
+            } catch (e) { }
         } else {
             this.albumArt.src = '';
             if (this.trackinfoArt) this.trackinfoArt.src = '';
@@ -2740,7 +2788,7 @@ class LySincApp {
                 if (pipBlur) pipBlur.style.backgroundImage = 'none';
             }
         }
-        
+
         // Dispara a busca de metadados adicionais no MusicBrainz
         this.fetchAndDisplayMetadata(state);
     }
@@ -2762,7 +2810,7 @@ class LySincApp {
         const pillsContainer = document.getElementById('musicbrainz-pills');
         const copyrightContainer = document.getElementById('musicbrainz-copyright');
         if (!pillsContainer) return;
-        
+
         if (!this.currentMbData) {
             pillsContainer.innerHTML = '';
             if (copyrightContainer) copyrightContainer.innerHTML = '';
@@ -2771,7 +2819,7 @@ class LySincApp {
 
         const mbData = this.currentMbData;
         let html = '';
-        
+
         const createPill = (icon, text) => {
             const encodedIcon = encodeURIComponent(icon || '');
             const encodedText = encodeURIComponent(text || '');
@@ -2822,7 +2870,7 @@ class LySincApp {
         if (mbData.label) {
             html += createPill(shieldIcon, mbData.label);
         }
-        
+
         pillsContainer.innerHTML = html;
 
         if (this.pillResizeObserver) {
@@ -2847,7 +2895,7 @@ class LySincApp {
             let copyrightHtml = '';
             if (mbData.copyright) copyrightHtml += `© ${mbData.copyright} `;
             if (mbData.phonographicCopyright) copyrightHtml += `℗ ${mbData.phonographicCopyright}`;
-            
+
             if (copyrightHtml) {
                 copyrightContainer.innerHTML = `<div class="w-full text-center mt-4 text-[9px] opacity-50">${copyrightHtml}</div>`;
             } else {
@@ -2868,22 +2916,22 @@ class LySincApp {
 
     setupMarquee(element) {
         if (!element) return;
-        
+
         const container = element.closest('.flex-1') || element.closest('.overflow-hidden');
         if (!container) return;
-        
+
         // Ensure the main container clips overflowing content
         container.classList.add('overflow-hidden');
-        
+
         // Animate the parent wrapper for track-name (to include explicit icon), or the element itself for track-artists
         const targetToAnimate = (element.id === 'track-name') ? element.parentElement : element;
-        
+
         // Force the element to expand to its true content width so it doesn't wrap or shrink
         targetToAnimate.style.width = 'max-content';
         targetToAnimate.style.maxWidth = 'none';
         targetToAnimate.classList.remove('overflow-hidden');
         element.style.whiteSpace = 'nowrap';
-        
+
         // Cancel existing animations
         if (targetToAnimate.marqueeAnim) {
             targetToAnimate.marqueeAnim.cancel();
@@ -2925,18 +2973,18 @@ class LySincApp {
                     { transform: 'translateX(0)' }
                 ];
                 // Faster return speed (e.g. 200 pixels per second), min 500ms
-                const returnDurationMs = Math.max(500, (scrollDistance / 200) * 1000); 
-                
+                const returnDurationMs = Math.max(500, (scrollDistance / 200) * 1000);
+
                 const returnOptions = {
                     duration: returnDurationMs,
                     delay: 1500, // Pause at the end before returning
                     easing: 'ease-in-out'
                 };
-                
+
                 targetToAnimate.marqueeReturnAnim = targetToAnimate.animate(returnKeyframes, returnOptions);
                 targetToAnimate.marqueeReturnAnim.onfinish = () => {
                     // Loop animation safely
-                    this.setupMarquee(element); 
+                    this.setupMarquee(element);
                 };
             };
         } else {
@@ -2948,7 +2996,7 @@ class LySincApp {
     async loadLyricsForTrack(state) {
 
         this.adjustSyncOffset(0, true);
-        
+
         const requestTrackId = state.trackId || (state.trackName + state.albumName);
         this._currentLyricsRequest = requestTrackId;
         this.currentTrackArtists = state.artists || '';
@@ -2958,7 +3006,7 @@ class LySincApp {
         this.isUserInteracting = false;
         this.lyrics = [];
         this.lyricsContainer.innerHTML = `
-            <div class="flex flex-col items-center justify-center w-full h-full min-h-[50vh]">
+            <div class="fixed inset-0 flex flex-col items-center justify-center w-full h-full opacity-50 transition-opacity duration-500 pointer-events-none z-0">
                 <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -2981,7 +3029,7 @@ class LySincApp {
             advancedControls.classList.remove('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
             advancedControls.classList.add('opacity-0', 'max-w-0', 'pointer-events-none');
         }
-        
+
         this.currentTrackArtistsRaw = state.artistsRaw || [];
         if (this.currentTrackArtistsRaw.length > 0) {
             const ids = this.currentTrackArtistsRaw.map(a => a.id).filter(id => id);
@@ -2991,9 +3039,9 @@ class LySincApp {
         }
 
         const fetchedLyrics = await LyricsService.getLyrics(
-            state.trackName, 
-            state.artists, 
-            state.albumName, 
+            state.trackName,
+            state.artists,
+            state.albumName,
             state.durationMs,
             this.userForcedProvider ? this.currentLyricsProvider : null,
             state.isrc
@@ -3076,13 +3124,13 @@ class LySincApp {
             if (mode === 'translation') {
                 this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Traduzindo letras em tempo real...</div>';
                 this.showToast('Traduzindo letras para o português...', 'info');
-                
+
                 const translated = await LyricsService.translateLyrics(this.lyricsData.original);
                 this.lyricsData.original = translated;
             } else if (mode === 'romanized') {
                 this.lyricsContainer.innerHTML = '<div class="text-center text-white/50 text-xl py-20">Gerando romanização das letras...</div>';
                 this.showToast('Convertendo escrita para caracteres latinos...', 'info');
-                
+
                 const romanized = await LyricsService.romanizeLyrics(this.lyricsData.original);
                 this.lyricsData.original = romanized;
             }
@@ -3091,7 +3139,7 @@ class LySincApp {
         this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
 
         this.renderLyrics(true);
-        
+
         const elapsedSinceSync = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
         const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
         this.activeLineId = null;
@@ -3142,14 +3190,14 @@ class LySincApp {
                 isWordSynced: true
             });
         }
-        
+
         for (let i = 0; i < lines.length; i++) {
             const currentLine = lines[i];
             if (i > 0) {
                 const prevLine = lines[i - 1];
 
                 const prevEndtime = prevLine.endtime || (prevLine.timestamp + 3000);
-                
+
                 if (currentLine.timestamp - prevEndtime > 5000) {
                     result.push({
                         id: i - 0.5,
@@ -3184,7 +3232,7 @@ class LySincApp {
                 });
             }
         }
-        
+
         return result;
     }
 
@@ -3193,27 +3241,27 @@ class LySincApp {
             const canvas = document.createElement('canvas');
             this._domCtx = canvas.getContext('2d');
         }
-        
+
         const dummy = document.createElement('div');
         dummy.className = 'lyric-line md:py-3 max-md:py-1.5 font-black inline-block';
         dummy.style.visibility = 'hidden';
         dummy.style.position = 'absolute';
         dummy.textContent = 'test';
         if (this.lyricsContainer) this.lyricsContainer.appendChild(dummy);
-        
+
         const style = window.getComputedStyle(dummy);
         this._domCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
-        
+
         if (this.lyricsContainer) this.lyricsContainer.removeChild(dummy);
-        
+
         let containerWidth = this.lyricsContainer ? this.lyricsContainer.clientWidth : 0;
-        
+
         // Se o container estiver oculto (display: none) no momento do carregamento, 
         // o clientWidth ser 0. Neste caso, estimamos a largura com base na tela.
         if (containerWidth < 100) {
             containerWidth = window.innerWidth >= 768 ? (window.innerWidth * 0.55) : window.innerWidth;
         }
-        
+
         const maxWidth = containerWidth - 48;
         return { ctx: this._domCtx, maxWidth: maxWidth > 300 ? maxWidth : 300 };
     }
@@ -3253,7 +3301,7 @@ class LySincApp {
                     });
                 }
             };
-            
+
             if (line.isWordSynced && line.text) processSyllables(line.text);
             if (line.isWordSynced && line.backgroundText) processSyllables(line.backgroundText);
         });
@@ -3263,7 +3311,7 @@ class LySincApp {
         this.lyrics.forEach((line) => {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
-            
+
             let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2 transition-all duration-300';
             if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
@@ -3280,12 +3328,12 @@ class LySincApp {
             if (!line.isWordSynced) {
                 lineClass += ' line-synced';
             }
-            
+
             const isInstrumental = line.isInstrumental || (line.text.length === 1 && (line.text[0].text.trim() === '♪' || line.text[0].text.trim().includes('♪')));
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
             }
-            
+
             lineEl.className = lineClass;
 
             lineEl.addEventListener('click', () => {
@@ -3308,7 +3356,7 @@ class LySincApp {
                 mainVocal.appendChild(sylSpan);
             } else {
                 let domLines = [];
-                
+
                 if (Array.isArray(line.text) && line.isWordSynced) {
                     const text = getLineText(line, 'original');
                     const wrappedStrings = wrapText(domCtx, text, maxWidth);
@@ -3323,29 +3371,29 @@ class LySincApp {
                 domLines.forEach((domLine, lineIdx) => {
                     const currentWordWrapper = document.createElement('div');
                     currentWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
-                    
+
                     if (domLine.isSynced) {
                         let currentWordSpan = null;
-                        
+
                         domLine.text.forEach((syl, sylSubIdx) => {
                             // Recover global index of the syllable
                             const idx = line.text.indexOf(syl);
                             const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
                             const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
-                            
+
                             const sylSpan = document.createElement('span');
                             sylSpan.className = 'lyrics-syllable';
                             sylSpan.id = `word-${line.id}-${idx}`;
                             sylSpan.textContent = cleanText;
-                            
+
                             if (!currentWordSpan) {
                                 currentWordSpan = document.createElement('span');
                                 currentWordSpan.className = 'lyric-word inline-block';
                                 currentWordWrapper.appendChild(currentWordSpan);
                             }
-                            
+
                             currentWordSpan.appendChild(sylSpan);
-                            
+
                             if (hasSpace) {
                                 currentWordWrapper.appendChild(document.createTextNode(' '));
                                 currentWordSpan = null;
@@ -3354,9 +3402,9 @@ class LySincApp {
                     } else {
                         currentWordWrapper.textContent = domLine.text;
                     }
-                    
+
                     mainVocal.appendChild(currentWordWrapper);
-                    
+
                     if (lineIdx < domLines.length - 1) {
                         mainVocal.appendChild(document.createElement('br'));
                     }
@@ -3367,9 +3415,9 @@ class LySincApp {
             if (line.background && line.backgroundText && line.backgroundText.length > 0) {
                 const bgVocal = document.createElement('div');
                 bgVocal.className = 'background-vocal-container';
-                
+
                 let domBgLines = [];
-                
+
                 if (Array.isArray(line.backgroundText)) {
                     // Check if they are synced
                     const isSyncedBg = line.backgroundText[0] && line.backgroundText[0].timestamp !== undefined;
@@ -3390,28 +3438,28 @@ class LySincApp {
                 domBgLines.forEach((domLine, lineIdx) => {
                     const bgWordWrapper = document.createElement('div');
                     bgWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
-                    
+
                     if (domLine.isSynced) {
                         let currentBgWordSpan = null;
-                        
+
                         domLine.text.forEach((syl, sylSubIdx) => {
                             const idx = line.backgroundText.indexOf(syl);
                             const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
                             const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
-                            
+
                             const sylSpan = document.createElement('span');
                             sylSpan.className = 'lyrics-syllable backing-vocal';
                             sylSpan.id = `bgword-${line.id}-${idx}`;
                             sylSpan.textContent = cleanText;
-                            
+
                             if (!currentBgWordSpan) {
                                 currentBgWordSpan = document.createElement('span');
                                 currentBgWordSpan.className = 'lyric-word inline-block';
                                 bgWordWrapper.appendChild(currentBgWordSpan);
                             }
-                            
+
                             currentBgWordSpan.appendChild(sylSpan);
-                            
+
                             if (hasSpace) {
                                 bgWordWrapper.appendChild(document.createTextNode(' '));
                                 currentBgWordSpan = null;
@@ -3421,9 +3469,9 @@ class LySincApp {
                         bgWordWrapper.textContent = domLine.text;
                         bgWordWrapper.className += ' backing-vocal';
                     }
-                    
+
                     bgVocal.appendChild(bgWordWrapper);
-                    
+
                     if (lineIdx < domBgLines.length - 1) {
                         bgVocal.appendChild(document.createElement('br'));
                     }
@@ -3436,7 +3484,7 @@ class LySincApp {
                 transEl.className = 'lyrics-translation-container';
                 const transText = getLineText(line, 'translation');
                 const wrappedTrans = wrapText(domCtx, transText, maxWidth);
-                
+
                 wrappedTrans.forEach((str, lineIdx) => {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
@@ -3444,15 +3492,15 @@ class LySincApp {
                     transEl.appendChild(wrapper);
                     if (lineIdx < wrappedTrans.length - 1) transEl.appendChild(document.createElement('br'));
                 });
-                
+
                 lineContainer.appendChild(transEl);
             } else if (this.currentLyricsMode === 'romanized' && line.romanizedText) {
                 const romEl = document.createElement('div');
                 romEl.className = 'lyrics-romanization-container';
-                
+
                 const romText = getLineText(line, 'romanized');
                 const wrappedRom = wrapText(domCtx, romText, maxWidth);
-                
+
                 wrappedRom.forEach((str, lineIdx) => {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
@@ -3460,7 +3508,7 @@ class LySincApp {
                     romEl.appendChild(wrapper);
                     if (lineIdx < wrappedRom.length - 1) romEl.appendChild(document.createElement('br'));
                 });
-                
+
                 lineContainer.appendChild(romEl);
             }
 
@@ -3481,7 +3529,7 @@ class LySincApp {
                 this.currentTrackArtistsRaw.forEach(artist => {
                     const artistInfo = document.createElement('div');
                     artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
-                    
+
                     const imgUrl = this.artistImages && this.artistImages[artist.id];
                     let iconHtml = '';
                     if (imgUrl) {
@@ -3495,7 +3543,7 @@ class LySincApp {
                             </div>
                         `;
                     }
-                    
+
                     artistInfo.innerHTML = `
                         ${iconHtml}
                         <span class="font-medium truncate min-w-0">${artist.name}</span>
@@ -3533,7 +3581,7 @@ class LySincApp {
             }
 
             const providerText = this.lyricsData?.source || 'Desconhecida';
-            
+
             const btnChangeSource = document.createElement('button');
             btnChangeSource.id = 'btn-change-source-inline';
             btnChangeSource.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
@@ -3565,7 +3613,7 @@ class LySincApp {
                 }
             });
             mainFlex.appendChild(btnRestartTrack);
-            
+
             // Botão do YouTube (oculto por padrão até ser populado)
             const ytBtn = document.createElement('a');
             ytBtn.id = 'youtube-video-btn';
@@ -3585,7 +3633,7 @@ class LySincApp {
             creditsBlock.appendChild(mbCopyright);
 
             this.lyricsContainer.appendChild(creditsBlock);
-            
+
             // Preenche se já tivermos dados em cache no momento da renderização
             setTimeout(() => this.updateMusicBrainzUI(), 0);
 
@@ -3598,7 +3646,7 @@ class LySincApp {
                 const available = this.lyricsData.availableSources.map(s => s.source);
                 let currentIdx = available.indexOf(this.lyricsData.source);
                 if (currentIdx === -1) currentIdx = 0;
-                
+
                 const nextIdx = (currentIdx + 1) % available.length;
                 const nextSource = this.lyricsData.availableSources[nextIdx];
 
@@ -3606,13 +3654,13 @@ class LySincApp {
                 this.lyricsData.source = nextSource.source;
                 this.currentLyricsProvider = nextSource.source;
                 this.userForcedProvider = true;
-                
+
                 this.showToast(`Fonte alterada para: ${nextSource.source}`, 'success');
 
                 this.changeLyricsMode(this.currentLyricsMode);
             });
         }
-        
+
         if (keepScroll) {
             window.scrollTo(0, currentScrollY);
             this.lastAutoScrollTime = Date.now();
@@ -3624,7 +3672,7 @@ class LySincApp {
             if (this.isPlaying && this.lastSyncTime > 0) {
                 const elapsedSinceSync = Date.now() - this.lastSyncTime;
                 const currentProgressMs = Math.min(this.progressMs + elapsedSinceSync + this.syncOffset, this.durationMs);
-                
+
                 this.updateProgressBar(currentProgressMs);
 
                 this.updateLyricsSync(currentProgressMs);
@@ -3638,7 +3686,7 @@ class LySincApp {
             }
             this.animationFrameId = requestAnimationFrame(tick);
         };
-        
+
         this.animationFrameId = requestAnimationFrame(tick);
     }
 
@@ -3655,7 +3703,7 @@ class LySincApp {
 
         const activeLines = this.lyrics.filter(line => currentProgressMs >= line.timestamp && currentProgressMs < line.endtime);
         const activeLineIds = new Set(activeLines.map(l => l.id));
-        
+
         let minActiveId = Infinity;
         if (activeLines.length > 0) {
             activeLines.forEach(l => {
@@ -3685,8 +3733,8 @@ class LySincApp {
 
         this.lyrics.forEach((line) => {
             const isActive = activeLineIds.has(line.id);
-            const isPassed = activeLines.length > 0 
-                ? line.id < minActiveId 
+            const isPassed = activeLines.length > 0
+                ? line.id < minActiveId
                 : (this.activeLineId !== null ? line.id < this.activeLineId : false);
 
             line.text.forEach((syl, idx) => {
@@ -3778,7 +3826,7 @@ class LySincApp {
                 const viewportHeight = this.pipWindow ? this.pipWindow.innerHeight : window.innerHeight;
 
                 let targetY = targetEl.getBoundingClientRect().top + this.getScrollY() - viewportHeight * 0.4 + targetEl.offsetHeight / 2;
-                
+
                 // Red line limit
                 const absoluteLineTop = targetEl.getBoundingClientRect().top + this.getScrollY();
                 const minViewportTop = window.innerWidth < 768 ? 95 : 140;
@@ -3834,13 +3882,13 @@ class LySincApp {
         const height = lineElement.offsetHeight;
 
         let targetScrollTop = absoluteLineTop - (window.innerHeight * 0.35) + (height / 2);
-        
+
         // Red line limit
         const minViewportTop = window.innerWidth < 768 ? 95 : 140;
         if (targetScrollTop > absoluteLineTop - minViewportTop) {
             targetScrollTop = absoluteLineTop - minViewportTop;
         }
-        
+
         this.lastAutoScrollTime = Date.now();
 
         this.smoothScrollTo(Math.max(0, targetScrollTop));
@@ -3857,22 +3905,22 @@ class LySincApp {
         }
 
         const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
-        
+
         const animation = (currentTime) => {
             if (startTime === null) startTime = currentTime;
             const timeElapsed = currentTime - startTime;
             const progress = Math.min(timeElapsed / duration, 1);
-            
+
             this.scrollToPosition(startPosition + distance * easeOutQuart(progress));
             this.lastAutoScrollTime = Date.now();
-            
+
             if (timeElapsed < duration) {
                 this.scrollAnimationId = this.getRaf()(animation);
             } else {
                 this.scrollAnimationId = null;
             }
         };
-        
+
         this.scrollAnimationId = this.getRaf()(animation);
     }
 
@@ -3914,7 +3962,7 @@ class LySincApp {
         const floatingMenu = document.getElementById('floating-lyrics-menu');
         const wrapper = document.getElementById('floating-controls-wrapper');
         const btnFloatingToggle = document.getElementById('btn-floating-toggle');
-        
+
         if (!topMenu || !floatingMenu || !wrapper || !btnFloatingToggle) return;
 
         if (document.body.style.cursor !== 'none') {
@@ -3932,9 +3980,9 @@ class LySincApp {
             if (document.body.style.cursor !== 'none') {
                 if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
                     btnFloatingToggle.classList.remove('hidden');
-                    
+
                     void btnFloatingToggle.offsetWidth;
-                    
+
                     btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                     btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
                 }
@@ -3944,7 +3992,7 @@ class LySincApp {
                 btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
                 btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                 this.toggleFloatingMenu(false);
-                
+
                 if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
                 this.floatingMenuTimeoutId = setTimeout(() => {
 
@@ -3974,13 +4022,13 @@ class LySincApp {
             }
             if (this.floatingToggleIconMobile) this.floatingToggleIconMobile.classList.add('scale-y-[-1]');
             if (this.floatingToggleIconDesktop) this.floatingToggleIconDesktop.classList.add('scale-x-[-1]');
-            
+
             if (this.trackinfoBox && localStorage.getItem('lysinc-trackinfo-active') === 'true') {
                 if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
                 this.trackinfoBoxDelayId = setTimeout(() => {
                     this.trackinfoBox.classList.add('open');
                     this.trackinfoBox.classList.remove('closed');
-                    
+
                     setTimeout(() => {
                         if (this.trackinfoTitle) this.setupMarquee(this.trackinfoTitle);
                         if (this.trackinfoArtist) this.setupMarquee(this.trackinfoArtist);
@@ -4010,7 +4058,7 @@ class LySincApp {
                 if (this.trackinfoBoxDelayId) clearTimeout(this.trackinfoBoxDelayId);
                 this.trackinfoBox.classList.remove('open');
                 this.trackinfoBox.classList.add('closed');
-                
+
                 this.trackinfoBoxDelayId = setTimeout(() => {
                     closeTray();
                 }, 150);
@@ -4052,7 +4100,7 @@ class LySincApp {
         if (toast) {
             const textEl = toast.querySelector('.toast-message-text');
             if (textEl) textEl.textContent = message;
-            
+
             clearTimeout(toast.removeTimeout);
             toast.removeTimeout = setTimeout(() => {
                 if (toast.classList.contains('toast-hide')) return;
@@ -4122,7 +4170,7 @@ class LySincApp {
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', popupHtml);
-        
+
         requestAnimationFrame(() => {
             const popup = document.getElementById('lysinc-metadata-popup');
             if (popup) {
