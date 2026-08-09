@@ -610,9 +610,6 @@ class LySincApp {
 
         if (this.btnConnect) {
             this.btnConnect.addEventListener('click', () => {
-                if (!Config.getClientId()) {
-                    this.showToast('O login só será efetivado devidamente se você inserir um Client ID ou usar a Conta do Sistema.', 'warning', 5000);
-                }
                 SpotifyService.login();
             });
         }
