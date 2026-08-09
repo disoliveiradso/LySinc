@@ -26,6 +26,36 @@ class SupabaseService {
     }
 
     /**
+     * Envia um relatório de erro para o servidor
+     */
+    async saveErrorReport(title, category, message, clientId = null) {
+        if (!this.client) {
+            console.warn('[LySinc 2.0] Não é possível enviar report: Supabase não conectado.');
+            return false;
+        }
+        try {
+            const { error } = await this.client
+                .from('error_reports')
+                .insert([
+                    { 
+                        title: title, 
+                        category: category, 
+                        message: message, 
+                        client_id: clientId || null
+                    }
+                ]);
+            if (error) {
+                console.error('[LySinc 2.0] Erro ao salvar report:', error.message);
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('[LySinc 2.0] Exceção ao salvar report:', error);
+            return false;
+        }
+    }
+
+    /**
      * Persiste o Client ID no Supabase (e espelha no localStorage para acesso offline rápido)
      * @param {string} clientId 
      * @param {object} profileData (opcional - e-mail, nome, avatar do Spotify)

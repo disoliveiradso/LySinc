@@ -104,29 +104,38 @@
             </p>
             
             <div class="flex flex-col items-center justify-center w-full max-w-md mb-6 px-4 space-y-4">
-                <button id="btn-connect"
-                    class="btn-spotify bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full transition-all duration-300">
+                <div class="pt-2 flex items-start space-x-3 w-full text-left mb-2">
+                    <div class="flex items-center h-5 mt-0.5">
+                        <input id="privacy-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 appearance-none checked:bg-emerald-500 checked:border-transparent relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-black before:transform before:rotate-45 before:-mt-0.5 cursor-not-allowed">
+                    </div>
+                    <div class="text-xs leading-relaxed text-white/60">
+                        Eu li e concordo com os <button id="btn-open-privacy-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso e Privacidade</button>.
+                    </div>
+                </div>
+
+                <button id="btn-connect" disabled
+                    class="btn-spotify bg-emerald-500 hover:bg-emerald-400 disabled:bg-neutral-600 disabled:text-neutral-400 disabled:cursor-not-allowed text-black font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full transition-all duration-300">
                     <svg id="btn-connect-icon" class="h-5 w-5 shrink-0" viewBox="0 0 352 352" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                         <path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C152.887 0 130.001 4.55238 108.648 13.3972C87.2944 22.242 67.8923 35.2061 51.5492 51.5492C18.5428 84.5556 0 129.322 0 176C0 222.678 18.5428 267.444 51.5492 300.451C67.8923 316.794 87.2944 329.758 108.648 338.603C130.001 347.448 152.887 352 176 352C222.678 352 267.444 333.457 300.451 300.451C333.457 267.444 352 222.678 352 176C352 152.887 347.448 130.001 338.603 108.648C329.758 87.2944 316.794 67.8923 300.451 51.5492C284.108 35.2061 264.706 22.242 243.352 13.3972C221.999 4.55238 199.113 0 176 0Z"/>
                     </svg>
                     <span class="whitespace-nowrap">Conectar com o Spotify</span>
                 </button>
 
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
-                    <button id="btn-open-client-id-flow"
-                        class="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-medium py-3 px-4 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full mt-2">
+                    <button id="btn-open-client-id-flow" disabled
+                        class="bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/5 text-white/70 hover:text-white font-medium py-3 px-4 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
                         <span>Inserir Client ID</span>
                     </button>
                     
-                    <button id="btn-login-system-account"
+                    <button id="btn-open-report-error"
                         class="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-medium py-3 px-4 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
-                        <span>Login com Sistema</span>
+                        <span>Reportar Erro</span>
                     </button>
                 </div>
             </div>
@@ -223,6 +232,15 @@
                     <label for="input-flow-client-id" class="text-xs font-semibold text-white/80 uppercase tracking-wider">Spotify Client ID</label>
                     <input id="input-flow-client-id" type="text" placeholder="Ex: 03514d3dbefe45fa9f5fc97b9e0288c5"
                         class="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-4 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors font-mono text-sm">
+                </div>
+
+                <div class="pt-2 flex items-start space-x-3 w-full text-left mt-2">
+                    <div class="flex items-center h-5 mt-0.5">
+                        <input id="step2-privacy-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 appearance-none checked:bg-emerald-500 checked:border-transparent relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-black before:transform before:rotate-45 before:-mt-0.5 cursor-not-allowed">
+                    </div>
+                    <div class="text-xs leading-relaxed text-white/60">
+                        Eu li e concordo com os <button id="btn-step2-open-privacy-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso e Privacidade</button>.
+                    </div>
                 </div>
 
                 <div class="flex space-x-3 pt-2">
@@ -717,6 +735,136 @@
                 </svg>
                 <span>Voltar ao Início</span>
             </button>
+        </section>
+
+        <!-- TELA DE REPORTAR ERRO -->
+        <section id="screen-report-error" class="hidden flex-1 flex flex-col items-center justify-center pt-8 md:pt-16 pb-12 px-4 max-w-2xl mx-auto w-full text-left space-y-6">
+            <button id="btn-report-back" class="text-white/60 hover:text-white transition-colors text-xs font-semibold flex items-center space-x-1.5 self-start mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar ao início</span>
+            </button>
+
+            <div class="w-full flex flex-col space-y-5">
+                <div class="flex items-center space-x-3 text-orange-400">
+                    <div class="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold tracking-tight text-white">Reportar Erro</h3>
+                </div>
+                <p class="text-white/70 text-sm leading-relaxed">
+                    Encontrou algum problema? Preencha os campos abaixo para nos ajudar a melhorar o LySinc.
+                </p>
+
+                <div class="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
+                    <div class="space-y-2">
+                        <label for="report-title" class="text-xs font-semibold text-white/80 uppercase tracking-wider block">Título</label>
+                        <input type="text" id="report-title" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors" placeholder="Ex: Letra não sincroniza" required>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label for="report-category" class="text-xs font-semibold text-white/80 uppercase tracking-wider block">Categoria do Erro</label>
+                        <select id="report-category" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50 transition-colors appearance-none cursor-pointer" required>
+                            <option value="" disabled selected>Selecione uma categoria...</option>
+                            <option value="login">Erro no Login</option>
+                            <option value="letras">Erro nas Letras (Sincronização/Busca)</option>
+                            <option value="interface">Erro na Interface Visual</option>
+                            <option value="desempenho">Lentidão / Travamento</option>
+                            <option value="outro">Outro Problema</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="report-message" class="text-xs font-semibold text-white/80 uppercase tracking-wider block">Detalhes do Erro</label>
+                        <textarea id="report-message" rows="4" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors resize-none" placeholder="Descreva com o máximo de detalhes como reproduzir o erro..." required></textarea>
+                    </div>
+
+                    <div class="pt-2 border-t border-white/10 flex items-start space-x-3 mt-4">
+                        <div class="flex items-center h-5">
+                            <input id="report-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/20 bg-black/40 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 appearance-none checked:bg-emerald-500 checked:border-transparent relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-black before:transform before:rotate-45 before:-mt-0.5 cursor-not-allowed">
+                        </div>
+                        <div class="text-xs leading-relaxed text-white/60">
+                            Eu li e concordo com os <button id="btn-open-feedback-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Envio de Feedback</button>. Entendo que o não cumprimento pode resultar em banimento.
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-submit-report" disabled
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 disabled:bg-neutral-600 disabled:text-neutral-400 disabled:cursor-not-allowed text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
+                    <span>Enviar Relatório</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- TELA DE TERMOS DE FEEDBACK -->
+        <section id="screen-terms-feedback" class="hidden flex-1 flex flex-col items-center justify-center pt-8 md:pt-16 pb-12 px-4 max-w-2xl mx-auto w-full text-left space-y-6">
+            <button id="btn-terms-feedback-back" class="text-white/60 hover:text-white transition-colors text-xs font-semibold flex items-center space-x-1.5 self-start mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar ao Formulário</span>
+            </button>
+
+            <div class="w-full flex flex-col space-y-5">
+                <h3 class="text-2xl font-bold tracking-tight text-white">Termos de Envio de Feedback</h3>
+                
+                <div class="glass-panel rounded-3xl p-6 border border-white/10 space-y-4 text-white/80 text-sm leading-relaxed max-h-[50vh] overflow-y-auto modal-scrollbar">
+                    <p>Ao utilizar nosso formulário de reporte de erros e feedback, você concorda com as seguintes regras:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Propósito:</strong> O canal serve única e exclusivamente para reportar erros técnicos, falhas de interface ou problemas na busca de letras.</li>
+                        <li><strong>Respeito:</strong> É expressamente proibido o uso de palavras de baixo calão, xingamentos, racismo, xenofobia, homofobia ou qualquer outro tipo de discurso de ódio.</li>
+                        <li><strong>Spam:</strong> Não envie o mesmo reporte múltiplas vezes nem utilize a ferramenta para enviar mensagens não relacionadas ao aplicativo.</li>
+                        <li><strong>Privacidade:</strong> Não inclua dados sensíveis ou senhas nos detalhes do erro. O seu Client ID (caso possua) e o e-mail do Spotify podem ser vinculados ao reporte para facilitar o suporte técnico.</li>
+                        <li><strong>Consequências:</strong> O não cumprimento destas regras resultará no banimento permanente do seu Client ID e IP para utilizar o LySinc, sem aviso prévio.</li>
+                    </ul>
+                </div>
+
+                <button id="btn-accept-feedback-terms"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Eu li e concordo com os Termos</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- TELA DE TERMOS DE PRIVACIDADE E SEGURANÇA -->
+        <section id="screen-terms-privacy" class="hidden flex-1 flex flex-col items-center justify-center pt-8 md:pt-16 pb-12 px-4 max-w-2xl mx-auto w-full text-left space-y-6">
+            <button id="btn-terms-privacy-back" class="text-white/60 hover:text-white transition-colors text-xs font-semibold flex items-center space-x-1.5 self-start mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar</span>
+            </button>
+
+            <div class="w-full flex flex-col space-y-5">
+                <h3 class="text-2xl font-bold tracking-tight text-white">Termos de Uso e Privacidade</h3>
+                
+                <div class="glass-panel rounded-3xl p-6 border border-white/10 space-y-4 text-white/80 text-sm leading-relaxed max-h-[50vh] overflow-y-auto modal-scrollbar">
+                    <p>Antes de utilizar o LySinc, você deve ler e concordar com os seguintes pontos:</p>
+                    <ul class="list-disc pl-5 space-y-3">
+                        <li><strong>Uso do Spotify:</strong> O LySinc se conecta à sua conta do Spotify através da Web API oficial para ler a música que você está ouvindo no momento. Nós não alteramos suas playlists, nem temos acesso à sua senha.</li>
+                        <li><strong>Letras de Músicas:</strong> O LySinc não armazena, produz ou comercializa letras de músicas. Nosso sistema atua apenas como um buscador que exibe dados obtidos em tempo real de fontes de terceiros (como Vagalume, LyricsOVH, etc). Todos os direitos autorais pertencem exclusivamente aos seus respectivos compositores.</li>
+                        <li><strong>Banco de Dados (Supabase):</strong> Caso você decida cadastrar seu próprio Client ID, ele será salvo em nosso banco de dados no Supabase para facilitar seus futuros logins, vinculando-o de forma segura à sua conta do Spotify.</li>
+                        <li><strong>Uso Gratuito e Código Aberto:</strong> Este é um projeto de código aberto sem fins lucrativos. Não nos responsabilizamos por falhas momentâneas das APIs de letras ou do Spotify.</li>
+                    </ul>
+                </div>
+
+                <button id="btn-accept-privacy-terms"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Eu li e concordo com os Termos</span>
+                </button>
+            </div>
         </section>
 
         <footer class="text-center text-white/30 text-xs py-6 flex flex-col items-center justify-center space-y-3">

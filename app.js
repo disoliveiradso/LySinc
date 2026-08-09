@@ -246,6 +246,9 @@ class LySincApp {
         this.screenMain = document.getElementById('screen-main');
         this.screenIdle = document.getElementById('screen-idle');
         this.screenError = document.getElementById('screen-error');
+        this.screenReportError = document.getElementById('screen-report-error');
+        this.screenTermsFeedback = document.getElementById('screen-terms-feedback');
+        this.screenTermsPrivacy = document.getElementById('screen-terms-privacy');
         this.errorScreenMessage = document.getElementById('error-screen-message');
         this.btnErrorBackHome = document.getElementById('btn-error-back-home');
 
@@ -326,10 +329,26 @@ class LySincApp {
 
         // Client ID 3-Step Full Page Flow & System Account Modal Elements
         this.btnOpenClientIdFlow = document.getElementById('btn-open-client-id-flow');
-        this.btnLoginSystemAccount = document.getElementById('btn-login-system-account');
-        this.systemAccountModal = document.getElementById('system-account-modal');
-        this.btnCancelSystemLogin = document.getElementById('btn-cancel-system-login');
-        this.btnConfirmSystemLogin = document.getElementById('btn-confirm-system-login');
+        // Report Error Flow & Terms
+        this.btnOpenReportError = document.getElementById('btn-open-report-error');
+        this.btnReportBack = document.getElementById('btn-report-back');
+        this.reportTitle = document.getElementById('report-title');
+        this.reportCategory = document.getElementById('report-category');
+        this.reportMessage = document.getElementById('report-message');
+        this.btnSubmitReport = document.getElementById('btn-submit-report');
+        this.reportTermsCheckbox = document.getElementById('report-terms-checkbox');
+        
+        // Terms & Privacy Screens
+        this.btnOpenFeedbackTerms = document.getElementById('btn-open-feedback-terms');
+        this.btnTermsFeedbackBack = document.getElementById('btn-terms-feedback-back');
+        this.btnAcceptFeedbackTerms = document.getElementById('btn-accept-feedback-terms');
+        
+        this.privacyTermsCheckbox = document.getElementById('privacy-terms-checkbox');
+        this.step2PrivacyTermsCheckbox = document.getElementById('step2-privacy-terms-checkbox');
+        this.btnOpenPrivacyTerms = document.getElementById('btn-open-privacy-terms');
+        this.btnStep2OpenPrivacyTerms = document.getElementById('btn-step2-open-privacy-terms');
+        this.btnTermsPrivacyBack = document.getElementById('btn-terms-privacy-back');
+        this.btnAcceptPrivacyTerms = document.getElementById('btn-accept-privacy-terms');
         this.btnFlowStep1Back = document.getElementById('btn-flow-step1-back');
         this.btnFlowStep1Next = document.getElementById('btn-flow-step1-next');
         this.btnFlowStep2BackTop = document.getElementById('btn-flow-step2-back-top');
@@ -392,8 +411,9 @@ class LySincApp {
         this.isUserInteracting = false;
         this.userScrollTimeout = null;
         this.lastAutoScrollTime = 0;
-
-        window.showToast = (message, type) => this.showToast(message, type);
+        
+        this.hasAcceptedFeedback = false;
+        this.hasAcceptedPrivacy = false;        window.showToast = (message, type) => this.showToast(message, type);
 
         this.init();
     }
@@ -509,9 +529,7 @@ class LySincApp {
     }
 
     setupEventListeners() {
-        document.addEventListener('copy', () => {
-            this.showToast('Copiado para a área de transferência', 'success');
-        });
+        // Listener global de cópia removido conforme solicitação
 
         const btnCopyClientId = document.getElementById('btn-copy-client-id');
         if (btnCopyClientId) {
@@ -670,9 +688,9 @@ class LySincApp {
 
         if (this.idleBtnRemoveClientId) {
             this.idleBtnRemoveClientId.addEventListener('click', () => {
-                if (this.confirmRemoveClientIdModal) {
-                    this.confirmRemoveClientIdModal.classList.remove('hidden');
-                    this.confirmRemoveClientIdModal.classList.add('flex');
+                if (this.removeClientIdOptionsModal) {
+                    this.removeClientIdOptionsModal.classList.remove('hidden');
+                    this.removeClientIdOptionsModal.classList.add('flex');
                 }
             });
         }
@@ -772,18 +790,7 @@ class LySincApp {
         }
         if (this.inputFlowClientId) {
             this.inputFlowClientId.addEventListener('input', (e) => {
-                const val = e.target.value.trim();
-                if (val.length > 5) {
-                    if (this.btnFlowStep2Save) {
-                        this.btnFlowStep2Save.classList.remove('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
-                        this.btnFlowStep2Save.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
-                    }
-                } else {
-                    if (this.btnFlowStep2Save) {
-                        this.btnFlowStep2Save.classList.add('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
-                        this.btnFlowStep2Save.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
-                    }
-                }
+                this.updateStep2SaveButtonState();
             });
         }
         if (this.btnFlowStep2Save) {
@@ -800,6 +807,101 @@ class LySincApp {
             this.btnFlowStep3Finish.addEventListener('click', () => {
                 this.updateLoginButtonsState();
                 SpotifyService.login();
+            });
+        }
+
+        if (this.btnOpenReportError) {
+            this.btnOpenReportError.addEventListener('click', () => this.showScreen('report-error'));
+        }
+        if (this.btnReportBack) {
+            this.btnReportBack.addEventListener('click', () => {
+                this.resetReportForm();
+                this.showScreen('pre-login');
+            });
+        }
+        
+        // Listeners for terms screens
+        if (this.btnOpenFeedbackTerms) {
+            this.btnOpenFeedbackTerms.addEventListener('click', () => this.showScreen('terms-feedback'));
+        }
+        if (this.btnTermsFeedbackBack) {
+            this.btnTermsFeedbackBack.addEventListener('click', () => this.showScreen('report-error'));
+        }
+        if (this.btnAcceptFeedbackTerms) {
+            this.btnAcceptFeedbackTerms.addEventListener('click', () => {
+                this.hasAcceptedFeedback = true;
+                if (this.reportTermsCheckbox) this.reportTermsCheckbox.checked = true;
+                this.updateReportSubmitButtonState();
+                this.showScreen('report-error');
+            });
+        }
+
+        if (this.btnOpenPrivacyTerms) {
+            this.btnOpenPrivacyTerms.addEventListener('click', () => this.showScreen('terms-privacy'));
+        }
+        if (this.btnStep2OpenPrivacyTerms) {
+            this.btnStep2OpenPrivacyTerms.addEventListener('click', () => this.showScreen('terms-privacy'));
+        }
+        if (this.btnTermsPrivacyBack) {
+            this.btnTermsPrivacyBack.addEventListener('click', () => {
+                if (this.previousScreen) this.showScreen(this.previousScreen);
+                else this.showScreen('pre-login');
+            });
+        }
+        if (this.btnAcceptPrivacyTerms) {
+            this.btnAcceptPrivacyTerms.addEventListener('click', () => {
+                this.hasAcceptedPrivacy = true;
+                if (this.privacyTermsCheckbox) this.privacyTermsCheckbox.checked = true;
+                if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = true;
+                
+                if (this.btnConnect) {
+                    this.btnConnect.disabled = false;
+                    this.btnConnect.classList.remove('disabled:bg-neutral-600', 'disabled:text-neutral-400', 'disabled:cursor-not-allowed');
+                }
+                
+                if (this.btnFlowStep2Save) {
+                    this.updateStep2SaveButtonState();
+                }
+                
+                if (this.previousScreen) this.showScreen(this.previousScreen);
+                else this.showScreen('pre-login');
+            });
+        }
+        
+        // Report Form Logic
+        if (this.reportTitle && this.reportCategory && this.reportMessage) {
+            const checkForm = () => this.updateReportSubmitButtonState();
+            this.reportTitle.addEventListener('input', checkForm);
+            this.reportCategory.addEventListener('change', checkForm);
+            this.reportMessage.addEventListener('input', checkForm);
+        }
+        
+        if (this.btnSubmitReport) {
+            this.btnSubmitReport.addEventListener('click', async () => {
+                const title = this.reportTitle.value.trim();
+                const category = this.reportCategory.value;
+                const message = this.reportMessage.value.trim();
+                
+                if (!title || !category || !message || !this.hasAcceptedFeedback) return;
+                
+                const btn = this.btnSubmitReport;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="flex items-center space-x-2"><svg class="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Enviando...</span></span>';
+                
+                const clientId = Config.getClientId();
+                const success = await SupabaseService.saveErrorReport(title, category, message, clientId);
+                
+                if (success) {
+                    this.showToast('Relatório enviado com sucesso! Obrigado pelo feedback.', 'success');
+                    this.resetReportForm();
+                    this.showScreen('pre-login');
+                } else {
+                    this.showToast('Erro ao enviar relatório. Tente novamente mais tarde.', 'error');
+                }
+                
+                btn.innerHTML = originalText;
+                this.updateReportSubmitButtonState();
             });
         }
 
@@ -2386,6 +2488,48 @@ class LySincApp {
         }
     }
 
+    resetReportForm() {
+        if (this.reportTitle) this.reportTitle.value = '';
+        if (this.reportCategory) this.reportCategory.value = '';
+        if (this.reportMessage) this.reportMessage.value = '';
+        if (this.reportTermsCheckbox) this.reportTermsCheckbox.checked = false;
+        this.hasAcceptedFeedback = false;
+        this.updateReportSubmitButtonState();
+    }
+
+    updateReportSubmitButtonState() {
+        if (this.btnSubmitReport) {
+            const isTitleValid = this.reportTitle && this.reportTitle.value.trim().length > 0;
+            const isCategoryValid = this.reportCategory && this.reportCategory.value.length > 0;
+            const isMessageValid = this.reportMessage && this.reportMessage.value.trim().length > 0;
+            
+            if (isTitleValid && isCategoryValid && isMessageValid && this.hasAcceptedFeedback) {
+                this.btnSubmitReport.disabled = false;
+                this.btnSubmitReport.classList.remove('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
+                this.btnSubmitReport.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+            } else {
+                this.btnSubmitReport.disabled = true;
+                this.btnSubmitReport.classList.add('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
+                this.btnSubmitReport.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+            }
+        }
+    }
+
+    updateStep2SaveButtonState() {
+        const val = this.inputFlowClientId ? this.inputFlowClientId.value.trim() : '';
+        if (val.length > 5 && this.hasAcceptedPrivacy) {
+            if (this.btnFlowStep2Save) {
+                this.btnFlowStep2Save.classList.remove('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
+                this.btnFlowStep2Save.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+            }
+        } else {
+            if (this.btnFlowStep2Save) {
+                this.btnFlowStep2Save.classList.add('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
+                this.btnFlowStep2Save.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+            }
+        }
+    }
+
     changeLyricsFontSize(delta) {
         this.lyricsFontScale = Math.min(1.8, Math.max(0.7, parseFloat((this.lyricsFontScale + delta).toFixed(1))));
         localStorage.setItem('lysinc_lyrics_font_scale', this.lyricsFontScale);
@@ -2573,6 +2717,12 @@ class LySincApp {
     }
 
     showScreen(screenName) {
+        // Track previous screen if it's not a terms screen
+        if (this.currentScreen && this.currentScreen !== 'terms-feedback' && this.currentScreen !== 'terms-privacy') {
+            this.previousScreen = this.currentScreen;
+        }
+        this.currentScreen = screenName;
+
         if (this.screenPreLogin) this.screenPreLogin.classList.add('hidden');
         if (this.screenFlowStep1) this.screenFlowStep1.classList.add('hidden');
         if (this.screenFlowStep2) this.screenFlowStep2.classList.add('hidden');
@@ -2580,6 +2730,9 @@ class LySincApp {
         if (this.screenMain) this.screenMain.classList.add('hidden');
         if (this.screenIdle) this.screenIdle.classList.add('hidden');
         if (this.screenError) this.screenError.classList.add('hidden');
+        if (this.screenReportError) this.screenReportError.classList.add('hidden');
+        if (this.screenTermsFeedback) this.screenTermsFeedback.classList.add('hidden');
+        if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.add('hidden');
 
         if (screenName === 'pre-login') {
             if (this.screenPreLogin) this.screenPreLogin.classList.remove('hidden');
@@ -2595,6 +2748,12 @@ class LySincApp {
             if (this.screenIdle) this.screenIdle.classList.remove('hidden');
         } else if (screenName === 'error') {
             if (this.screenError) this.screenError.classList.remove('hidden');
+        } else if (screenName === 'report-error') {
+            if (this.screenReportError) this.screenReportError.classList.remove('hidden');
+        } else if (screenName === 'terms-feedback') {
+            if (this.screenTermsFeedback) this.screenTermsFeedback.classList.remove('hidden');
+        } else if (screenName === 'terms-privacy') {
+            if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.remove('hidden');
         }
         window.scrollTo(0, 0);
     }
