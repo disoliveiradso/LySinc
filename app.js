@@ -500,6 +500,10 @@ class LySincApp {
     }
 
     setupEventListeners() {
+        document.addEventListener('copy', () => {
+            this.showToast('Copiado para a área de transferência', 'success');
+        });
+
         const btnCopyClientId = document.getElementById('btn-copy-client-id');
         if (btnCopyClientId) {
             btnCopyClientId.addEventListener('click', () => {
