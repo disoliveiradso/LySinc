@@ -361,6 +361,10 @@ class LySincApp {
         this.btnRemoveLocalOnly = document.getElementById('btn-remove-local-only');
         this.btnRemoveBoth = document.getElementById('btn-remove-both');
         this.btnCancelRemoveOptions = document.getElementById('btn-cancel-remove-options');
+        
+        this.missingClientIdModal = document.getElementById('missing-client-id-modal');
+        this.btnMissingClientIdCreate = document.getElementById('btn-missing-client-id-create');
+        this.btnMissingClientIdCancel = document.getElementById('btn-missing-client-id-cancel');
 
         this.btnOpenRepos = document.getElementById('btn-open-repos');
         this.btnReposClose = document.getElementById('btn-repos-close');
@@ -820,6 +824,24 @@ class LySincApp {
                         this.systemAccountModal.classList.remove('hidden');
                         this.systemAccountModal.classList.add('flex');
                     }
+                }
+            });
+        }
+
+        if (this.btnMissingClientIdCreate) {
+            this.btnMissingClientIdCreate.addEventListener('click', () => {
+                if (this.missingClientIdModal) {
+                    this.missingClientIdModal.classList.add('hidden');
+                    this.missingClientIdModal.classList.remove('flex');
+                }
+                this.showScreen('flow-step-1');
+            });
+        }
+        if (this.btnMissingClientIdCancel) {
+            this.btnMissingClientIdCancel.addEventListener('click', () => {
+                if (this.missingClientIdModal) {
+                    this.missingClientIdModal.classList.add('hidden');
+                    this.missingClientIdModal.classList.remove('flex');
                 }
             });
         }
@@ -2505,6 +2527,11 @@ class LySincApp {
                         SpotifyService.login();
                     }, 2000);
                     return; // Stop rendering, page will reload
+                } else if (!recoveredId) {
+                    if (this.missingClientIdModal) {
+                        this.missingClientIdModal.classList.remove('hidden');
+                        this.missingClientIdModal.classList.add('flex');
+                    }
                 }
             } else if (currentClientId !== systemId) {
                 // Se está usando um Client ID próprio, atualiza/vincula no Supabase
