@@ -180,6 +180,8 @@ const SpotifyService = {
         localStorage.removeItem(this.ACCESS_TOKEN_KEY);
         localStorage.removeItem(this.REFRESH_TOKEN_KEY);
         localStorage.removeItem(this.EXPIRES_AT_KEY);
+        localStorage.removeItem('lysinc_accepted_privacy');
+        localStorage.removeItem('lysinc_accepted_client_id_terms');
     },
 
     // Desconecta o usuário limpando as chaves e recarregando a página

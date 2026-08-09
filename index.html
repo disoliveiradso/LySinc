@@ -102,19 +102,20 @@
                 Veja as letras das músicas do Spotify sincronizadas palavra por palavra em tempo real, com o estilo
                 visual fluido do Apple Music.
             </p>
-            
-            <div class="flex flex-col items-center justify-center w-full max-w-md mb-6 px-4 space-y-4">
-                <button id="btn-connect" disabled
-                    class="btn-spotify bg-emerald-500 hover:bg-emerald-400 disabled:bg-neutral-600 disabled:text-neutral-400 disabled:cursor-not-allowed text-black font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full transition-all duration-300">
-                    <svg id="btn-connect-icon" class="h-5 w-5 shrink-0" viewBox="0 0 352 352" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C152.887 0 130.001 4.55238 108.648 13.3972C87.2944 22.242 67.8923 35.2061 51.5492 51.5492C18.5428 84.5556 0 129.322 0 176C0 222.678 18.5428 267.444 51.5492 300.451C67.8923 316.794 87.2944 329.758 108.648 338.603C130.001 347.448 152.887 352 176 352C222.678 352 267.444 333.457 300.451 300.451C333.457 267.444 352 222.678 352 176C352 152.887 347.448 130.001 338.603 108.648C329.758 87.2944 316.794 67.8923 300.451 51.5492C284.108 35.2061 264.706 22.242 243.352 13.3972C221.999 4.55238 199.113 0 176 0Z"/>
-                    </svg>
-                    <span class="whitespace-nowrap">Conectar com o Spotify</span>
-                </button>
+                   <div class="flex flex-col items-center justify-center w-full max-w-md mb-6 px-4 space-y-4">
+                <div id="wrapper-btn-connect" class="w-full relative" data-tooltip-follow="Você precisa aceitar os termos primeiro">
+                    <button id="btn-connect" disabled
+                        class="btn-spotify bg-emerald-500 hover:bg-emerald-400 disabled:bg-neutral-600 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:pointer-events-none text-black font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full transition-all duration-300">
+                        <svg id="btn-connect-icon" class="h-5 w-5 shrink-0" viewBox="0 0 352 352" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C152.887 0 130.001 4.55238 108.648 13.3972C87.2944 22.242 67.8923 35.2061 51.5492 51.5492C18.5428 84.5556 0 129.322 0 176C0 222.678 18.5428 267.444 51.5492 300.451C67.8923 316.794 87.2944 329.758 108.648 338.603C130.001 347.448 152.887 352 176 352C222.678 352 267.444 333.457 300.451 300.451C333.457 267.444 352 222.678 352 176C352 152.887 347.448 130.001 338.603 108.648C329.758 87.2944 316.794 67.8923 300.451 51.5492C284.108 35.2061 264.706 22.242 243.352 13.3972C221.999 4.55238 199.113 0 176 0Z"/>
+                        </svg>
+                        <span class="whitespace-nowrap">Conectar com o Spotify</span>
+                    </button>
+                </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full mt-2">
-                    <button id="btn-open-client-id-flow" disabled
-                        class="bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/5 text-white/70 hover:text-white font-medium py-3 px-4 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
+                    <button id="btn-open-client-id-flow"
+                        class="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-medium py-3 px-4 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
@@ -131,8 +132,8 @@
                 </div>
 
                 <div class="pt-4 flex items-start space-x-3 w-full text-left">
-                    <div class="flex items-center h-5 mt-0.5">
-                        <input id="privacy-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/40 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 appearance-none checked:bg-emerald-500 checked:border-transparent relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-black before:transform before:rotate-45 before:-mt-0.5 cursor-not-allowed">
+                    <div id="wrapper-privacy-terms-checkbox" class="flex items-center h-4 mt-[1px] cursor-pointer shrink-0">
+                        <input id="privacy-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/40 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 pointer-events-none accent-emerald-500 cursor-pointer">
                     </div>
                     <div class="text-xs leading-relaxed text-white/60">
                         Eu li e concordo com os <button id="btn-open-privacy-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso e Privacidade</button>.
@@ -235,11 +236,11 @@
                 </div>
 
                 <div class="pt-2 flex items-start space-x-3 w-full text-left mt-2">
-                    <div class="flex items-center h-5 mt-0.5">
-                        <input id="step2-privacy-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/40 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 appearance-none checked:bg-emerald-500 checked:border-transparent relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-black before:transform before:rotate-45 before:-mt-0.5 cursor-not-allowed">
+                    <div id="wrapper-step2-privacy-terms-checkbox" class="flex items-center h-4 mt-[1px] cursor-pointer shrink-0">
+                        <input id="step2-privacy-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/40 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 pointer-events-none accent-emerald-500 cursor-pointer">
                     </div>
                     <div class="text-xs leading-relaxed text-white/60">
-                        Eu li e concordo com os <button id="btn-step2-open-privacy-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso e Privacidade</button>.
+                        Eu li e concordo com os <button id="btn-step2-open-client-id-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso do Client ID</button>.
                     </div>
                 </div>
 
@@ -606,13 +607,15 @@
                 </div>
 
                 <div class="flex space-x-3 pt-2">
-                    <button id="btn-flow-step2-save"
-                        class="flex-1 bg-neutral-600 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 opacity-50 pointer-events-none">
-                        <span>Salvar Client ID</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </button>
+                    <div id="wrapper-btn-step2-save" class="flex-1 relative" data-tooltip-follow="Você precisa inserir o Client ID e aceitar os termos.">
+                        <button id="btn-flow-step2-save"
+                            class="w-full bg-neutral-600 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 opacity-50 pointer-events-none">
+                            <span>Salvar Client ID</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -788,8 +791,8 @@
                     </div>
 
                     <div class="pt-2 border-t border-white/10 flex items-start space-x-3 mt-4">
-                        <div class="flex items-center h-5">
-                            <input id="report-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/40 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 appearance-none checked:bg-emerald-500 checked:border-transparent relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-black before:transform before:rotate-45 before:-mt-0.5 cursor-not-allowed">
+                        <div id="wrapper-report-terms-checkbox" class="flex items-center h-4 mt-[1px] cursor-pointer shrink-0">
+                            <input id="report-terms-checkbox" type="checkbox" disabled class="w-4 h-4 rounded border-white/40 bg-neutral-800 text-emerald-500 focus:ring-emerald-500/50 focus:ring-offset-gray-900 pointer-events-none accent-emerald-500 cursor-pointer">
                         </div>
                         <div class="text-xs leading-relaxed text-white/60">
                             Eu li e concordo com os <button id="btn-open-feedback-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Envio de Feedback</button>. Entendo que o não cumprimento pode resultar em banimento.
@@ -852,17 +855,47 @@
             <div class="w-full flex flex-col space-y-5">
                 <h3 class="text-2xl font-bold tracking-tight text-white">Termos de Uso e Privacidade</h3>
                 
-                <div class="space-y-4 text-white/80 text-sm leading-relaxed max-h-[50vh] overflow-y-auto modal-scrollbar w-full">
+                <div class="space-y-4 text-white/80 text-sm leading-relaxed w-full">
                     <p>Antes de utilizar o LySinc, você deve ler e concordar com os seguintes pontos:</p>
                     <ul class="list-disc pl-5 space-y-3">
                         <li><strong>Uso do Spotify:</strong> O LySinc se conecta à sua conta do Spotify através da Web API oficial para ler a música que você está ouvindo no momento. Nós não alteramos suas playlists, nem temos acesso à sua senha.</li>
                         <li><strong>Letras de Músicas:</strong> O LySinc não armazena, produz ou comercializa letras de músicas. Nosso sistema atua apenas como um buscador que exibe dados obtidos em tempo real de fontes de terceiros (como Vagalume, LyricsOVH, etc). Todos os direitos autorais pertencem exclusivamente aos seus respectivos compositores. O LySinc se limita somente a exibir as letras.</li>
-                        <li><strong>Banco de Dados (Supabase):</strong> Caso você decida cadastrar seu próprio Client ID, ele será salvo em nosso banco de dados no Supabase para facilitar seus futuros logins, vinculando-o de forma segura à sua conta do Spotify.</li>
                         <li><strong>Uso Gratuito e Responsabilidade:</strong> Este é um projeto de código aberto sem fins lucrativos. Cada usuário se responsabiliza inteiramente pelo uso do site, do repositório e das letras exibidas. Não nos responsabilizamos por falhas momentâneas das APIs de letras ou do Spotify.</li>
                     </ul>
                 </div>
 
                 <button id="btn-accept-privacy-terms"
+                    class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Eu li e concordo com os Termos</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- TELA DE TERMOS DE CLIENT ID -->
+        <section id="screen-terms-client-id" class="hidden flex-1 flex flex-col items-center justify-center pt-8 md:pt-16 pb-12 px-4 max-w-2xl mx-auto w-full text-left space-y-6">
+            <button id="btn-terms-client-id-back" class="text-white/60 hover:text-white transition-colors text-xs font-semibold flex items-center space-x-1.5 self-start mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Voltar</span>
+            </button>
+
+            <div class="w-full flex flex-col space-y-5">
+                <h3 class="text-2xl font-bold tracking-tight text-white">Termos de Uso do Client ID</h3>
+                
+                <div class="space-y-4 text-white/80 text-sm leading-relaxed w-full">
+                    <p>Antes de prosseguir com o armazenamento do seu Client ID, você deve concordar com as seguintes regras:</p>
+                    <ul class="list-disc pl-5 space-y-3">
+                        <li><strong>Armazenamento:</strong> O seu Client ID será salvo em nosso banco de dados no Supabase. Isso serve unicamente para facilitar e manter o seu login contínuo, vinculando-o à sua conta do Spotify de forma segura.</li>
+                        <li><strong>Responsabilidade e Exclusividade:</strong> O uso do Client ID é exclusivo e de inteira responsabilidade do usuário, não nos responsabilizamos pelo mau uso ou bloqueio do aplicativo no painel do desenvolvedor do Spotify.</li>
+                        <li><strong>Remoção:</strong> A qualquer momento, você pode excluir sua conta através do painel de configurações, o que apagará permanentemente o seu Client ID e e-mail do nosso banco de dados e do seu navegador.</li>
+                    </ul>
+                </div>
+
+                <button id="btn-accept-client-id-terms"
                     class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 mt-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

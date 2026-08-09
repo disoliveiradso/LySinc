@@ -249,6 +249,7 @@ class LySincApp {
         this.screenReportError = document.getElementById('screen-report-error');
         this.screenTermsFeedback = document.getElementById('screen-terms-feedback');
         this.screenTermsPrivacy = document.getElementById('screen-terms-privacy');
+        this.screenTermsClientId = document.getElementById('screen-terms-client-id');
         this.errorScreenMessage = document.getElementById('error-screen-message');
         this.btnErrorBackHome = document.getElementById('btn-error-back-home');
 
@@ -337,6 +338,7 @@ class LySincApp {
         this.reportMessage = document.getElementById('report-message');
         this.btnSubmitReport = document.getElementById('btn-submit-report');
         this.reportTermsCheckbox = document.getElementById('report-terms-checkbox');
+        this.wrapperReportTermsCheckbox = document.getElementById('wrapper-report-terms-checkbox');
         
         // Terms & Privacy Screens
         this.btnOpenFeedbackTerms = document.getElementById('btn-open-feedback-terms');
@@ -344,11 +346,15 @@ class LySincApp {
         this.btnAcceptFeedbackTerms = document.getElementById('btn-accept-feedback-terms');
         
         this.privacyTermsCheckbox = document.getElementById('privacy-terms-checkbox');
+        this.wrapperPrivacyTermsCheckbox = document.getElementById('wrapper-privacy-terms-checkbox');
         this.step2PrivacyTermsCheckbox = document.getElementById('step2-privacy-terms-checkbox');
+        this.wrapperStep2PrivacyTermsCheckbox = document.getElementById('wrapper-step2-privacy-terms-checkbox');
         this.btnOpenPrivacyTerms = document.getElementById('btn-open-privacy-terms');
-        this.btnStep2OpenPrivacyTerms = document.getElementById('btn-step2-open-privacy-terms');
+        this.btnStep2OpenClientIdTerms = document.getElementById('btn-step2-open-client-id-terms');
         this.btnTermsPrivacyBack = document.getElementById('btn-terms-privacy-back');
         this.btnAcceptPrivacyTerms = document.getElementById('btn-accept-privacy-terms');
+        this.btnTermsClientIdBack = document.getElementById('btn-terms-client-id-back');
+        this.btnAcceptClientIdTerms = document.getElementById('btn-accept-client-id-terms');
         this.btnFlowStep1Back = document.getElementById('btn-flow-step1-back');
         this.btnFlowStep1Next = document.getElementById('btn-flow-step1-next');
         this.btnFlowStep2BackTop = document.getElementById('btn-flow-step2-back-top');
@@ -413,7 +419,8 @@ class LySincApp {
         this.lastAutoScrollTime = 0;
         
         this.hasAcceptedFeedback = false;
-        this.hasAcceptedPrivacy = false;        window.showToast = (message, type) => this.showToast(message, type);
+        this.hasAcceptedPrivacy = false;
+        this.hasAcceptedClientIdTerms = false;        window.showToast = (message, type) => this.showToast(message, type);
 
         this.init();
     }
@@ -441,6 +448,25 @@ class LySincApp {
     async init() {
         try {
             console.log("%c LySinc v2.0 - Sincronização & Supabase Ativos ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
+            
+            const acceptedPrivacy = localStorage.getItem('lysinc_accepted_privacy') === 'true';
+            if (acceptedPrivacy) {
+                this.hasAcceptedPrivacy = true;
+                if (this.privacyTermsCheckbox) this.privacyTermsCheckbox.checked = true;
+                if (this.btnConnect) {
+                    this.btnConnect.disabled = false;
+                    this.btnConnect.classList.remove('disabled:bg-neutral-600', 'disabled:text-neutral-400', 'disabled:cursor-not-allowed', 'disabled:pointer-events-none');
+                    const wrapper = document.getElementById('wrapper-btn-connect');
+                    if (wrapper) wrapper.removeAttribute('data-tooltip-follow');
+                }
+            }
+            
+            const acceptedClientIdTerms = localStorage.getItem('lysinc_accepted_client_id_terms') === 'true';
+            if (acceptedClientIdTerms) {
+                this.hasAcceptedClientIdTerms = true;
+                if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = true;
+            }
+            
             this.setupEventListeners();
             this.loadSettings();
             this.updateLoginButtonsState();
@@ -470,10 +496,12 @@ class LySincApp {
 
             if (authenticated) {
                 this.showScreen('idle');
-                await this.updateUserProfile();
-                this.startPolling();
-                this.startTicker();
-                this.btnLogout.classList.remove('hidden');
+                const profileSuccess = await this.updateUserProfile();
+                if (profileSuccess) {
+                    this.startPolling();
+                    this.startTicker();
+                    this.btnLogout.classList.remove('hidden');
+                }
             } else {
                 this.showScreen('pre-login');
                 this.btnLogout.classList.add('hidden');
@@ -839,8 +867,8 @@ class LySincApp {
         if (this.btnOpenPrivacyTerms) {
             this.btnOpenPrivacyTerms.addEventListener('click', () => this.showScreen('terms-privacy'));
         }
-        if (this.btnStep2OpenPrivacyTerms) {
-            this.btnStep2OpenPrivacyTerms.addEventListener('click', () => this.showScreen('terms-privacy'));
+        if (this.btnStep2OpenClientIdTerms) {
+            this.btnStep2OpenClientIdTerms.addEventListener('click', () => this.showScreen('terms-client-id'));
         }
         if (this.btnTermsPrivacyBack) {
             this.btnTermsPrivacyBack.addEventListener('click', () => {
@@ -848,20 +876,65 @@ class LySincApp {
                 else this.showScreen('pre-login');
             });
         }
+        if (this.btnTermsClientIdBack) {
+            this.btnTermsClientIdBack.addEventListener('click', () => {
+                if (this.previousScreen) this.showScreen(this.previousScreen);
+                else this.showScreen('pre-login');
+            });
+        }
+        
+        if (this.wrapperPrivacyTermsCheckbox) {
+            this.wrapperPrivacyTermsCheckbox.addEventListener('click', (e) => {
+                if (!this.hasAcceptedPrivacy) {
+                    this.showBalloon(this.wrapperPrivacyTermsCheckbox, 'Você precisa visualizar os termos e aceitá-los primeiro.');
+                }
+            });
+        }
+        
+        if (this.wrapperStep2PrivacyTermsCheckbox) {
+            this.wrapperStep2PrivacyTermsCheckbox.addEventListener('click', (e) => {
+                if (!this.hasAcceptedClientIdTerms) {
+                    this.showBalloon(this.wrapperStep2PrivacyTermsCheckbox, 'Você precisa visualizar os termos e aceitá-los primeiro.');
+                }
+            });
+        }
+        
+        if (this.wrapperReportTermsCheckbox) {
+            this.wrapperReportTermsCheckbox.addEventListener('click', (e) => {
+                if (!this.hasAcceptedFeedback) {
+                    this.showBalloon(this.wrapperReportTermsCheckbox, 'Você precisa visualizar os termos e aceitá-los primeiro.');
+                }
+            });
+        }
+        
         if (this.btnAcceptPrivacyTerms) {
             this.btnAcceptPrivacyTerms.addEventListener('click', () => {
                 this.hasAcceptedPrivacy = true;
                 if (this.privacyTermsCheckbox) this.privacyTermsCheckbox.checked = true;
-                if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = true;
                 
                 if (this.btnConnect) {
                     this.btnConnect.disabled = false;
-                    this.btnConnect.classList.remove('disabled:bg-neutral-600', 'disabled:text-neutral-400', 'disabled:cursor-not-allowed');
+                    this.btnConnect.classList.remove('disabled:bg-neutral-600', 'disabled:text-neutral-400', 'disabled:cursor-not-allowed', 'disabled:pointer-events-none');
+                    const wrapper = document.getElementById('wrapper-btn-connect');
+                    if (wrapper) wrapper.removeAttribute('data-tooltip-follow');
                 }
+                
+                localStorage.setItem('lysinc_accepted_privacy', 'true');
+                
+                if (this.previousScreen) this.showScreen(this.previousScreen);
+                else this.showScreen('pre-login');
+            });
+        }
+        if (this.btnAcceptClientIdTerms) {
+            this.btnAcceptClientIdTerms.addEventListener('click', () => {
+                this.hasAcceptedClientIdTerms = true;
+                if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = true;
                 
                 if (this.btnFlowStep2Save) {
                     this.updateStep2SaveButtonState();
                 }
+                
+                localStorage.setItem('lysinc_accepted_client_id_terms', 'true');
                 
                 if (this.previousScreen) this.showScreen(this.previousScreen);
                 else this.showScreen('pre-login');
@@ -1183,6 +1256,28 @@ class LySincApp {
                 if (tooltipTimeout) clearTimeout(tooltipTimeout);
                 customTooltip.style.opacity = '0';
                 tooltipTarget = null;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            const target = e.target.closest('[data-tooltip-follow]');
+            if (target) {
+                const text = target.getAttribute('data-tooltip-follow');
+                if (text) {
+                    customTooltip.textContent = text;
+                    customTooltip.style.opacity = '1';
+                    
+                    const tooltipRect = customTooltip.getBoundingClientRect();
+                    let top = e.clientY + 15;
+                    let left = e.clientX + 15;
+                    if (left + tooltipRect.width > window.innerWidth) left = e.clientX - tooltipRect.width - 10;
+                    if (top + tooltipRect.height > window.innerHeight) top = e.clientY - tooltipRect.height - 10;
+                    
+                    customTooltip.style.top = `${top}px`;
+                    customTooltip.style.left = `${left}px`;
+                }
+            } else if (!tooltipTarget) {
+                customTooltip.style.opacity = '0';
             }
         });
 
@@ -2517,15 +2612,23 @@ class LySincApp {
 
     updateStep2SaveButtonState() {
         const val = this.inputFlowClientId ? this.inputFlowClientId.value.trim() : '';
-        if (val.length > 5 && this.hasAcceptedPrivacy) {
+        if (val.length > 5 && this.hasAcceptedClientIdTerms) {
             if (this.btnFlowStep2Save) {
                 this.btnFlowStep2Save.classList.remove('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
                 this.btnFlowStep2Save.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+                const wrapper = document.getElementById('wrapper-btn-step2-save');
+                if (wrapper) wrapper.removeAttribute('data-tooltip-follow');
             }
         } else {
             if (this.btnFlowStep2Save) {
                 this.btnFlowStep2Save.classList.add('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
                 this.btnFlowStep2Save.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
+                const wrapper = document.getElementById('wrapper-btn-step2-save');
+                if (wrapper) {
+                    if (val.length <= 5) wrapper.setAttribute('data-tooltip-follow', 'Você precisa inserir o Client ID.');
+                    else if (!this.hasAcceptedClientIdTerms) wrapper.setAttribute('data-tooltip-follow', 'Você precisa aceitar os termos.');
+                    else wrapper.setAttribute('data-tooltip-follow', 'Você precisa inserir o Client ID e aceitar os termos.');
+                }
             }
         }
     }
@@ -2629,6 +2732,18 @@ class LySincApp {
         
         if (removeFromGlobal) {
             await SupabaseService.removeClientId();
+            localStorage.removeItem('lysinc_accepted_privacy');
+            localStorage.removeItem('lysinc_accepted_client_id_terms');
+            this.hasAcceptedPrivacy = false;
+            this.hasAcceptedClientIdTerms = false;
+            if (this.privacyTermsCheckbox) this.privacyTermsCheckbox.checked = false;
+            if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = false;
+            if (this.btnConnect) {
+                this.btnConnect.disabled = true;
+                this.btnConnect.classList.add('disabled:bg-neutral-600', 'disabled:text-neutral-400', 'disabled:cursor-not-allowed', 'disabled:pointer-events-none');
+                const wrapper = document.getElementById('wrapper-btn-connect');
+                if (wrapper) wrapper.setAttribute('data-tooltip-follow', 'Você precisa aceitar os termos primeiro');
+            }
         } else {
             Config.setClientId('');
         }
@@ -2659,10 +2774,10 @@ class LySincApp {
                         SpotifyService.logout();
                         SpotifyService.login();
                     }, 2000);
-                    return; // Stop rendering, page will reload
+                    return false; // Stop rendering, page will reload
                 } else if (!recoveredId) {
                     this.showErrorScreen('Para utilizar o LySinc com a sua conta, é necessário configurar um Client ID próprio. Nenhum Client ID foi encontrado no seu navegador ou vinculado à sua conta no servidor. Configure seu Client ID para continuar.');
-                    return;
+                    return false;
                 }
             } else if (currentClientId !== systemId) {
                 // Se está usando um Client ID próprio, atualiza/vincula no Supabase
@@ -2700,6 +2815,7 @@ class LySincApp {
                 this.settingsUserProfileSection.classList.remove('flex');
             }
         }
+        return true;
     }
 
     async toggleSettingsModal(show) {
@@ -2718,7 +2834,7 @@ class LySincApp {
 
     showScreen(screenName) {
         // Track previous screen if it's not a terms screen
-        if (this.currentScreen && this.currentScreen !== 'terms-feedback' && this.currentScreen !== 'terms-privacy') {
+        if (this.currentScreen && this.currentScreen !== 'terms-feedback' && this.currentScreen !== 'terms-privacy' && this.currentScreen !== 'terms-client-id') {
             this.previousScreen = this.currentScreen;
         }
         this.currentScreen = screenName;
@@ -2733,6 +2849,7 @@ class LySincApp {
         if (this.screenReportError) this.screenReportError.classList.add('hidden');
         if (this.screenTermsFeedback) this.screenTermsFeedback.classList.add('hidden');
         if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.add('hidden');
+        if (this.screenTermsClientId) this.screenTermsClientId.classList.add('hidden');
 
         if (screenName === 'pre-login') {
             if (this.screenPreLogin) this.screenPreLogin.classList.remove('hidden');
@@ -2754,6 +2871,8 @@ class LySincApp {
             if (this.screenTermsFeedback) this.screenTermsFeedback.classList.remove('hidden');
         } else if (screenName === 'terms-privacy') {
             if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.remove('hidden');
+        } else if (screenName === 'terms-client-id') {
+            if (this.screenTermsClientId) this.screenTermsClientId.classList.remove('hidden');
         }
         window.scrollTo(0, 0);
     }
@@ -4265,6 +4384,36 @@ class LySincApp {
             if (this.iconFloatingPlay) this.iconFloatingPlay.classList.remove('hidden');
             if (this.iconFloatingPause) this.iconFloatingPause.classList.add('hidden');
         }
+    }
+
+    showBalloon(element, text) {
+        if (!element) return;
+        const balloon = document.createElement('div');
+        balloon.className = 'fixed z-[100] bg-zinc-800 text-white text-xs px-3 py-2 rounded-lg shadow-xl border border-white/10 pointer-events-none transition-opacity duration-200 opacity-0';
+        balloon.textContent = text;
+        document.body.appendChild(balloon);
+
+        const rect = element.getBoundingClientRect();
+        
+        // Espera renderizar para pegar o tamanho
+        requestAnimationFrame(() => {
+            const balloonRect = balloon.getBoundingClientRect();
+            let top = rect.top - balloonRect.height - 8;
+            let left = rect.left + (rect.width / 2) - (balloonRect.width / 2);
+            
+            if (top < 10) top = rect.bottom + 8;
+            if (left < 10) left = 10;
+            if (left + balloonRect.width > window.innerWidth - 10) left = window.innerWidth - balloonRect.width - 10;
+            
+            balloon.style.top = `${top}px`;
+            balloon.style.left = `${left}px`;
+            balloon.style.opacity = '1';
+            
+            setTimeout(() => {
+                balloon.style.opacity = '0';
+                setTimeout(() => balloon.remove(), 200);
+            }, 3000);
+        });
     }
 
     showToast(message, type = 'info') {
