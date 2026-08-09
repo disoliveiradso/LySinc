@@ -772,6 +772,11 @@ class LySincApp {
                 SpotifyService.login();
             });
         }
+        
+        this.btnFlowStep3Back = document.getElementById('btn-flow-step3-back');
+        if (this.btnFlowStep3Back) {
+            this.btnFlowStep3Back.addEventListener('click', () => this.showScreen('pre-login'));
+        }
         if (this.btnLoginSystemAccount) {
             this.btnLoginSystemAccount.addEventListener('click', async () => {
                 const isAuth = await SpotifyService.isAuthenticated();
@@ -2349,18 +2354,6 @@ class LySincApp {
     }
 
     updateLoginButtonsState() {
-        const clientId = Config.getClientId();
-        if (clientId) {
-            if (this.btnConnect) {
-                this.btnConnect.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white/70');
-                this.btnConnect.classList.add('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
-            }
-        } else {
-            if (this.btnConnect) {
-                this.btnConnect.classList.add('opacity-50', 'cursor-not-allowed', 'bg-neutral-600', 'pointer-events-none', 'text-white/70');
-                this.btnConnect.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'text-black');
-            }
-        }
         this.updateSettingsModalButtons();
     }
 
@@ -2368,6 +2361,8 @@ class LySincApp {
         const clientId = Config.getClientId();
         const sysId = Config.getSystemClientId();
         const isSystemAccount = clientId && sysId && clientId === sysId;
+
+        const copyBtn = document.getElementById('btn-copy-client-id');
 
         if (clientId) {
             // Idle screen
@@ -2395,6 +2390,7 @@ class LySincApp {
             if (this.settingsInputClientIdReadonly) {
                 this.settingsInputClientIdReadonly.value = isSystemAccount ? 'Conta do Sistema' : clientId;
             }
+            if (copyBtn) copyBtn.classList.remove('hidden');
         } else {
             // Idle screen
             if (this.idleBtnRemoveClientId) {
@@ -2421,6 +2417,7 @@ class LySincApp {
             if (this.settingsInputClientIdReadonly) {
                 this.settingsInputClientIdReadonly.value = 'Nenhum Client ID cadastrado';
             }
+            if (copyBtn) copyBtn.classList.add('hidden');
         }
     }
 
@@ -2522,6 +2519,7 @@ class LySincApp {
         } else if (screenName === 'idle') {
             if (this.screenIdle) this.screenIdle.classList.remove('hidden');
         }
+        window.scrollTo(0, 0);
     }
 
     startPolling() {
