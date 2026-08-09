@@ -32,10 +32,13 @@ const SpotifyService = {
 
     // Inicia o fluxo de login redirecionando para o Spotify
     async login() {
-        const clientId = Config.getClientId();
+        let clientId = Config.getClientId();
         if (!clientId) {
-            window.showToast('Por favor, configure o Spotify Client ID antes de conectar.', 'error');
-            return;
+            clientId = Config.getSystemClientId();
+            if (!clientId) {
+                window.showToast('Por favor, configure o Spotify Client ID antes de conectar.', 'error');
+                return;
+            }
         }
 
         const codeVerifier = this.generateRandomString(64);
@@ -96,7 +99,8 @@ const SpotifyService = {
 
     // Obtém tokens iniciais através do Authorization Code
     async fetchToken(code, codeVerifier) {
-        const clientId = Config.getClientId();
+        let clientId = Config.getClientId();
+        if (!clientId) clientId = Config.getSystemClientId();
         const redirectUri = Config.getRedirectUri();
 
         const response = await fetch('https://accounts.spotify.com/api/token', {
@@ -124,7 +128,8 @@ const SpotifyService = {
 
     // Renova o token de acesso usando o refresh token
     async refreshToken() {
-        const clientId = Config.getClientId();
+        let clientId = Config.getClientId();
+        if (!clientId) clientId = Config.getSystemClientId();
         const refreshToken = localStorage.getItem(this.REFRESH_TOKEN_KEY);
 
         if (!refreshToken) {

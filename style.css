@@ -589,6 +589,11 @@ body, html {
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
+.toast-warning .toast-type-indicator {
+    background-color: #f59e0b; 
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
 @keyframes toast-slide-in {
     from {
         transform: translateY(-20px) scale(0.95);

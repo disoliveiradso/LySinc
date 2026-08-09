@@ -603,14 +603,6 @@ class LySincApp {
             this.btnConnect.addEventListener('click', () => {
                 if (!Config.getClientId()) {
                     this.showToast('O login só será efetivado devidamente se você inserir um Client ID ou usar a Conta do Sistema.', 'warning', 5000);
-                    this.showScreen('flow-step-1');
-                    if (this.btnLoginSystemAccount) {
-                        this.btnLoginSystemAccount.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'ring-offset-neutral-900', 'animate-pulse');
-                        setTimeout(() => {
-                            this.btnLoginSystemAccount.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2', 'ring-offset-neutral-900', 'animate-pulse');
-                        }, 3000);
-                    }
-                    return;
                 }
                 SpotifyService.login();
             });

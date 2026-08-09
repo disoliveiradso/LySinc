@@ -45,11 +45,7 @@ class SupabaseService {
         try {
             const payload = {
                 client_id: cleanId,
-                spotify_user_id: profileData.id || null,
-                spotify_display_name: profileData.display_name || null,
-                spotify_email: profileData.email || null,
-                avatar_url: profileData.images?.[0]?.url || null,
-                updated_at: new Date().toISOString()
+                last_used: new Date().toISOString()
             };
 
             const { data, error } = await this.client
