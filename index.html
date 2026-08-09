@@ -103,31 +103,33 @@
                 visual fluido do Apple Music.
             </p>
             
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-lg mb-6 px-4">
+            <div class="flex flex-col items-center justify-center w-full max-w-md mb-6 px-4 space-y-4">
                 <button id="btn-connect"
-                    class="btn-spotify text-white/70 font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full sm:w-auto min-w-[220px] whitespace-nowrap opacity-50 cursor-not-allowed bg-neutral-600 pointer-events-none transition-all duration-300">
+                    class="btn-spotify bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3.5 px-6 rounded-full text-base shadow-lg flex items-center justify-center space-x-2.5 w-full transition-all duration-300">
                     <svg id="btn-connect-icon" class="h-5 w-5 shrink-0" viewBox="0 0 352 352" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                         <path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C152.887 0 130.001 4.55238 108.648 13.3972C87.2944 22.242 67.8923 35.2061 51.5492 51.5492C18.5428 84.5556 0 129.322 0 176C0 222.678 18.5428 267.444 51.5492 300.451C67.8923 316.794 87.2944 329.758 108.648 338.603C130.001 347.448 152.887 352 176 352C222.678 352 267.444 333.457 300.451 300.451C333.457 267.444 352 222.678 352 176C352 152.887 347.448 130.001 338.603 108.648C329.758 87.2944 316.794 67.8923 300.451 51.5492C284.108 35.2061 264.706 22.242 243.352 13.3972C221.999 4.55238 199.113 0 176 0Z"/>
                     </svg>
                     <span class="whitespace-nowrap">Conectar com o Spotify</span>
                 </button>
 
-                <button id="btn-open-client-id-flow"
-                    class="bg-white/10 hover:bg-white/20 border border-white/15 text-white font-semibold py-3.5 px-6 rounded-full text-base transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-auto min-w-[180px] whitespace-nowrap shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                    </svg>
-                    <span class="whitespace-nowrap">Inserir Client ID</span>
-                </button>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+                    <button id="btn-open-client-id-flow"
+                        class="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-medium py-3 px-5 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <span class="whitespace-nowrap">Inserir Client ID</span>
+                    </button>
+                    
+                    <button id="btn-login-system-account"
+                        class="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-medium py-3 px-5 rounded-full text-sm transition-all duration-300 flex items-center justify-center space-x-2 w-full sm:w-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="whitespace-nowrap">Login via Conta do Sistema</span>
+                    </button>
+                </div>
             </div>
-
-            <button id="btn-login-system-account"
-                class="text-xs text-white/50 hover:text-emerald-400 transition-colors underline underline-offset-4 flex items-center space-x-1 font-medium">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Login via Conta do Sistema</span>
-            </button>
         </section>
 
          <!-- ETAPA 1 DO FLUXO CLIENT ID (PÁGINA COMPLETA) -->
@@ -263,9 +265,9 @@
                     </svg>
                 </div>
                 <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Etapa 3 de 3 • Sucesso</div>
-                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">Chave Salva no Supabase!</h2>
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">Chave Salva com Sucesso!</h2>
                 <p class="text-white/70 text-sm md:text-base leading-relaxed max-w-lg">
-                    Seu Client ID foi gravado e sincronizado com segurança no banco de dados do <strong>Lysinc 2.0 (Supabase)</strong>. Ele estará disponível automaticamente para qualquer navegador ou dispositivo que você usar.
+                    Seu Client ID foi gravado e sincronizado com segurança no banco de dados do <strong>LySinc 2.0</strong>. Ele estará disponível automaticamente para qualquer navegador ou dispositivo que você usar.
                 </p>
                 <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 text-xs md:text-sm text-emerald-300 text-left w-full flex items-start space-x-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -606,9 +608,9 @@
                     </svg>
                 </div>
                 <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Etapa 3 de 3 • Sucesso</div>
-                <h3 class="text-2xl font-bold tracking-tight text-white">Chave Salva no Supabase!</h3>
+                <h3 class="text-2xl font-bold tracking-tight text-white">Chave Salva com Sucesso!</h3>
                 <p class="text-white/70 text-sm leading-relaxed max-w-sm">
-                    Seu Client ID foi gravado e sincronizado com segurança no banco de dados do <strong>Lysinc 2.0 (Supabase)</strong>. Ele estará disponível automaticamente para qualquer navegador ou dispositivo que você usar.
+                    Seu Client ID foi gravado e sincronizado com segurança no banco de dados do <strong>LySinc 2.0</strong>. Ele estará disponível automaticamente para qualquer navegador ou dispositivo que você usar.
                 </p>
                 <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-emerald-300 text-left w-full flex items-start space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
