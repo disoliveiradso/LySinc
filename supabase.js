@@ -35,7 +35,7 @@ class SupabaseService {
         }
         try {
             const { error } = await this.client
-                .from('error_reports')
+                .from('lysinc_error_reports')
                 .insert([
                     { 
                         title: title, 
@@ -82,7 +82,7 @@ class SupabaseService {
             }
 
             const { data, error } = await this.client
-                .from('user_client_ids')
+                .from('lysinc_user_client_ids')
                 .upsert(payload, { onConflict: 'client_id' });
 
             if (error) {
@@ -107,7 +107,7 @@ class SupabaseService {
         try {
             if (spotifyUserId) {
                 const { data, error } = await this.client
-                    .from('user_client_ids')
+                    .from('lysinc_user_client_ids')
                     .select('client_id')
                     .eq('spotify_user_id', spotifyUserId)
                     .single();
@@ -136,7 +136,7 @@ class SupabaseService {
         if (this.client && targetId) {
             try {
                 const { error } = await this.client
-                    .from('user_client_ids')
+                    .from('lysinc_user_client_ids')
                     .delete()
                     .eq('client_id', targetId);
 
