@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.2';
-import SpotifyService from './spotify.js?v=2.1.2';
-import LyricsService from './lyrics.js?v=2.1.2';
-import MusicBrainzService from './musicbrainz.js?v=2.1.2';
-import SupabaseService from './supabase.js?v=2.1.2';
+import Config from './config.js?v=2.1.3';
+import SpotifyService from './spotify.js?v=2.1.3';
+import LyricsService from './lyrics.js?v=2.1.3';
+import MusicBrainzService from './musicbrainz.js?v=2.1.3';
+import SupabaseService from './supabase.js?v=2.1.3';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -4292,33 +4292,23 @@ class LySincApp {
     }
 
     smoothScrollTo(target) {
-        const startPosition = this.getScrollY();
-        const distance = target - startPosition;
-        let startTime = null;
-        const duration = 650;
+        const targetY = Math.max(0, target);
+        this.lastAutoScrollTime = Date.now();
 
         if (this.scrollAnimationId) {
             this.cancelRaf(this.scrollAnimationId);
+            this.scrollAnimationId = null;
         }
 
-        const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
-
-        const animation = (currentTime) => {
-            if (startTime === null) startTime = currentTime;
-            const timeElapsed = currentTime - startTime;
-            const progress = Math.min(timeElapsed / duration, 1);
-
-            this.scrollToPosition(startPosition + distance * easeOutQuart(progress));
-            this.lastAutoScrollTime = Date.now();
-
-            if (timeElapsed < duration) {
-                this.scrollAnimationId = this.getRaf()(animation);
-            } else {
-                this.scrollAnimationId = null;
-            }
-        };
-
-        this.scrollAnimationId = this.getRaf()(animation);
+        const win = this.pipWindow || window;
+        try {
+            win.scrollTo({
+                top: targetY,
+                behavior: 'smooth'
+            });
+        } catch (e) {
+            win.scrollTo(0, targetY);
+        }
     }
 
     async seekToTime(timeMs, isAutoSync = false) {
