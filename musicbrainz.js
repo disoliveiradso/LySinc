@@ -4,193 +4,54 @@
  */
 
 const MusicBrainzService = {
-    USER_AGENT: 'LySinc/1.0 ( disoliveiradso@github.com )',
-    API_BASE: 'https://musicbrainz.org/ws/2',
-    
-    // Fila para gerenciar requisições e respeitar o Rate Limit de 1 requisição/seg
-    requestQueue: [],
-    isProcessingQueue: false,
-    lastRequestTime: 0,
-    RATE_LIMIT_DELAY: 1100, // 1.1s para ter uma margem de segurança
-
-    // Cache em memória
+    PROXY_URL: 'https://lysinc-musicbrainz.disoliveira-dso.workers.dev',
     cache: new Map(),
 
-    /**
-     * Adiciona uma requisição à fila para respeitar o Rate Limit
-     */
-    async enqueueRequest(url) {
-        return new Promise((resolve, reject) => {
-            this.requestQueue.push({ url, resolve, reject });
-            this.processQueue();
-        });
-    },
-
-    /**
-     * Processa a fila de requisições
-     */
-    async processQueue() {
-        if (this.isProcessingQueue || this.requestQueue.length === 0) {
-            return;
-        }
-
-        this.isProcessingQueue = true;
-
-        while (this.requestQueue.length > 0) {
-            const now = Date.now();
-            const timeSinceLast = now - this.lastRequestTime;
-            
-            if (timeSinceLast < this.RATE_LIMIT_DELAY) {
-                await new Promise(r => setTimeout(r, this.RATE_LIMIT_DELAY - timeSinceLast));
-            }
-
-            const req = this.requestQueue.shift();
-            this.lastRequestTime = Date.now();
-
-            try {
-                // Alguns navegadores bloqueiam a sobrescrita do User-Agent via fetch
-                // Mas tentaremos enviar mesmo assim, e se bloqueado, o fetch prossegue
-                const response = await fetch(req.url, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': this.USER_AGENT
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erro MusicBrainz: ${response.status}`);
-                }
-
-                const data = await response.json();
-                req.resolve(data);
-            } catch (error) {
-                console.error('Falha na requisição MusicBrainz:', error);
-                req.reject(error);
-            }
-        }
-
-        this.isProcessingQueue = false;
-    },
-
-    /**
-     * Busca os metadados completos de uma música
-     * @param {string} isrc Código ISRC (fornecido pelo Spotify, se disponível)
-     * @param {string} trackName Nome da música
-     * @param {string} artistName Nome do artista principal
-     */
     async getTrackMetadata(isrc, trackName, artistName) {
-        // Chave de cache
-        const cacheKey = isrc || `${trackName}-${artistName}`;
+        const queryTerm = isrc ? `isrc:${isrc}` : `${artistName} ${trackName}`;
+        const cacheKey = queryTerm;
+
         if (this.cache.has(cacheKey)) {
             return this.cache.get(cacheKey);
         }
 
         try {
-            let recordingId = null;
+            const url = `${this.PROXY_URL}/?q=${encodeURIComponent(queryTerm)}`;
+            const response = await fetch(url);
+            if (!response.ok) return null;
 
-            // 1. Tenta buscar pelo ISRC primeiro
-            if (isrc) {
-                const searchData = await this.enqueueRequest(`${this.API_BASE}/recording/?query=isrc:${isrc}&fmt=json`);
-                if (searchData.recordings && searchData.recordings.length > 0) {
-                    recordingId = searchData.recordings[0].id;
-                }
+            const searchData = await response.json();
+            if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
+                return null;
             }
 
-            // 2. Fallback: Busca por nome da música e artista se não achou pelo ISRC
-            if (!recordingId && trackName && artistName) {
-                const query = encodeURIComponent(`recording:"${trackName}" AND artist:"${artistName}"`);
-                const searchData = await this.enqueueRequest(`${this.API_BASE}/recording/?query=${query}&fmt=json`);
-                if (searchData.recordings && searchData.recordings.length > 0) {
-                    recordingId = searchData.recordings[0].id;
-                }
-            }
-
-            if (!recordingId) {
-                return null; // Não encontrou a gravação
-            }
-
-            // 3. Busca detalhes da gravação (incluindo relacionamentos de artistas, obras, gêneros e urls)
-            const recordingData = await this.enqueueRequest(
-                `${this.API_BASE}/recording/${recordingId}?inc=releases+artist-rels+work-rels+work-level-rels+genres+url-rels&fmt=json`
-            );
-
-            // 4. Se tivermos um release, buscamos detalhes dele para obter gravadora e copyright
-            let label = '';
-            let copyright = '';
-            let phonographicCopyright = '';
-            let albumName = '';
-            let releaseDate = '';
-
-            if (recordingData.releases && recordingData.releases.length > 0) {
-                // Pegamos o primeiro lançamento para informações de álbum
-                const release = recordingData.releases[0];
-                albumName = release.title;
-                releaseDate = release.date;
-
-                const releaseId = release.id;
-                const releaseData = await this.enqueueRequest(
-                    `${this.API_BASE}/release/${releaseId}?inc=labels&fmt=json`
-                );
-
-                if (releaseData["label-info"] && releaseData["label-info"].length > 0) {
-                    const labelInfo = releaseData["label-info"][0];
-                    label = labelInfo.label ? labelInfo.label.name : '';
-                }
-            }
-
-            // 5. Extrair compositores e produtores dos relacionamentos
+            const rec = searchData.recordings[0];
             const writers = new Set();
             const producers = new Set();
 
-            if (recordingData.relations) {
-                recordingData.relations.forEach(rel => {
-                    if (rel.type === 'producer') {
+            if (rec.relations) {
+                rec.relations.forEach(rel => {
+                    if (rel.type === 'producer' && rel.artist?.name) {
                         producers.add(rel.artist.name);
                     }
-                    if (rel["target-type"] === 'work' && rel.work && rel.work.relations) {
-                        rel.work.relations.forEach(wrel => {
-                            if (['writer', 'composer', 'lyricist'].includes(wrel.type)) {
-                                writers.add(wrel.artist.name);
-                            }
-                        });
+                    if (['writer', 'composer', 'lyricist'].includes(rel.type) && rel.artist?.name) {
+                        writers.add(rel.artist.name);
                     }
                 });
             }
-            
-            // 5b. Extrair link do YouTube (se disponível)
-            let youtubeLink = null;
-            if (recordingData.relations) {
-                const urlRels = recordingData.relations.filter(r => r["target-type"] === 'url');
-                const ytRel = urlRels.find(r => r.type === 'youtube' || (r.url && r.url.resource && r.url.resource.includes('youtube.com/watch')));
-                if (ytRel && ytRel.url) {
-                    youtubeLink = ytRel.url.resource;
-                }
-            }
-            
-            // 5c. Extrair Gêneros
-            let genres = [];
-            if (recordingData.genres && recordingData.genres.length > 0) {
-                genres = recordingData.genres.map(g => g.name);
-            }
-
-            // O loop para buscar obras (Works) individuais foi removido, pois usamos work-level-rels
 
             const metadata = {
-                albumName: albumName || null,
-                releaseDate: releaseDate ? releaseDate.substring(0, 4) : null,
+                albumName: rec.releases && rec.releases[0] ? rec.releases[0].title : null,
+                releaseDate: rec.releases && rec.releases[0] && rec.releases[0].date ? rec.releases[0].date.substring(0, 4) : null,
                 writers: writers.size > 0 ? Array.from(writers).join(', ') : null,
                 producers: producers.size > 0 ? Array.from(producers).join(', ') : null,
-                label: label || null,
-                copyright: copyright || null,
-                phonographicCopyright: phonographicCopyright || null,
-                youtubeLink: youtubeLink || null,
-                genres: genres.length > 0 ? genres.join(', ') : null
+                label: null,
+                genres: rec.genres && rec.genres.length > 0 ? rec.genres.map(g => g.name).join(', ') : null
             };
 
             this.cache.set(cacheKey, metadata);
             return metadata;
         } catch (error) {
-            console.error('Erro ao processar dados do MusicBrainz', error);
             return null;
         }
     }
