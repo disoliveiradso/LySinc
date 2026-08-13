@@ -1031,7 +1031,7 @@ const LyricsService = {
       console.error('Cache API failed', e);
     }
 
-    const shuffledServers = [...KPOE_SERVERS].sort(() => Math.random() - 0.5).slice(0, 3);
+    const shuffledServers = [...KPOE_SERVERS].filter(s => s && !s.includes('geeked') && !s.includes('atomix')).sort(() => Math.random() - 0.5).slice(0, 3);
 
     const fetchPromises = shuffledServers.map(async (base) => {
       const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;

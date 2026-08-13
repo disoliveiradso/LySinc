@@ -67,7 +67,7 @@ class SupabaseService {
         // Sempre salva localmente para performance imediata
         Config.setClientId(cleanId);
 
-        if (!this.client) {
+        if (!this.client || this.isBlocked) {
             console.log('[LySinc 2.0] Client ID salvo localmente.');
             return true;
         }
@@ -121,6 +121,8 @@ class SupabaseService {
                     return fallbackId;
                 }
 
+                if (this.isBlocked) return fallbackId;
+
                 const { data, error } = await this.client
                     .from('lysinc_user_client_ids')
                     .select('client_id')
@@ -128,6 +130,10 @@ class SupabaseService {
                     .maybeSingle();
 
                 if (error) {
+                    if (error.status === 401 || error.code === '42501' || (error.message && error.message.includes('permission denied'))) {
+                        console.warn('[LySinc 2.0] Permissão negada no Supabase. Alternando para modo offline/local.');
+                        this.isBlocked = true;
+                    }
                     return fallbackId;
                 }
 
