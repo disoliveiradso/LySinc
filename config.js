@@ -16,6 +16,9 @@ const Config = {
     // OPCIONAL: Client ID padrão do sistema para contas pré-cadastradas
     SPOTIFY_CLIENT_ID_B64: 'MDM1MTRkM2RiZWZlNDVmYTlmNWZjOTdiOWUwMjg4YzU=',
     
+    // Conta proprietária do sistema (ignora bloqueios de banco de dados e validações RLS)
+    SPOTIFY_OWNER_ID: 'disoliveiradso',
+    
     // Obtém o Client ID salvo pelo usuário
     getClientId() {
         const customId = localStorage.getItem(this.CLIENT_ID_KEY);

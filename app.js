@@ -2863,7 +2863,14 @@ class LySincApp {
             if (currentClientId && currentClientId !== systemId) {
                 await SupabaseService.saveClientId(currentClientId, profile);
             } else {
-                const recoveredId = await SupabaseService.getClientId(profile.id);
+                let recoveredId = null;
+                // Owner bypass - não consulta supabase para não gerar erro 401
+                if (Config.SPOTIFY_OWNER_ID && profile.id === Config.SPOTIFY_OWNER_ID) {
+                    recoveredId = systemId;
+                } else {
+                    recoveredId = await SupabaseService.getClientId(profile.id);
+                }
+                
                 if (recoveredId && recoveredId !== systemId && recoveredId !== currentClientId) {
                     Config.setClientId(recoveredId);
                     this.showToast('Seu Client ID foi recuperado com sucesso! Reconectando...', 'success');

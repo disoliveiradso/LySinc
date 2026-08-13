@@ -113,7 +113,6 @@ class SupabaseService {
                     .maybeSingle();
 
                 if (error) {
-                    console.warn('[LySinc 2.0] Erro ao consultar Supabase (usando fallback):', error.message);
                     return fallbackId;
                 }
 
