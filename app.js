@@ -2857,11 +2857,12 @@ class LySincApp {
 
         const profile = await SpotifyService.getUserProfile();
         if (profile) {
-            // Auto-Recuperação e Vínculo de Client ID
             let currentClientId = Config.getClientId();
             const systemId = Config.getSystemClientId();
 
-            if (!currentClientId || currentClientId === systemId) {
+            if (currentClientId && currentClientId !== systemId) {
+                await SupabaseService.saveClientId(currentClientId, profile);
+            } else {
                 const recoveredId = await SupabaseService.getClientId(profile.id);
                 if (recoveredId && recoveredId !== systemId && recoveredId !== currentClientId) {
                     Config.setClientId(recoveredId);
@@ -2870,14 +2871,11 @@ class LySincApp {
                         SpotifyService.logout();
                         SpotifyService.login();
                     }, 2000);
-                    return false; // Stop rendering, page will reload
+                    return false;
                 } else if (!recoveredId) {
                     this.showErrorScreen('Para utilizar o LySinc com a sua conta, é necessário configurar um Client ID próprio. Nenhum Client ID foi encontrado no seu navegador ou vinculado à sua conta no servidor. Configure seu Client ID para continuar.');
                     return false;
                 }
-            } else if (currentClientId !== systemId) {
-                // Se está usando um Client ID próprio, atualiza/vincula no Supabase
-                await SupabaseService.saveClientId(currentClientId, profile);
             }
 
             // Update idle screen
