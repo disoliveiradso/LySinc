@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.5';
-import SpotifyService from './spotify.js?v=2.1.5';
-import LyricsService from './lyrics.js?v=2.1.5';
-import MusicBrainzService from './musicbrainz.js?v=2.1.5';
-import SupabaseService from './supabase.js?v=2.1.5';
+import Config from './config.js?v=2.1.6';
+import SpotifyService from './spotify.js?v=2.1.6';
+import LyricsService from './lyrics.js?v=2.1.6';
+import MusicBrainzService from './musicbrainz.js?v=2.1.6';
+import SupabaseService from './supabase.js?v=2.1.6';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1385,7 +1385,13 @@ class LySincApp {
             });
         }
 
-        const handleUserInteraction = () => {
+        const handleUserInteraction = (e) => {
+            if (this.ignoreUserInteractionUntil && Date.now() < this.ignoreUserInteractionUntil) {
+                return;
+            }
+            if (e && e.target && this.btnRecenter && (this.btnRecenter === e.target || this.btnRecenter.contains(e.target))) {
+                return;
+            }
             if (!this.isUserInteracting && this.lyrics.length > 0) {
                 this.isUserInteracting = true;
 
@@ -1405,8 +1411,11 @@ class LySincApp {
             }
         };
 
-        this.btnRecenter.addEventListener('click', () => {
+        this.btnRecenter.addEventListener('click', (e) => {
+            if (e) e.stopPropagation();
             this.isUserInteracting = false;
+            this.ignoreUserInteractionUntil = Date.now() + 1200;
+
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
             this.btnRecenter.classList.remove('opacity-100', 'scale-100');
             this.btnRecenter.classList.add('opacity-0', 'scale-95');
