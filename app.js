@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.8';
-import SpotifyService from './spotify.js?v=2.1.8';
-import LyricsService from './lyrics.js?v=2.1.8';
-import MusicBrainzService from './musicbrainz.js?v=2.1.8';
-import SupabaseService from './supabase.js?v=2.1.8';
+import Config from './config.js?v=2.1.9';
+import SpotifyService from './spotify.js?v=2.1.9';
+import LyricsService from './lyrics.js?v=2.1.9';
+import MusicBrainzService from './musicbrainz.js?v=2.1.9';
+import SupabaseService from './supabase.js?v=2.1.9';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1386,6 +1386,7 @@ class LySincApp {
         }
 
         const handleUserInteraction = (e) => {
+            if (this.isProgrammaticScrolling) return;
             if (this.ignoreUserInteractionUntil && Date.now() < this.ignoreUserInteractionUntil) {
                 return;
             }
@@ -1415,7 +1416,8 @@ class LySincApp {
             if (e) e.stopPropagation();
             this.isUserInteracting = false;
             this.currentActiveIdsKey = '';
-            this.ignoreUserInteractionUntil = Date.now() + 1200;
+            this.isProgrammaticScrolling = true;
+            this.ignoreUserInteractionUntil = Date.now() + 1500;
 
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
             this.btnRecenter.classList.remove('opacity-100', 'scale-100');
@@ -1427,7 +1429,6 @@ class LySincApp {
             }, 500);
 
             let targetLineId = this.activeLineId;
-
 
             if (targetLineId === null && this.lyrics.length > 0) {
                 let closestLine = null;
@@ -1454,10 +1455,10 @@ class LySincApp {
                 if (activeEl) {
                     this.scrollToLine(activeEl);
                 } else {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    this.smoothScrollTo(0);
                 }
             } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.smoothScrollTo(0);
             }
         });
 
@@ -1475,11 +1476,11 @@ class LySincApp {
         });
 
         window.addEventListener('scroll', () => {
-            if (ignoreScrollEvents) return;
+            if (ignoreScrollEvents || this.isProgrammaticScrolling) return;
 
             this.updateFloatingMenuVisibility();
 
-            if (Date.now() - this.lastAutoScrollTime < 150) {
+            if (Date.now() - this.lastAutoScrollTime < 1000) {
                 return;
             }
 
@@ -4306,6 +4307,12 @@ class LySincApp {
     smoothScrollTo(target) {
         const targetY = Math.max(0, target);
         this.lastAutoScrollTime = Date.now();
+        this.isProgrammaticScrolling = true;
+
+        if (this.progScrollTimeout) clearTimeout(this.progScrollTimeout);
+        this.progScrollTimeout = setTimeout(() => {
+            this.isProgrammaticScrolling = false;
+        }, 1000);
 
         if (this.scrollAnimationId) {
             this.cancelRaf(this.scrollAnimationId);
