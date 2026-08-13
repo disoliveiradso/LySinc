@@ -3198,6 +3198,7 @@ class LySincApp {
     }
 
     async fetchAndDisplayMetadata(state) {
+        if(true) return;
         this.currentMbData = null; // Limpa os dados atuais
 
         const mbData = await MusicBrainzService.getTrackMetadata(
@@ -3436,8 +3437,9 @@ class LySincApp {
 
         this.currentTrackArtistsRaw = state.artistsRaw || [];
         if (this.currentTrackArtistsRaw.length > 0) {
-            const ids = this.currentTrackArtistsRaw.map(a => a.id).filter(id => id);
-            this.artistImages = await SpotifyService.getArtistsImages(ids);
+            // const ids = this.currentTrackArtistsRaw.map(a => a.id).filter(id => id);
+            // this.artistImages = await SpotifyService.getArtistsImages(ids);
+            this.artistImages = {}; // Spotify API restrita em modo Dev para v1/artists
         } else {
             this.artistImages = {};
         }
