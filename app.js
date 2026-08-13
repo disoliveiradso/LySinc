@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.7';
-import SpotifyService from './spotify.js?v=2.1.7';
-import LyricsService from './lyrics.js?v=2.1.7';
-import MusicBrainzService from './musicbrainz.js?v=2.1.7';
-import SupabaseService from './supabase.js?v=2.1.7';
+import Config from './config.js?v=2.1.8';
+import SpotifyService from './spotify.js?v=2.1.8';
+import LyricsService from './lyrics.js?v=2.1.8';
+import MusicBrainzService from './musicbrainz.js?v=2.1.8';
+import SupabaseService from './supabase.js?v=2.1.8';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1414,6 +1414,7 @@ class LySincApp {
         this.btnRecenter.addEventListener('click', (e) => {
             if (e) e.stopPropagation();
             this.isUserInteracting = false;
+            this.currentActiveIdsKey = '';
             this.ignoreUserInteractionUntil = Date.now() + 1200;
 
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
@@ -4285,6 +4286,7 @@ class LySincApp {
 
     scrollToLine(lineElement) {
         if (this.tempDisableScroll) return;
+        this.currentActiveIdsKey = '';
         const absoluteLineTop = this.getAbsoluteOffsetTop(lineElement);
         const height = lineElement.offsetHeight;
 
