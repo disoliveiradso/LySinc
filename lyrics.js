@@ -230,7 +230,22 @@ const FETCH_TIMEOUT_MS = 8000;
 function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId));
+  const fetchOptions = { redirect: 'manual', ...options, signal: controller.signal };
+  
+  return fetch(url, fetchOptions)
+    .then(async (response) => {
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        if (location && (location.includes('geeked.wtf') || location.includes('atomix.one') || location.includes('boidu.dev'))) {
+          return new Response(null, { status: 404, statusText: 'Blocked Redirect' });
+        }
+        if (location) {
+          return fetchWithTimeout(location, options, timeoutMs);
+        }
+      }
+      return response;
+    })
+    .finally(() => clearTimeout(timeoutId));
 }
 
 const LyricsService = {
