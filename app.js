@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.3';
-import SpotifyService from './spotify.js?v=2.1.3';
-import LyricsService from './lyrics.js?v=2.1.3';
-import MusicBrainzService from './musicbrainz.js?v=2.1.3';
-import SupabaseService from './supabase.js?v=2.1.3';
+import Config from './config.js?v=2.1.4';
+import SpotifyService from './spotify.js?v=2.1.4';
+import LyricsService from './lyrics.js?v=2.1.4';
+import MusicBrainzService from './musicbrainz.js?v=2.1.4';
+import SupabaseService from './supabase.js?v=2.1.4';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1451,8 +1451,10 @@ class LySincApp {
             }
         });
 
-        window.addEventListener('wheel', handleUserInteraction, { passive: true });
-        window.addEventListener('touchmove', handleUserInteraction, { passive: true });
+        const interactionEvents = ['wheel', 'touchmove', 'touchstart', 'pointerdown', 'mousedown', 'keydown'];
+        interactionEvents.forEach(evt => {
+            window.addEventListener(evt, handleUserInteraction, { passive: true });
+        });
 
         let ignoreScrollEvents = false;
         document.addEventListener('visibilitychange', () => {
@@ -1467,7 +1469,7 @@ class LySincApp {
 
             this.updateFloatingMenuVisibility();
 
-            if (Date.now() - this.lastAutoScrollTime < 800) {
+            if (Date.now() - this.lastAutoScrollTime < 150) {
                 return;
             }
 
