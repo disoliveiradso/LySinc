@@ -1014,7 +1014,7 @@ const LyricsService = {
 
       if (cacheData && cacheData.results && cacheData.results.length > 0) {
         const result = cacheData.results[0];
-        if (result.lyricsUrl) {
+        if (result.lyricsUrl && !result.lyricsUrl.includes('geeked.wtf')) {
           const ttmlRes = await fetchWithTimeout(result.lyricsUrl);
           if (ttmlRes.ok) {
             const ttmlText = await ttmlRes.text();
@@ -1141,6 +1141,7 @@ const LyricsService = {
   },
 
   async fetchLyricsFromUnison(metadata) {
+    return null; // Desativado permanentemente para evitar erro 404 Not Found no console
     const title = metadata.title?.trim();
     const artist = metadata.artist?.trim();
     if (!title || !artist) return null;

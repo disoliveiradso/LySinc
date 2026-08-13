@@ -110,6 +110,11 @@ class SupabaseService {
         if (!this.client) return fallbackId;
 
         try {
+            // Se for inválido, falsy ou string "undefined" gerada por falha no cache
+            if (!spotifyUserId || String(spotifyUserId) === 'undefined' || String(spotifyUserId) === 'null') {
+                return fallbackId;
+            }
+
             if (spotifyUserId) {
                 // Owner bypass absoluto: nunca consulta Supabase se for o owner
                 if (Config.SPOTIFY_OWNER_ID && spotifyUserId === Config.SPOTIFY_OWNER_ID) {
