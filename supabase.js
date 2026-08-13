@@ -79,6 +79,11 @@ class SupabaseService {
             };
             if (profileData && profileData.id) {
                 payload.spotify_user_id = profileData.id;
+                // Owner bypass absoluto: nunca escreve no Supabase se for o owner
+                if (Config.SPOTIFY_OWNER_ID && profileData.id === Config.SPOTIFY_OWNER_ID) {
+                    console.log('[LySinc 2.0] Client ID salvo localmente (Bypass Owner Ativo).');
+                    return true;
+                }
             }
 
             const { data, error } = await this.client
@@ -106,6 +111,11 @@ class SupabaseService {
 
         try {
             if (spotifyUserId) {
+                // Owner bypass absoluto: nunca consulta Supabase se for o owner
+                if (Config.SPOTIFY_OWNER_ID && spotifyUserId === Config.SPOTIFY_OWNER_ID) {
+                    return fallbackId;
+                }
+
                 const { data, error } = await this.client
                     .from('lysinc_user_client_ids')
                     .select('client_id')

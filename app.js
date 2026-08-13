@@ -2975,7 +2975,10 @@ class LySincApp {
         } else if (screenName === 'terms-client-id') {
             if (this.screenTermsClientId) this.screenTermsClientId.classList.remove('hidden');
         }
-        window.scrollTo(0, 0);
+        
+        if (screenName !== 'main') {
+            window.scrollTo(0, 0);
+        }
     }
 
     showErrorScreen(message) {
@@ -3407,7 +3410,7 @@ class LySincApp {
         this.isUserInteracting = false;
         this.lyrics = [];
         this.lyricsContainer.innerHTML = `
-            <div class="fixed inset-0 flex flex-col items-center justify-center w-full h-full opacity-50 transition-opacity duration-500 pointer-events-none z-0">
+            <div class="flex-1 w-full min-h-[50vh] flex flex-col items-center justify-center opacity-50 transition-opacity duration-500 pointer-events-none z-0 mt-8">
                 <div class="w-20 h-20 rounded-full flex items-center justify-center bg-white/5 border border-white/10 mb-8 listening-indicator">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
