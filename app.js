@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.0_cachebreak';
-import SpotifyService from './spotify.js?v=2.1.0_cachebreak';
-import LyricsService from './lyrics.js?v=2.1.0_cachebreak';
-import MusicBrainzService from './musicbrainz.js?v=2.1.0_cachebreak';
-import SupabaseService from './supabase.js?v=2.1.0_cachebreak';
+import Config from './config.js?v=2.1.1';
+import SpotifyService from './spotify.js?v=2.1.1';
+import LyricsService from './lyrics.js?v=2.1.1';
+import MusicBrainzService from './musicbrainz.js?v=2.1.1';
+import SupabaseService from './supabase.js?v=2.1.1';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -2862,15 +2862,9 @@ class LySincApp {
 
             if (currentClientId && currentClientId !== systemId) {
                 await SupabaseService.saveClientId(currentClientId, profile);
-            } else {
-                let recoveredId = null;
-                // Owner bypass - não consulta supabase para não gerar erro 401
-                if (Config.SPOTIFY_OWNER_ID && profile.id === Config.SPOTIFY_OWNER_ID) {
-                    recoveredId = systemId;
-                } else {
-                    recoveredId = await SupabaseService.getClientId(profile.id);
-                }
-                
+            } else if (profile && profile.id) {
+                // Tenta recuperar um Client ID personalizado salvo previamente no Supabase
+                let recoveredId = await SupabaseService.getClientId(profile.id);
                 if (recoveredId && recoveredId !== systemId && recoveredId !== currentClientId) {
                     Config.setClientId(recoveredId);
                     this.showToast('Seu Client ID foi recuperado com sucesso! Reconectando...', 'success');
@@ -2878,9 +2872,6 @@ class LySincApp {
                         SpotifyService.logout();
                         SpotifyService.login();
                     }, 2000);
-                    return false;
-                } else if (!recoveredId) {
-                    this.showErrorScreen('Para utilizar o LySinc com a sua conta, é necessário configurar um Client ID próprio. Nenhum Client ID foi encontrado no seu navegador ou vinculado à sua conta no servidor. Configure seu Client ID para continuar.');
                     return false;
                 }
             }
