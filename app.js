@@ -356,6 +356,13 @@ class LySincApp {
         this.btnTermsClientIdBack = document.getElementById('btn-terms-client-id-back');
         this.btnAcceptClientIdTerms = document.getElementById('btn-accept-client-id-terms');
         this.btnFlowStep1Back = document.getElementById('btn-flow-step1-back');
+
+        // Clear Cache Button
+        this.btnClearCache = document.getElementById('btn-clear-cache');
+        this.clearCacheModal = document.getElementById('clear-cache-modal');
+        this.btnCancelClearCache = document.getElementById('btn-cancel-clear-cache');
+        this.btnConfirmClearCache = document.getElementById('btn-confirm-clear-cache');
+        this.btnConfirmClearAllData = document.getElementById('btn-confirm-clear-all-data');
         this.btnFlowStep1Next = document.getElementById('btn-flow-step1-next');
         this.btnFlowStep2BackTop = document.getElementById('btn-flow-step2-back-top');
         this.btnFlowStep2Back = document.getElementById('btn-flow-step2-back');
@@ -449,8 +456,10 @@ class LySincApp {
         try {
             console.log("%c LySinc v2.0 - Sincronização & Supabase Ativos ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
             
+            // Checkbox de termos: só manter marcado se client_id estiver salvo
+            const savedClientId = Config.getClientId();
             const acceptedPrivacy = localStorage.getItem('lysinc_accepted_privacy') === 'true';
-            if (acceptedPrivacy) {
+            if (acceptedPrivacy && savedClientId) {
                 this.hasAcceptedPrivacy = true;
                 if (this.privacyTermsCheckbox) this.privacyTermsCheckbox.checked = true;
                 if (this.btnConnect) {
@@ -459,12 +468,19 @@ class LySincApp {
                     const wrapper = document.getElementById('wrapper-btn-connect');
                     if (wrapper) wrapper.removeAttribute('data-tooltip-follow');
                 }
+            } else if (acceptedPrivacy && !savedClientId) {
+                // Tem aceite mas não tem client_id: desmarcar
+                localStorage.removeItem('lysinc_accepted_privacy');
+                this.hasAcceptedPrivacy = false;
             }
             
             const acceptedClientIdTerms = localStorage.getItem('lysinc_accepted_client_id_terms') === 'true';
-            if (acceptedClientIdTerms) {
+            if (acceptedClientIdTerms && savedClientId) {
                 this.hasAcceptedClientIdTerms = true;
                 if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = true;
+            } else if (acceptedClientIdTerms && !savedClientId) {
+                localStorage.removeItem('lysinc_accepted_client_id_terms');
+                this.hasAcceptedClientIdTerms = false;
             }
             
             this.setupEventListeners();
@@ -694,6 +710,47 @@ class LySincApp {
         }
         if (this.btnSettingsClose) {
             this.btnSettingsClose.addEventListener('click', () => this.toggleSettingsModal(false));
+        }
+
+        // Botão Lixeira (Limpar Cache)
+        if (this.btnClearCache) {
+            this.updateClearCacheButtonState();
+            this.btnClearCache.addEventListener('click', () => {
+                const hasCache = this.hasLyricsCacheData();
+                if (!hasCache) return; // desabilitado, não faz nada
+                if (this.clearCacheModal) {
+                    this.clearCacheModal.classList.remove('hidden');
+                    this.clearCacheModal.classList.add('flex');
+                }
+            });
+        }
+        if (this.btnCancelClearCache) {
+            this.btnCancelClearCache.addEventListener('click', () => {
+                if (this.clearCacheModal) {
+                    this.clearCacheModal.classList.add('hidden');
+                    this.clearCacheModal.classList.remove('flex');
+                }
+            });
+        }
+        if (this.btnConfirmClearCache) {
+            this.btnConfirmClearCache.addEventListener('click', () => {
+                this.clearLyricsCache();
+                if (this.clearCacheModal) {
+                    this.clearCacheModal.classList.add('hidden');
+                    this.clearCacheModal.classList.remove('flex');
+                }
+                this.updateClearCacheButtonState();
+                this.showToast('Cache de letras apagado com sucesso.', 'success');
+            });
+        }
+        if (this.btnConfirmClearAllData) {
+            this.btnConfirmClearAllData.addEventListener('click', () => {
+                this.clearAllSiteData();
+                if (this.clearCacheModal) {
+                    this.clearCacheModal.classList.add('hidden');
+                    this.clearCacheModal.classList.remove('flex');
+                }
+            });
         }
 
         if (this.btnOpenRepos) {
@@ -2758,7 +2815,46 @@ class LySincApp {
         }, 1500);
     }
 
+    hasLyricsCacheData() {
+        const LYRICS_CACHE_PREFIX = 'lysinc_lyrics_';
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(LYRICS_CACHE_PREFIX)) return true;
+        }
+        return false;
+    }
+
+    clearLyricsCache() {
+        const LYRICS_CACHE_PREFIX = 'lysinc_lyrics_';
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(LYRICS_CACHE_PREFIX)) keysToRemove.push(key);
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+    }
+
+    clearAllSiteData() {
+        localStorage.clear();
+        sessionStorage.clear();
+        this.showToast('Todos os dados do site foram apagados. Recarregando...', 'info');
+        setTimeout(() => window.location.reload(), 1500);
+    }
+
+    updateClearCacheButtonState() {
+        if (!this.btnClearCache) return;
+        const hasCache = this.hasLyricsCacheData();
+        if (hasCache) {
+            this.btnClearCache.disabled = false;
+            this.btnClearCache.classList.remove('opacity-30', 'cursor-not-allowed');
+        } else {
+            this.btnClearCache.disabled = true;
+            this.btnClearCache.classList.add('opacity-30', 'cursor-not-allowed');
+        }
+    }
+
     async updateUserProfile() {
+
         const profile = await SpotifyService.getUserProfile();
         if (profile) {
             // Auto-Recuperação e Vínculo de Client ID

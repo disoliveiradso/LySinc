@@ -133,7 +133,7 @@
 
                 <div class="pt-4 flex items-start space-x-3 w-full text-left">
                     <div id="wrapper-privacy-terms-checkbox" class="flex items-center h-4 mt-[1px] cursor-pointer shrink-0">
-                        <input id="privacy-terms-checkbox" type="checkbox" class="w-4 h-4 rounded border border-white/10 bg-black/40 appearance-none checked:bg-black/40 checked:border-emerald-500 relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-emerald-500 before:transform before:rotate-45 before:-mt-0.5 pointer-events-none transition-colors">
+                        <input id="privacy-terms-checkbox" type="checkbox" class="w-4 h-4 rounded border-2 border-white/40 bg-white/10 appearance-none checked:bg-white/10 checked:border-emerald-400 relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-emerald-400 before:transform before:rotate-45 before:-mt-0.5 pointer-events-none transition-colors">
                     </div>
                     <div class="text-xs leading-relaxed text-white/60">
                         Eu li e concordo com os <button id="btn-open-privacy-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso e Privacidade</button>.
@@ -237,7 +237,7 @@
 
                 <div class="pt-2 flex items-start space-x-3 w-full text-left mt-2">
                     <div id="wrapper-step2-privacy-terms-checkbox" class="flex items-center h-4 mt-[1px] cursor-pointer shrink-0">
-                        <input id="step2-privacy-terms-checkbox" type="checkbox" class="w-4 h-4 rounded border border-white/10 bg-black/40 appearance-none checked:bg-black/40 checked:border-emerald-500 relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-emerald-500 before:transform before:rotate-45 before:-mt-0.5 pointer-events-none transition-colors">
+                        <input id="step2-privacy-terms-checkbox" type="checkbox" class="w-4 h-4 rounded border-2 border-white/40 bg-white/10 appearance-none checked:bg-white/10 checked:border-emerald-400 relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-emerald-400 before:transform before:rotate-45 before:-mt-0.5 pointer-events-none transition-colors">
                     </div>
                     <div class="text-xs leading-relaxed text-white/60">
                         Eu li e concordo com os <button id="btn-step2-open-client-id-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Uso do Client ID</button>.
@@ -792,7 +792,7 @@
 
                     <div class="pt-2 border-t border-white/10 flex items-start space-x-3 mt-4">
                         <div id="wrapper-report-terms-checkbox" class="flex items-center h-4 mt-[1px] cursor-pointer shrink-0">
-                            <input id="report-terms-checkbox" type="checkbox" class="w-4 h-4 rounded border border-white/10 bg-black/40 appearance-none checked:bg-black/40 checked:border-emerald-500 relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-emerald-500 before:transform before:rotate-45 before:-mt-0.5 pointer-events-none transition-colors">
+                            <input id="report-terms-checkbox" type="checkbox" class="w-4 h-4 rounded border-2 border-white/40 bg-white/10 appearance-none checked:bg-white/10 checked:border-emerald-400 relative flex items-center justify-center before:content-[''] before:hidden checked:before:block before:w-1.5 before:h-2.5 before:border-r-2 before:border-b-2 before:border-emerald-400 before:transform before:rotate-45 before:-mt-0.5 pointer-events-none transition-colors">
                         </div>
                         <div class="text-xs leading-relaxed text-white/60">
                             Eu li e concordo com os <button id="btn-open-feedback-terms" class="text-emerald-400 hover:underline font-semibold cursor-pointer">Termos de Envio de Feedback</button>. Entendo que o não cumprimento pode resultar em banimento.
@@ -1049,6 +1049,28 @@
                     class="flex-1 py-3 px-4 rounded-xl font-medium text-sm text-white bg-red-500/80 hover:bg-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all">
                     Sim, Sair
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE LIMPAR CACHE / TODOS OS DADOS -->
+    <div id="clear-cache-modal"
+        class="fixed inset-0 bg-black/85 backdrop-blur-md z-[75] hidden items-center justify-center p-4">
+        <div
+            class="glass-panel w-full max-w-sm rounded-3xl p-6 md:p-8 flex flex-col relative text-white border border-white/10 shadow-2xl text-left space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold tracking-tight">Limpar Dados</h3>
+            </div>
+            <p class="text-white/60 text-sm leading-relaxed">Escolha o que deseja apagar:</p>
+            <div class="flex flex-col space-y-3 pt-2 w-full">
+                <button id="btn-confirm-clear-cache" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-xl transition-all text-sm">Apagar cache de letras</button>
+                <button id="btn-confirm-clear-all-data" class="w-full bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium py-3 px-4 rounded-xl border border-red-500/30 transition-all text-sm">Apagar todos os dados do site</button>
+                <button id="btn-cancel-clear-cache" class="w-full text-white/50 hover:text-white text-sm font-medium py-2 mt-2 transition-colors">Cancelar</button>
             </div>
         </div>
     </div>
