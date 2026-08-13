@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.9';
-import SpotifyService from './spotify.js?v=2.1.9';
-import LyricsService from './lyrics.js?v=2.1.9';
-import MusicBrainzService from './musicbrainz.js?v=2.1.9';
-import SupabaseService from './supabase.js?v=2.1.9';
+import Config from './config.js?v=2.2.0';
+import SpotifyService from './spotify.js?v=2.2.0';
+import LyricsService from './lyrics.js?v=2.2.0';
+import MusicBrainzService from './musicbrainz.js?v=2.2.0';
+import SupabaseService from './supabase.js?v=2.2.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1479,11 +1479,6 @@ class LySincApp {
             if (ignoreScrollEvents || this.isProgrammaticScrolling) return;
 
             this.updateFloatingMenuVisibility();
-
-            if (Date.now() - this.lastAutoScrollTime < 1000) {
-                return;
-            }
-
             handleUserInteraction();
         });
 
@@ -4312,7 +4307,7 @@ class LySincApp {
         if (this.progScrollTimeout) clearTimeout(this.progScrollTimeout);
         this.progScrollTimeout = setTimeout(() => {
             this.isProgrammaticScrolling = false;
-        }, 1000);
+        }, 600);
 
         if (this.scrollAnimationId) {
             this.cancelRaf(this.scrollAnimationId);
