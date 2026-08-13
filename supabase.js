@@ -101,7 +101,8 @@ class SupabaseService {
      * Recupera o Client ID do Supabase (ou fallback no localStorage)
      */
     async getClientId(spotifyUserId = null) {
-        if (!this.client) return Config.getClientId();
+        const fallbackId = Config.getClientId() || Config.getSystemClientId();
+        if (!this.client) return fallbackId;
 
         try {
             if (spotifyUserId) {
@@ -111,16 +112,23 @@ class SupabaseService {
                     .eq('spotify_user_id', spotifyUserId)
                     .maybeSingle();
 
-                if (!error && data?.client_id) {
+                if (error) {
+                    console.warn('[LySinc 2.0] Erro ao consultar Supabase (usando fallback):', error.message);
+                    return fallbackId;
+                }
+
+                if (data?.client_id) {
                     return data.client_id;
                 }
+
                 return null;
             }
         } catch (err) {
-            console.warn('[LySinc 2.0] Falha na busca no Supabase:', err);
+            console.warn('[LySinc 2.0] Exceção na busca no Supabase (usando fallback):', err);
+            return fallbackId;
         }
 
-        return Config.getClientId();
+        return fallbackId;
     }
 
     /**
