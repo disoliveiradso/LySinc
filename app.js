@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.1.6';
-import SpotifyService from './spotify.js?v=2.1.6';
-import LyricsService from './lyrics.js?v=2.1.6';
-import MusicBrainzService from './musicbrainz.js?v=2.1.6';
-import SupabaseService from './supabase.js?v=2.1.6';
+import Config from './config.js?v=2.1.7';
+import SpotifyService from './spotify.js?v=2.1.7';
+import LyricsService from './lyrics.js?v=2.1.7';
+import MusicBrainzService from './musicbrainz.js?v=2.1.7';
+import SupabaseService from './supabase.js?v=2.1.7';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3200,7 +3200,6 @@ class LySincApp {
     }
 
     async fetchAndDisplayMetadata(state) {
-        if(true) return;
         this.currentMbData = null; // Limpa os dados atuais
 
         const mbData = await MusicBrainzService.getTrackMetadata(

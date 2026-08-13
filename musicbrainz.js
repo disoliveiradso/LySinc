@@ -8,19 +8,31 @@ const MusicBrainzService = {
     cache: new Map(),
 
     async getTrackMetadata(isrc, trackName, artistName) {
-        const queryTerm = isrc ? `isrc:${isrc}` : `${artistName} ${trackName}`;
-        const cacheKey = queryTerm;
+        if (!trackName && !artistName && !isrc) return null;
+
+        const cleanTrack = trackName ? trackName.replace(/[\(\[\-].*$/, '').trim() : '';
+        const cleanArtist = artistName ? artistName.split(',')[0].trim() : '';
+        
+        let queryTerm = isrc ? `isrc:${isrc}` : `recording:"${cleanTrack || trackName}" AND artist:"${cleanArtist || artistName}"`;
+        const cacheKey = isrc || `${cleanTrack}-${cleanArtist}`;
 
         if (this.cache.has(cacheKey)) {
             return this.cache.get(cacheKey);
         }
 
         try {
-            const url = `${this.PROXY_URL}/?q=${encodeURIComponent(queryTerm)}`;
-            const response = await fetch(url);
-            if (!response.ok) return null;
+            let url = `${this.PROXY_URL}/?q=${encodeURIComponent(queryTerm)}`;
+            let response = await fetch(url);
+            let searchData = response.ok ? await response.json() : null;
 
-            const searchData = await response.json();
+            // Fallback se a busca estrita com Lucene não retornar resultados
+            if ((!searchData || !searchData.recordings || searchData.recordings.length === 0) && !isrc) {
+                const fallbackQuery = `${cleanArtist} ${cleanTrack}`;
+                url = `${this.PROXY_URL}/?q=${encodeURIComponent(fallbackQuery)}`;
+                response = await fetch(url);
+                searchData = response.ok ? await response.json() : null;
+            }
+
             if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
                 return null;
             }
