@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.0.8';
-import SpotifyService from './spotify.js?v=2.0.8';
-import LyricsService from './lyrics.js?v=2.0.8';
-import MusicBrainzService from './musicbrainz.js?v=2.0.8';
-import SupabaseService from './supabase.js?v=2.0.8';
+import Config from './config.js?v=2.0.9';
+import SpotifyService from './spotify.js?v=2.0.9';
+import LyricsService from './lyrics.js?v=2.0.9';
+import MusicBrainzService from './musicbrainz.js?v=2.0.9';
+import SupabaseService from './supabase.js?v=2.0.9';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3677,7 +3677,7 @@ class LySincApp {
         this.lyricsContainer.innerHTML = '';
         this.lastAutoScrollTime = Date.now();
         if (!keepScroll) {
-            this.scrollToPosition(0);
+            // this.scrollToPosition(0); // Removido a pedido do usuário
         }
 
         // Precalculate word boundaries for syllables to ensure word-level animations
