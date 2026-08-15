@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.7.0';
-import SpotifyService from './spotify.js?v=2.7.0';
-import LyricsService from './lyrics.js?v=2.7.0';
-import MusicBrainzService from './musicbrainz.js?v=2.7.0';
-import SupabaseService from './supabase.js?v=2.7.0';
+import Config from './config.js?v=2.8.0';
+import SpotifyService from './spotify.js?v=2.8.0';
+import LyricsService from './lyrics.js?v=2.8.0';
+import MusicBrainzService from './musicbrainz.js?v=2.8.0';
+import SupabaseService from './supabase.js?v=2.8.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1415,25 +1415,32 @@ class LySincApp {
                 const isSongFinished = this.progressMs >= this.lyrics[this.lyrics.length - 1].timestamp;
 
                 if (this.btnRecenter && !this.pipWindow && !isSongFinished) {
+                    if (this.floatingControlsWrapper) {
+                        this.floatingControlsWrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                        this.floatingControlsWrapper.classList.add('opacity-100', 'pointer-events-auto');
+                    }
                     this.btnRecenter.classList.remove('hidden');
                     requestAnimationFrame(() => {
-                        this.btnRecenter.classList.remove('opacity-0', 'scale-95');
-                        this.btnRecenter.classList.add('opacity-100', 'scale-100');
+                        this.btnRecenter.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                        this.btnRecenter.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
                     });
                 }
             }
         };
 
-        this.btnRecenter.addEventListener('click', (e) => {
-            if (e) e.stopPropagation();
+        const handleRecenterClick = (e) => {
+            if (e) {
+                if (e.cancelable) e.preventDefault();
+                e.stopPropagation();
+            }
             this.isUserInteracting = false;
             this.currentActiveIdsKey = '';
             this.isProgrammaticScrolling = true;
             this.ignoreUserInteractionUntil = Date.now() + 1500;
 
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-            this.btnRecenter.classList.remove('opacity-100', 'scale-100');
-            this.btnRecenter.classList.add('opacity-0', 'scale-95');
+            this.btnRecenter.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+            this.btnRecenter.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
 
             if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
             this.btnRecenterTimeoutId = setTimeout(() => {
@@ -1472,7 +1479,12 @@ class LySincApp {
             } else {
                 this.smoothScrollTo(0);
             }
-        });
+        };
+
+        if (this.btnRecenter) {
+            this.btnRecenter.addEventListener('click', handleRecenterClick);
+            this.btnRecenter.addEventListener('touchend', handleRecenterClick);
+        }
 
         let lastUserScrollTop = window.scrollY;
 
@@ -3739,7 +3751,7 @@ class LySincApp {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
 
-            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2';
+            let lineClass = 'lyric-line max-md:py-0.5 max-md:my-0.5 md:py-1 md:my-0.5';
             if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
