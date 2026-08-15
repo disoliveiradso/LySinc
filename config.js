@@ -4,7 +4,7 @@
 
 const Config = {
     // Versão da aplicação
-    VERSION: '3.8.0',
+    VERSION: '3.9.0',
 
     // Chave usada para persistir o Client ID no localStorage
     CLIENT_ID_KEY: 'lysinc_spotify_client_id',

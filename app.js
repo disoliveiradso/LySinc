@@ -1,8 +1,8 @@
-import Config from './config.js?v=3.8.0';
-import SpotifyService from './spotify.js?v=3.8.0';
-import LyricsService from './lyrics.js?v=3.8.0';
-import MusicBrainzService from './musicbrainz.js?v=3.8.0';
-import SupabaseService from './supabase.js?v=3.8.0';
+import Config from './config.js?v=3.9.0';
+import SpotifyService from './spotify.js?v=3.9.0';
+import LyricsService from './lyrics.js?v=3.9.0';
+import MusicBrainzService from './musicbrainz.js?v=3.9.0';
+import SupabaseService from './supabase.js?v=3.9.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3756,7 +3756,7 @@ class LySincApp {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
 
-            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2';
+            let lineClass = 'lyric-line max-md:py-1 max-md:my-0.5 md:py-2 md:my-1';
             if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
