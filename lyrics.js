@@ -222,7 +222,11 @@ class GoogleService {
 }
 
 const KPOE_SERVERS = [
-  'https://lyricsplus.binimum.org'
+  'https://lyricsplus.prjktla.my.id',
+  'https://lyricsplus.binimum.org',
+  'https://lyricsplus.prjktla.workers.dev',
+  'https://lyricsplus-seven.vercel.app',
+  'https://lyrics-plus-backend.vercel.app'
 ];
 const UNISON_BASE_URL = 'https://unison.boidu.dev';
 const FETCH_TIMEOUT_MS = 8000;
@@ -908,12 +912,10 @@ const LyricsService = {
     }
 
     return lines;
-  },
-
-  getRankForCollected(sourceLabel, parsedLines) {
+  }, getRankForCollected(sourceLabel, parsedLines) {
     const lower = sourceLabel.toLowerCase();
 
-    const hasWordSync = parsedLines.some(line => line.isWordSynced);
+    const hasWordSync = parsedLines.some(line => line.isWordSynced && Array.isArray(line.text) && line.text.length > 1);
 
     const isUnsynced = parsedLines.length > 0 && parsedLines.every(line => line.timestamp === 0 && line.endtime === 0);
     
@@ -956,8 +958,6 @@ const LyricsService = {
   },
 
   mergeAndSortSources(collectedSources) {
-
-
     const sortedAll = collectedSources.sort(
       (a, b) => this.getRankForCollected(a.source, a.lines) - this.getRankForCollected(b.source, b.lines)
     );
@@ -1035,8 +1035,6 @@ const LyricsService = {
             const ttmlText = await ttmlRes.text();
             const lines = this.parseTTML(ttmlText);
             if (lines && lines.length > 0) {
-
-
               fallbackBiniResult = { lines, source: 'Binimum' };
             }
           }
@@ -1053,7 +1051,7 @@ const LyricsService = {
       const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
       
       try {
-        const response = await fetchWithTimeout(url, {}, 3000);
+        const response = await fetchWithTimeout(url, {}, 3500);
         if (response.ok) {
           const payload = await response.json();
           if (payload) {
@@ -1242,6 +1240,10 @@ const LyricsService = {
       if (cachedData) {
         try {
           sortedSources = JSON.parse(cachedData);
+          const firstHasWordSync = sortedSources && sortedSources.length > 0 && sortedSources[0].lines.some(l => l.isWordSynced && Array.isArray(l.text) && l.text.length > 1);
+          if (!firstHasWordSync) {
+            sortedSources = null; // Invalida o cache antigo de linha por linha para buscar palavra por palavra ao vivo
+          }
         } catch (e) {
           sortedSources = null;
         }
