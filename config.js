@@ -1,10 +1,10 @@
 /**
- * LySinc 2.0 - Configurações Gerais da Aplicação
+ * LySinc 3.0 - Configurações Gerais da Aplicação
  */
 
 const Config = {
     // Versão da aplicação
-    VERSION: '2.9.0',
+    VERSION: '3.0.0',
 
     // Chave usada para persistir o Client ID no localStorage
     CLIENT_ID_KEY: 'lysinc_spotify_client_id',

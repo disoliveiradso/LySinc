@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.9.0">
+    <link rel="stylesheet" href="style.css?v=3.0.0">
 </head>
 
 <body class="bg-[#050505] text-white flex flex-col min-h-screen">
@@ -405,6 +405,14 @@
                 </div>
 
                 <div class="flex items-center space-x-2 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity ml-1 pr-2">
+                    <button id="btn-floating-trackinfo"
+                        class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-6 h-6 rounded-full flex items-center justify-center cursor-pointer"
+                        title="Capa do Álbum / Informações da Faixa">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
                     <button id="btn-pip-top"
                         class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-6 h-6 rounded-full hidden max-md:hidden flex items-center justify-center"
                         title="Picture-in-Picture">
@@ -478,17 +486,6 @@
                                 <button id="floating-btn-sync-reset" class="hover:bg-white/10 hover:text-white text-white/50 transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Resetar Sincronia">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div class="max-md:w-full max-md:h-px md:h-4 md:w-px bg-white/20 shrink-0 max-md:my-1"></div>
-
-                            <div class="flex items-center gap-1 max-md:justify-center">
-                                <button id="btn-floating-trackinfo" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center" title="Informações da Faixa">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
                                 </button>
                             </div>
@@ -1258,7 +1255,7 @@
         </div>
     </div>
 
-    <script type="module" src="app.js?v=2.9.0"></script>
+    <script type="module" src="app.js?v=3.0.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const url = new URL(window.location.href);

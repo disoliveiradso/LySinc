@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.9.0';
-import SpotifyService from './spotify.js?v=2.9.0';
-import LyricsService from './lyrics.js?v=2.9.0';
-import MusicBrainzService from './musicbrainz.js?v=2.9.0';
-import SupabaseService from './supabase.js?v=2.9.0';
+import Config from './config.js?v=3.0.0';
+import SpotifyService from './spotify.js?v=3.0.0';
+import LyricsService from './lyrics.js?v=3.0.0';
+import MusicBrainzService from './musicbrainz.js?v=3.0.0';
+import SupabaseService from './supabase.js?v=3.0.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3666,11 +3666,11 @@ class LySincApp {
                 const alignRight = lastLine ? (lastLine.oppositeTurn || lastLine.alignment === 'end') : false;
                 result.push({
                     id: lines.length + 0.5,
-                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs }],
+                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs + 3600000 }],
                     background: false,
                     backgroundText: [],
                     timestamp: lastEndtime + 500,
-                    endtime: this.durationMs,
+                    endtime: this.durationMs + 3600000,
                     isWordSynced: true,
                     isFim: true,
                     alignment: alignRight ? 'end' : 'start',
@@ -3702,10 +3702,8 @@ class LySincApp {
 
         let containerWidth = this.lyricsContainer ? this.lyricsContainer.clientWidth : 0;
 
-        // Se o container estiver oculto (display: none) no momento do carregamento, 
-        // o clientWidth ser 0. Neste caso, estimamos a largura com base na tela.
-        if (containerWidth < 100) {
-            containerWidth = window.innerWidth >= 768 ? (window.innerWidth * 0.55) : window.innerWidth;
+        if (containerWidth < 300) {
+            containerWidth = window.innerWidth >= 768 ? Math.max(500, window.innerWidth * 0.55) : Math.max(300, window.innerWidth - 40);
         }
 
         const maxWidth = containerWidth - 48;
