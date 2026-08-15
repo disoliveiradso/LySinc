@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.6.0';
-import SpotifyService from './spotify.js?v=2.6.0';
-import LyricsService from './lyrics.js?v=2.6.0';
-import MusicBrainzService from './musicbrainz.js?v=2.6.0';
-import SupabaseService from './supabase.js?v=2.6.0';
+import Config from './config.js?v=2.7.0';
+import SpotifyService from './spotify.js?v=2.7.0';
+import LyricsService from './lyrics.js?v=2.7.0';
+import MusicBrainzService from './musicbrainz.js?v=2.7.0';
+import SupabaseService from './supabase.js?v=2.7.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3479,13 +3479,11 @@ class LySincApp {
         if (fetchedLyrics && fetchedLyrics.original && fetchedLyrics.original.length > 0) {
             this.lyricsData = fetchedLyrics;
 
-            if (this.currentLyricsMode !== 'original' && !this.lyricsData[this.currentLyricsMode]) {
-                this.lyrics = this.injectInstrumentalLines(this.lyricsData.original);
-                this.renderLyrics();
-                this.changeLyricsMode(this.currentLyricsMode);
-            } else {
-                this.lyrics = this.injectInstrumentalLines(this.lyricsData[this.currentLyricsMode] || this.lyricsData.original);
-                this.renderLyrics();
+            this.lyrics = this.injectInstrumentalLines(this.lyricsData[this.currentLyricsMode] || this.lyricsData.original);
+            this.renderLyrics();
+
+            if (this.currentLyricsMode !== 'original') {
+                await this.changeLyricsMode(this.currentLyricsMode);
             }
 
             if (topMenu) {
@@ -3501,7 +3499,13 @@ class LySincApp {
             this.activeLineId = null;
             this.currentActiveIdsKey = '';
             const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
-            this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
+            const currentProgressMs = this.progressMs + elapsed + this.syncOffset;
+
+            if (this.isPlaying && currentProgressMs > 500) {
+                this.seekToTime(currentProgressMs, true).catch(() => {});
+            }
+
+            this.updateLyricsSync(currentProgressMs);
         } else {
             this.lyricsData = null;
             this.lyrics = [];
@@ -3827,7 +3831,7 @@ class LySincApp {
                 } else {
                     const lineText = getLineText(line, 'original');
                     const wrappedStrings = wrapText(domCtx, lineText, maxWidth);
-                    domLines = buildUnsyncedWrappedSyllables(line.text, wrappedStrings);
+                    domLines = groupSyllablesByLines(line.text, wrappedStrings);
                 }
 
                 domLines.forEach((domLineSyls, domLineIdx) => {
@@ -3876,7 +3880,7 @@ class LySincApp {
                 } else {
                     const bgText = getLineText(line, 'background');
                     const wrappedBgStrings = wrapText(domCtx, bgText, maxWidth);
-                    bgDomLines = buildUnsyncedWrappedSyllables(line.backgroundText, wrappedBgStrings);
+                    bgDomLines = groupSyllablesByLines(line.backgroundText, wrappedBgStrings);
                 }
 
                 bgDomLines.forEach((bgLineSyls, bgLineIdx) => {
@@ -3916,10 +3920,13 @@ class LySincApp {
                 lineContainer.appendChild(bgVocal);
             }
 
-            if (this.currentLyricsMode === 'translation' && line.translationText) {
+            const hasTranslation = line.translation || line.translationText;
+            const hasRomanization = line.romanized || line.romanizedText;
+
+            if (this.currentLyricsMode === 'translation' && hasTranslation) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
-                const transText = getLineText(line, 'translation');
+                const transText = getLineText(line, 'translation') || line.translation || line.translationText;
                 const wrappedTrans = wrapText(domCtx, transText, maxWidth);
 
                 wrappedTrans.forEach((str, lineIdx) => {
@@ -3931,11 +3938,11 @@ class LySincApp {
                 });
 
                 lineContainer.appendChild(transEl);
-            } else if (this.currentLyricsMode === 'romanized' && line.romanizedText) {
+            } else if (this.currentLyricsMode === 'romanized' && hasRomanization) {
                 const romEl = document.createElement('div');
                 romEl.className = 'lyrics-romanization-container';
 
-                const romText = getLineText(line, 'romanized');
+                const romText = getLineText(line, 'romanized') || line.romanized || line.romanizedText;
                 const wrappedRom = wrapText(domCtx, romText, maxWidth);
 
                 wrappedRom.forEach((str, lineIdx) => {
