@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.8.0';
-import SpotifyService from './spotify.js?v=2.8.0';
-import LyricsService from './lyrics.js?v=2.8.0';
-import MusicBrainzService from './musicbrainz.js?v=2.8.0';
-import SupabaseService from './supabase.js?v=2.8.0';
+import Config from './config.js?v=2.9.0';
+import SpotifyService from './spotify.js?v=2.9.0';
+import LyricsService from './lyrics.js?v=2.9.0';
+import MusicBrainzService from './musicbrainz.js?v=2.9.0';
+import SupabaseService from './supabase.js?v=2.9.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1508,12 +1508,19 @@ class LySincApp {
             this.updateFloatingMenuVisibility();
         }, { passive: true });
 
-        if (this.btnFloatingToggle) {
-            this.btnFloatingToggle.addEventListener('click', (e) => {
+        const handleFloatingToggle = (e) => {
+            if (e) {
+                if (e.cancelable) e.preventDefault();
                 e.stopPropagation();
-                const isOpen = this.floatingMenuContent.classList.contains('open');
-                this.toggleFloatingMenu(!isOpen);
-            });
+            }
+            if (!this.floatingMenuContent) return;
+            const isOpen = this.floatingMenuContent.classList.contains('open');
+            this.toggleFloatingMenu(!isOpen);
+        };
+
+        if (this.btnFloatingToggle) {
+            this.btnFloatingToggle.addEventListener('click', handleFloatingToggle);
+            this.btnFloatingToggle.addEventListener('touchend', handleFloatingToggle);
         }
 
         if (this.btnFloatingScrollTop) {
