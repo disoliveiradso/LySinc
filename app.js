@@ -1,8 +1,8 @@
-import Config from './config.js?v=3.4.0';
-import SpotifyService from './spotify.js?v=3.4.0';
-import LyricsService from './lyrics.js?v=3.4.0';
-import MusicBrainzService from './musicbrainz.js?v=3.4.0';
-import SupabaseService from './supabase.js?v=3.4.0';
+import Config from './config.js?v=3.5.0';
+import SpotifyService from './spotify.js?v=3.5.0';
+import LyricsService from './lyrics.js?v=3.5.0';
+import MusicBrainzService from './musicbrainz.js?v=3.5.0';
+import SupabaseService from './supabase.js?v=3.5.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3890,14 +3890,6 @@ class LySincApp {
                 const bgVocal = document.createElement('div');
                 bgVocal.className = 'background-vocal-container text-lg md:text-xl font-bold text-white/75 mt-1.5';
 
-                const fullBgStr = line.backgroundText.map(s => s.text).join('').trim();
-                const needsOpeningParen = !fullBgStr.startsWith('(');
-                const needsClosingParen = !fullBgStr.endsWith(')');
-
-                if (needsOpeningParen) {
-                    bgVocal.appendChild(document.createTextNode('('));
-                }
-
                 let bgDomLines = [];
                 if (line.isWordSynced) {
                     bgDomLines = line.bgDomWrappedLines || [line.backgroundText];
@@ -3940,9 +3932,6 @@ class LySincApp {
                     }
                 });
 
-                if (needsClosingParen) {
-                    bgVocal.appendChild(document.createTextNode(')'));
-                }
                 lineContainer.appendChild(bgVocal);
             }
 
