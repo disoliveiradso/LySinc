@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.3.0';
-import SpotifyService from './spotify.js?v=2.3.0';
-import LyricsService from './lyrics.js?v=2.3.0';
-import MusicBrainzService from './musicbrainz.js?v=2.3.0';
-import SupabaseService from './supabase.js?v=2.3.0';
+import Config from './config.js?v=2.4.0';
+import SpotifyService from './spotify.js?v=2.4.0';
+import LyricsService from './lyrics.js?v=2.4.0';
+import MusicBrainzService from './musicbrainz.js?v=2.4.0';
+import SupabaseService from './supabase.js?v=2.4.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1474,25 +1474,27 @@ class LySincApp {
             }
         });
 
-        const interactionEvents = ['wheel', 'touchmove', 'touchstart', 'pointerdown', 'mousedown', 'keydown'];
-        interactionEvents.forEach(evt => {
-            window.addEventListener(evt, handleUserInteraction, { passive: true });
-        });
+        let lastUserScrollTop = window.scrollY;
 
-        let ignoreScrollEvents = false;
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                ignoreScrollEvents = true;
-                setTimeout(() => { ignoreScrollEvents = false; }, 500);
+        window.addEventListener('touchmove', (e) => {
+            if (this.isProgrammaticScrolling) return;
+            const currentY = window.scrollY;
+            if (Math.abs(currentY - lastUserScrollTop) > 4 && Date.now() - this.lastAutoScrollTime > 600) {
+                handleUserInteraction(e);
             }
-        });
+            lastUserScrollTop = currentY;
+        }, { passive: true });
+
+        window.addEventListener('wheel', (e) => {
+            if (this.isProgrammaticScrolling) return;
+            if (Math.abs(e.deltaY) > 2 && Date.now() - this.lastAutoScrollTime > 600) {
+                handleUserInteraction(e);
+            }
+        }, { passive: true });
 
         window.addEventListener('scroll', () => {
-            if (ignoreScrollEvents || this.isProgrammaticScrolling) return;
-
             this.updateFloatingMenuVisibility();
-            handleUserInteraction();
-        });
+        }, { passive: true });
 
         if (this.btnFloatingToggle) {
             this.btnFloatingToggle.addEventListener('click', (e) => {
@@ -3737,8 +3739,6 @@ class LySincApp {
 
             if (!line.isWordSynced) {
                 lineClass += ' line-synced';
-            }
-
             const isInstrumental = line.isInstrumental || (line.text.length === 1 && (line.text[0].text.trim() === '♪' || line.text[0].text.trim().includes('♪')));
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
@@ -3749,6 +3749,7 @@ class LySincApp {
             let touchStartX = 0;
             let touchStartY = 0;
             let touchStartTime = 0;
+            let lastTapTime = 0;
 
             lineEl.addEventListener('touchstart', (evt) => {
                 if (evt.touches && evt.touches[0]) {
@@ -3760,6 +3761,7 @@ class LySincApp {
 
             const triggerLineSeek = (evt) => {
                 if (evt) {
+                    if (evt.cancelable) evt.preventDefault();
                     evt.stopPropagation();
                 }
                 const firstSyl = line.text[0];
@@ -3770,24 +3772,28 @@ class LySincApp {
                     if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
                     if (this.btnRecenter) {
                         this.btnRecenter.classList.remove('opacity-100', 'scale-100');
-                        this.btnRecenter.classList.add('opacity-0', 'scale-95');
-                        setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+                        this.btnRecenter.classList.add('opacity-0', 'scale-95', 'hidden');
                     }
                 }
             };
 
-            lineEl.addEventListener('click', triggerLineSeek);
+            lineEl.addEventListener('click', (evt) => {
+                if (Date.now() - lastTapTime < 600) return;
+                triggerLineSeek(evt);
+            });
+
             lineEl.addEventListener('touchend', (evt) => {
                 if (evt.changedTouches && evt.changedTouches[0]) {
                     const endX = evt.changedTouches[0].clientX;
                     const endY = evt.changedTouches[0].clientY;
                     const dist = Math.hypot(endX - touchStartX, endY - touchStartY);
                     const duration = Date.now() - touchStartTime;
-                    if (dist < 10 && duration < 400) {
+                    if (dist < 15 && duration < 500) {
+                        lastTapTime = Date.now();
                         triggerLineSeek(evt);
                     }
                 }
-            }, { passive: true });
+            }, { passive: false });
 
             const lineContainer = document.createElement('div');
             lineContainer.className = 'lyrics-line-container';
@@ -3803,129 +3809,101 @@ class LySincApp {
             } else {
                 let domLines = [];
 
-                if (Array.isArray(line.text) && line.isWordSynced) {
-                    const text = getLineText(line, 'original');
-                    const wrappedStrings = wrapText(domCtx, text, maxWidth);
-                    const syllableLines = groupSyllablesByLines(line.text, wrappedStrings);
-                    domLines = syllableLines.map(sylArray => ({ text: sylArray, isSynced: true }));
+                if (line.isWordSynced) {
+                    domLines = line.domWrappedLines || [line.text];
                 } else {
-                    const text = getLineText(line, 'original');
-                    const wrappedStrings = wrapText(domCtx, text, maxWidth);
-                    domLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
+                    const lineText = getLineText(line, 'original');
+                    const wrappedStrings = wrapText(domCtx, lineText, maxWidth);
+                    domLines = buildUnsyncedWrappedSyllables(line.text, wrappedStrings);
                 }
 
-                domLines.forEach((domLine, lineIdx) => {
-                    const currentWordWrapper = document.createElement('div');
-                    currentWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
+                domLines.forEach((domLineSyls, domLineIdx) => {
+                    const lineWrapper = document.createElement('span');
+                    lineWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
 
-                    if (domLine.isSynced) {
-                        let currentWordSpan = null;
+                    domLineSyls.forEach((syl, sylIdx) => {
+                        const sylSpan = document.createElement('span');
+                        sylSpan.className = 'lyrics-syllable';
 
-                        domLine.text.forEach((syl, sylSubIdx) => {
-                            // Recover global index of the syllable
-                            const idx = line.text.indexOf(syl);
-                            const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
-                            const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
+                        const originalIndex = line.text.findIndex(s => s.timestamp === syl.timestamp && s.text === syl.text);
+                        sylSpan.id = `word-${line.id}-${originalIndex !== -1 ? originalIndex : sylIdx}`;
 
-                            const sylSpan = document.createElement('span');
-                            sylSpan.className = 'lyrics-syllable';
-                            sylSpan.id = `word-${line.id}-${idx}`;
-                            sylSpan.textContent = cleanText;
+                        const rawText = syl.text;
+                        const cleanText = rawText.replace(/\s+$/, '');
 
-                            if (!currentWordSpan) {
-                                currentWordSpan = document.createElement('span');
-                                currentWordSpan.className = 'lyric-word inline-block';
-                                currentWordWrapper.appendChild(currentWordSpan);
-                            }
+                        sylSpan.textContent = cleanText;
 
-                            currentWordSpan.appendChild(sylSpan);
+                        if (syl.isGlissando) {
+                            sylSpan.classList.add('glissando');
+                        }
 
-                            if (hasSpace) {
-                                currentWordWrapper.appendChild(document.createTextNode(' '));
-                                currentWordSpan = null;
-                            }
-                        });
-                    } else {
-                        currentWordWrapper.textContent = domLine.text;
-                    }
+                        lineWrapper.appendChild(sylSpan);
 
-                    mainVocal.appendChild(currentWordWrapper);
+                        if (syl.text.endsWith(' ') && sylIdx < domLineSyls.length - 1) {
+                            lineWrapper.appendChild(document.createTextNode(' '));
+                        }
+                    });
 
-                    if (lineIdx < domLines.length - 1) {
+                    mainVocal.appendChild(lineWrapper);
+                    if (domLineIdx < domLines.length - 1) {
                         mainVocal.appendChild(document.createElement('br'));
                     }
                 });
             }
             lineContainer.appendChild(mainVocal);
 
-            if (line.background && line.backgroundText && line.backgroundText.length > 0) {
+            if (line.backgroundText && line.backgroundText.length > 0) {
                 const bgVocal = document.createElement('div');
-                bgVocal.className = 'background-vocal-container';
+                bgVocal.className = 'background-vocal-container text-sm font-normal text-white/50 mt-1';
+                bgVocal.appendChild(document.createTextNode('('));
 
-                let domBgLines = [];
-
-                if (Array.isArray(line.backgroundText)) {
-                    // Check if they are synced
-                    const isSyncedBg = line.backgroundText[0] && line.backgroundText[0].timestamp !== undefined;
-                    const bgText = getBgText(line);
-                    const wrappedStrings = wrapText(domCtx, bgText, maxWidth);
-                    if (isSyncedBg) {
-                        const syllableLines = groupSyllablesByLines(line.backgroundText, wrappedStrings);
-                        domBgLines = syllableLines.map(sylArray => ({ text: sylArray, isSynced: true }));
-                    } else {
-                        domBgLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
-                    }
+                let bgDomLines = [];
+                if (line.isWordSynced) {
+                    bgDomLines = line.bgDomWrappedLines || [line.backgroundText];
                 } else {
-                    const bgText = getBgText(line);
-                    const wrappedStrings = wrapText(domCtx, bgText, maxWidth);
-                    domBgLines = wrappedStrings.map(str => ({ text: str, isSynced: false }));
+                    const bgText = getLineText(line, 'background');
+                    const wrappedBgStrings = wrapText(domCtx, bgText, maxWidth);
+                    bgDomLines = buildUnsyncedWrappedSyllables(line.backgroundText, wrappedBgStrings);
                 }
 
-                domBgLines.forEach((domLine, lineIdx) => {
-                    const bgWordWrapper = document.createElement('div');
-                    bgWordWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
+                bgDomLines.forEach((bgLineSyls, bgLineIdx) => {
+                    const bgLineWrapper = document.createElement('span');
+                    bgLineWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
 
-                    if (domLine.isSynced) {
-                        let currentBgWordSpan = null;
+                    bgLineSyls.forEach((syl, sylIdx) => {
+                        const sylSpan = document.createElement('span');
+                        sylSpan.className = 'lyrics-syllable';
 
-                        domLine.text.forEach((syl, sylSubIdx) => {
-                            const idx = line.backgroundText.indexOf(syl);
-                            const hasSpace = syl.text.endsWith(' ') && syl.text !== ' ';
-                            const cleanText = hasSpace ? syl.text.slice(0, -1) : syl.text;
+                        const originalIndex = line.backgroundText.findIndex(s => s.timestamp === syl.timestamp && s.text === syl.text);
+                        sylSpan.id = `bgword-${line.id}-${originalIndex !== -1 ? originalIndex : sylIdx}`;
 
-                            const sylSpan = document.createElement('span');
-                            sylSpan.className = 'lyrics-syllable backing-vocal';
-                            sylSpan.id = `bgword-${line.id}-${idx}`;
-                            sylSpan.textContent = cleanText;
+                        const rawText = syl.text;
+                        const cleanText = rawText.replace(/\s+$/, '');
 
-                            if (!currentBgWordSpan) {
-                                currentBgWordSpan = document.createElement('span');
-                                currentBgWordSpan.className = 'lyric-word inline-block';
-                                bgWordWrapper.appendChild(currentBgWordSpan);
-                            }
+                        sylSpan.textContent = cleanText;
 
-                            currentBgWordSpan.appendChild(sylSpan);
+                        if (syl.isGlissando) {
+                            sylSpan.classList.add('glissando');
+                        }
 
-                            if (hasSpace) {
-                                bgWordWrapper.appendChild(document.createTextNode(' '));
-                                currentBgWordSpan = null;
-                            }
-                        });
-                    } else {
-                        bgWordWrapper.textContent = domLine.text;
-                        bgWordWrapper.className += ' backing-vocal';
-                    }
+                        bgLineWrapper.appendChild(sylSpan);
 
-                    bgVocal.appendChild(bgWordWrapper);
+                        if (syl.text.endsWith(' ') && sylIdx < bgLineSyls.length - 1) {
+                            bgLineWrapper.appendChild(document.createTextNode(' '));
+                        }
+                    });
 
-                    if (lineIdx < domBgLines.length - 1) {
+                    bgVocal.appendChild(bgLineWrapper);
+                    if (bgLineIdx < bgDomLines.length - 1) {
                         bgVocal.appendChild(document.createElement('br'));
                     }
                 });
+
+                bgVocal.appendChild(document.createTextNode(')'));
                 lineContainer.appendChild(bgVocal);
             }
 
-            if (this.currentLyricsMode === 'translation' && line.translation) {
+            if (this.currentLyricsMode === 'translation' && line.translationText) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
                 const transText = getLineText(line, 'translation');
@@ -3962,33 +3940,29 @@ class LySincApp {
             this.lyricsContainer.appendChild(lineEl);
         });
 
-        if (this.lyricsData && this.lyrics.length > 0) {
+        if (this.lyrics.length > 0) {
             const creditsBlock = document.createElement('div');
-            creditsBlock.className = 'w-full pt-12 pb-24 flex flex-col space-y-6 text-white/60 border-t border-white/10 mt-12';
-
-            const title = document.createElement('h3');
-            title.className = 'text-xl font-bold text-white tracking-wide';
-            title.textContent = 'Informações da Faixa';
-            creditsBlock.appendChild(title);
+            creditsBlock.id = 'lyrics-credits-block';
+            creditsBlock.className = 'mt-8 mb-16 pt-4 flex flex-col space-y-4 opacity-70 hover:opacity-100 transition-opacity';
 
             const mainFlex = document.createElement('div');
-            mainFlex.className = 'flex flex-wrap items-center gap-3 w-full';
+            mainFlex.className = 'flex flex-wrap gap-3 items-center justify-start max-w-full';
             creditsBlock.appendChild(mainFlex);
 
-            if (this.currentTrackArtistsList && this.currentTrackArtistsList.length > 0) {
-                this.currentTrackArtistsList.forEach(artist => {
+            if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
+                this.currentTrackArtistsRaw.forEach(artist => {
                     const artistInfo = document.createElement('div');
                     artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
 
-                    let iconHtml = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    `;
-
-                    if (artist.imageUrl) {
+                    const imgUrl = this.artistImages && this.artistImages[artist.id];
+                    let iconHtml = '';
+                    if (imgUrl) {
+                        iconHtml = `<img src="${imgUrl}" class="w-5 h-5 rounded-full object-cover shrink-0" alt="${artist.name}">`;
+                    } else {
                         iconHtml = `
-                            <img src="${artist.imageUrl}" alt="${artist.name}" class="w-5 h-5 rounded-full object-cover shrink-0" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
                         `;
                     }
 
@@ -3998,13 +3972,95 @@ class LySincApp {
                     `;
                     mainFlex.appendChild(artistInfo);
                 });
+            } else if (this.currentTrackArtists) {
+                const artistInfo = document.createElement('div');
+                artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
+                artistInfo.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="font-medium truncate min-w-0">${this.currentTrackArtists}</span>
+                `;
+                mainFlex.appendChild(artistInfo);
             }
+
+            const mbPills = document.createElement('div');
+            mbPills.id = 'musicbrainz-pills';
+            mbPills.className = 'contents';
+            mainFlex.appendChild(mbPills);
+
+            if (this.isExplicit) {
+                const explicitInfo = document.createElement('div');
+                explicitInfo.className = 'flex items-center bg-white/5 border border-white/10 rounded-full pl-1.5 pr-4 py-1.5 text-sm text-white/80';
+                explicitInfo.innerHTML = `
+                    <div class="w-5 h-5 rounded-[3px] bg-white/20 flex items-center justify-center text-white text-[11px] font-bold">
+                        E
+                    </div>
+                    <span class="font-medium uppercase tracking-wider text-[11px] ml-2 mt-[1px]">Explícita</span>
+                `;
+                mainFlex.appendChild(explicitInfo);
+            }
+
+            const providerText = this.lyricsData?.source || 'Desconhecida';
+
+            const btnChangeSource = document.createElement('button');
+            btnChangeSource.id = 'btn-change-source-inline';
+            btnChangeSource.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
+            btnChangeSource.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+                <span class="font-medium truncate min-w-0">Fonte: ${providerText}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            `;
+            btnChangeSource.addEventListener('click', () => {
+                if (!this.lyricsData || !this.lyricsData.availableSources || this.lyricsData.availableSources.length <= 1) {
+                    this.showToast('Nenhuma outra fonte disponível para esta música.', 'info');
+                    return;
+                }
+                const available = this.lyricsData.availableSources.map(s => s.source);
+                let currentIdx = available.indexOf(this.lyricsData.source);
+                if (currentIdx === -1) currentIdx = 0;
+
+                const nextIdx = (currentIdx + 1) % available.length;
+                const nextSource = this.lyricsData.availableSources[nextIdx];
+
+                this.lyricsData.original = nextSource.lines;
+                this.lyricsData.source = nextSource.source;
+                this.currentLyricsProvider = nextSource.source;
+                this.userForcedProvider = true;
+
+                this.showToast(`Fonte alterada para: ${nextSource.source}`, 'success');
+                this.changeLyricsMode(this.currentLyricsMode);
+            });
+            mainFlex.appendChild(btnChangeSource);
+
+            const btnRestartTrack = document.createElement('button');
+            btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
+            btnRestartTrack.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" />
+                </svg>
+                <span class="font-medium">Reiniciar Música</span>
+            `;
+            btnRestartTrack.addEventListener('click', () => {
+                this.seekToTime(0);
+                this.isUserInteracting = false;
+                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                if (this.btnRecenter) {
+                    this.btnRecenter.classList.add('opacity-0', 'hidden');
+                }
+            });
+            mainFlex.appendChild(btnRestartTrack);
 
             const mbCopyright = document.createElement('div');
             mbCopyright.id = 'musicbrainz-copyright';
             creditsBlock.appendChild(mbCopyright);
 
             this.lyricsContainer.appendChild(creditsBlock);
+
             this.updateMusicBrainzUI();
         }
 
