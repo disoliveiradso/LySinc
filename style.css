@@ -404,6 +404,31 @@ body, html {
 }
 
 
+.lyric-line.instrumental-line.inactive {
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    transition: all 0.75s cubic-bezier(0.25, 1, 0.35, 1);
+}
+
+.lyric-line.instrumental-line.active {
+    height: auto !important;
+    max-height: 100px !important;
+    opacity: 1 !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    transition: all 0.75s cubic-bezier(0.25, 1, 0.35, 1);
+}
+
 .lyrics-syllable.instrumental-icon {
     font-size: 2.5rem;
     background-image: linear-gradient(to bottom, 
