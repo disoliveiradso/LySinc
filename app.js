@@ -1,8 +1,8 @@
-import Config from './config.js?v=3.3.0';
-import SpotifyService from './spotify.js?v=3.3.0';
-import LyricsService from './lyrics.js?v=3.3.0';
-import MusicBrainzService from './musicbrainz.js?v=3.3.0';
-import SupabaseService from './supabase.js?v=3.3.0';
+import Config from './config.js?v=3.4.0';
+import SpotifyService from './spotify.js?v=3.4.0';
+import LyricsService from './lyrics.js?v=3.4.0';
+import MusicBrainzService from './musicbrainz.js?v=3.4.0';
+import SupabaseService from './supabase.js?v=3.4.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3888,8 +3888,15 @@ class LySincApp {
 
             if (line.backgroundText && line.backgroundText.length > 0) {
                 const bgVocal = document.createElement('div');
-                bgVocal.className = 'background-vocal-container text-base md:text-lg font-medium text-white/70 mt-1';
-                bgVocal.appendChild(document.createTextNode('('));
+                bgVocal.className = 'background-vocal-container text-lg md:text-xl font-bold text-white/75 mt-1.5';
+
+                const fullBgStr = line.backgroundText.map(s => s.text).join('').trim();
+                const needsOpeningParen = !fullBgStr.startsWith('(');
+                const needsClosingParen = !fullBgStr.endsWith(')');
+
+                if (needsOpeningParen) {
+                    bgVocal.appendChild(document.createTextNode('('));
+                }
 
                 let bgDomLines = [];
                 if (line.isWordSynced) {
@@ -3933,7 +3940,9 @@ class LySincApp {
                     }
                 });
 
-                bgVocal.appendChild(document.createTextNode(')'));
+                if (needsClosingParen) {
+                    bgVocal.appendChild(document.createTextNode(')'));
+                }
                 lineContainer.appendChild(bgVocal);
             }
 
