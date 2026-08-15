@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.2.0';
-import SpotifyService from './spotify.js?v=2.2.0';
-import LyricsService from './lyrics.js?v=2.2.0';
-import MusicBrainzService from './musicbrainz.js?v=2.2.0';
-import SupabaseService from './supabase.js?v=2.2.0';
+import Config from './config.js?v=2.2.1';
+import SpotifyService from './spotify.js?v=2.2.1';
+import LyricsService from './lyrics.js?v=2.2.1';
+import MusicBrainzService from './musicbrainz.js?v=2.2.1';
+import SupabaseService from './supabase.js?v=2.2.1';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1390,8 +1390,20 @@ class LySincApp {
             if (this.ignoreUserInteractionUntil && Date.now() < this.ignoreUserInteractionUntil) {
                 return;
             }
-            if (e && e.target && this.btnRecenter && (this.btnRecenter === e.target || this.btnRecenter.contains(e.target))) {
-                return;
+            if (e && e.target) {
+                const t = e.target;
+                if (
+                    t.closest('#btn-floating-toggle') ||
+                    t.closest('#btn-recenter') ||
+                    t.closest('#btn-recenter-drawer') ||
+                    t.closest('#floating-controls-wrapper') ||
+                    t.closest('#lyrics-top-menu') ||
+                    t.closest('#top-menu') ||
+                    t.closest('#trackinfo-box') ||
+                    t.closest('button')
+                ) {
+                    return;
+                }
             }
             if (!this.isUserInteracting && this.lyrics.length > 0) {
                 this.isUserInteracting = true;
@@ -3075,10 +3087,6 @@ class LySincApp {
             this.progressMs = state.progressMs + safeCompensation;
             this.lastSyncTime = Date.now();
 
-            if (isAutoSkip) {
-                this.seekToTime(this.progressMs, true).catch(() => { });
-            }
-
             this.updateTrackDetails(state);
         } else {
             const elapsed = Date.now() - this.lastSyncTime;
@@ -3920,31 +3928,33 @@ class LySincApp {
             this.lyricsContainer.appendChild(lineEl);
         });
 
-        if (this.lyrics.length > 0) {
+        if (this.lyricsData && this.lyrics.length > 0) {
             const creditsBlock = document.createElement('div');
-            creditsBlock.id = 'lyrics-credits-block';
-            creditsBlock.className = 'mt-2 mb-8 pt-2 opacity-70 hover:opacity-100 transition-opacity';
+            creditsBlock.className = 'w-full pt-12 pb-24 flex flex-col space-y-6 text-white/60 border-t border-white/10 mt-12';
+
+            const title = document.createElement('h3');
+            title.className = 'text-xl font-bold text-white tracking-wide';
+            title.textContent = 'Informações da Faixa';
+            creditsBlock.appendChild(title);
 
             const mainFlex = document.createElement('div');
-            mainFlex.className = 'flex flex-wrap gap-3 items-center justify-start max-w-full';
+            mainFlex.className = 'flex flex-wrap items-center gap-3 w-full';
             creditsBlock.appendChild(mainFlex);
 
-            if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
-                this.currentTrackArtistsRaw.forEach(artist => {
+            if (this.currentTrackArtistsList && this.currentTrackArtistsList.length > 0) {
+                this.currentTrackArtistsList.forEach(artist => {
                     const artistInfo = document.createElement('div');
                     artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
 
-                    const imgUrl = this.artistImages && this.artistImages[artist.id];
-                    let iconHtml = '';
-                    if (imgUrl) {
-                        iconHtml = `<img src="${imgUrl}" class="w-6 h-6 rounded-full object-cover" alt="${artist.name}">`;
-                    } else {
+                    let iconHtml = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    `;
+
+                    if (artist.imageUrl) {
                         iconHtml = `
-                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                            </div>
+                            <img src="${artist.imageUrl}" alt="${artist.name}" class="w-5 h-5 rounded-full object-cover shrink-0" />
                         `;
                     }
 
@@ -3954,115 +3964,14 @@ class LySincApp {
                     `;
                     mainFlex.appendChild(artistInfo);
                 });
-            } else {
-                const artistInfo = document.createElement('div');
-                artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
-                artistInfo.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span class="font-medium truncate min-w-0">${this.currentTrackArtists || 'Desconhecido'}</span>
-                `;
-                mainFlex.appendChild(artistInfo);
             }
 
-            // Container para metadados adicionais do MusicBrainz (pills)
-            const mbPills = document.createElement('div');
-            mbPills.id = 'musicbrainz-pills';
-            mbPills.className = 'contents';
-            mainFlex.appendChild(mbPills);
-
-            if (this.isExplicit) {
-                const explicitInfo = document.createElement('div');
-                explicitInfo.className = 'flex items-center bg-white/5 border border-white/10 rounded-full pl-1.5 pr-4 py-1.5 text-sm text-white/80';
-                explicitInfo.innerHTML = `
-                    <div class="w-5 h-5 rounded-[3px] bg-white/20 flex items-center justify-center text-white text-[11px] font-bold">
-                        E
-                    </div>
-                    <span class="font-medium uppercase tracking-wider text-[11px] ml-2 mt-[1px]">Explícita</span>
-                `;
-                mainFlex.appendChild(explicitInfo);
-            }
-
-            const providerText = this.lyricsData?.source || 'Desconhecida';
-
-            const btnChangeSource = document.createElement('button');
-            btnChangeSource.id = 'btn-change-source-inline';
-            btnChangeSource.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
-            btnChangeSource.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-                <span class="font-medium truncate min-w-0">Fonte: ${providerText}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 ml-1 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-            `;
-            mainFlex.appendChild(btnChangeSource);
-
-            const btnRestartTrack = document.createElement('button');
-            btnRestartTrack.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer max-w-full';
-            btnRestartTrack.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 5L5.5 12l7 7M5.5 12h13M18.5 5v14" />
-                </svg>
-                <span class="font-medium">Reiniciar Música</span>
-            `;
-            btnRestartTrack.addEventListener('click', () => {
-                this.seekToTime(0);
-                this.isUserInteracting = false;
-                if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-                if (this.btnRecenter) {
-                    this.btnRecenter.classList.add('opacity-0', 'hidden');
-                }
-            });
-            mainFlex.appendChild(btnRestartTrack);
-
-            // Botão do YouTube (oculto por padrão até ser populado)
-            const ytBtn = document.createElement('a');
-            ytBtn.id = 'youtube-video-btn';
-            ytBtn.target = '_blank';
-            ytBtn.className = 'hidden items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-[#FF0000]/20 hover:text-white hover:border-[#FF0000]/50 transition-colors cursor-pointer';
-            ytBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#FF0000]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                <span class="font-medium">Assistir no YouTube</span>
-            `;
-            mainFlex.appendChild(ytBtn);
-
-            // Container para metadados de copyright do MusicBrainz
             const mbCopyright = document.createElement('div');
             mbCopyright.id = 'musicbrainz-copyright';
             creditsBlock.appendChild(mbCopyright);
 
             this.lyricsContainer.appendChild(creditsBlock);
-
-            // Preenche se já tivermos dados em cache no momento da renderização
-            setTimeout(() => this.updateMusicBrainzUI(), 0);
-
-            btnChangeSource.addEventListener('click', () => {
-                if (!this.lyricsData || !this.lyricsData.availableSources || this.lyricsData.availableSources.length <= 1) {
-                    this.showToast('Nenhuma outra fonte disponível para esta música.', 'info');
-                    return;
-                }
-
-                const available = this.lyricsData.availableSources.map(s => s.source);
-                let currentIdx = available.indexOf(this.lyricsData.source);
-                if (currentIdx === -1) currentIdx = 0;
-
-                const nextIdx = (currentIdx + 1) % available.length;
-                const nextSource = this.lyricsData.availableSources[nextIdx];
-
-                this.lyricsData.original = nextSource.lines;
-                this.lyricsData.source = nextSource.source;
-                this.currentLyricsProvider = nextSource.source;
-                this.userForcedProvider = true;
-
-                this.showToast(`Fonte alterada para: ${nextSource.source}`, 'success');
-
-                this.changeLyricsMode(this.currentLyricsMode);
-            });
+            this.updateMusicBrainzUI();
         }
 
         if (keepScroll) {
@@ -4366,43 +4275,38 @@ class LySincApp {
 
         if (!topMenu || !floatingMenu || !wrapper || !btnFloatingToggle) return;
 
-        if (document.body.style.cursor !== 'none') {
+        const hasLyrics = this.lyrics && this.lyrics.length > 0;
+        const isPastTop = topMenu.getBoundingClientRect().bottom < 0;
+
+        if (document.body.style.cursor !== 'none' && hasLyrics) {
             wrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
             wrapper.classList.add('opacity-100');
             wrapper.style.opacity = '1';
         }
 
-        const rect = topMenu.getBoundingClientRect();
-
-        if (rect.bottom < 0) {
-
+        if (isPastTop && hasLyrics && !this.isLoadingLyrics) {
             if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
 
             if (document.body.style.cursor !== 'none') {
-                if (btnFloatingToggle && btnFloatingToggle.classList.contains('opacity-0')) {
+                if (btnFloatingToggle.classList.contains('opacity-0') || btnFloatingToggle.classList.contains('hidden')) {
                     btnFloatingToggle.classList.remove('hidden');
-
                     void btnFloatingToggle.offsetWidth;
-
                     btnFloatingToggle.classList.remove('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
                     btnFloatingToggle.classList.add('opacity-100', 'scale-100', 'w-10', 'mr-3');
                 }
             }
         } else {
-            if (btnFloatingToggle && !btnFloatingToggle.classList.contains('opacity-0')) {
-                btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
-                btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
-                this.toggleFloatingMenu(false);
+            btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
+            btnFloatingToggle.classList.add('opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
+            this.toggleFloatingMenu(false);
 
-                if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
-                this.floatingMenuTimeoutId = setTimeout(() => {
-
-                    const currentRect = topMenu.getBoundingClientRect();
-                    if (currentRect.bottom >= 0) {
-                        btnFloatingToggle.classList.add('hidden');
-                    }
-                }, 300);
-            }
+            if (this.floatingMenuTimeoutId) clearTimeout(this.floatingMenuTimeoutId);
+            this.floatingMenuTimeoutId = setTimeout(() => {
+                const currentRect = topMenu.getBoundingClientRect();
+                if (currentRect.bottom >= 0 || !hasLyrics || this.isLoadingLyrics) {
+                    btnFloatingToggle.classList.add('hidden');
+                }
+            }, 300);
         }
     }
 
