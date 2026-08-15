@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.4.1';
-import SpotifyService from './spotify.js?v=2.4.1';
-import LyricsService from './lyrics.js?v=2.4.1';
-import MusicBrainzService from './musicbrainz.js?v=2.4.1';
-import SupabaseService from './supabase.js?v=2.4.1';
+import Config from './config.js?v=2.5.0';
+import SpotifyService from './spotify.js?v=2.5.0';
+import LyricsService from './lyrics.js?v=2.5.0';
+import MusicBrainzService from './musicbrainz.js?v=2.5.0';
+import SupabaseService from './supabase.js?v=2.5.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -4308,22 +4308,45 @@ class LySincApp {
         if (this.progScrollTimeout) clearTimeout(this.progScrollTimeout);
         this.progScrollTimeout = setTimeout(() => {
             this.isProgrammaticScrolling = false;
-        }, 600);
+        }, 850);
 
         if (this.scrollAnimationId) {
-            this.cancelRaf(this.scrollAnimationId);
+            cancelAnimationFrame(this.scrollAnimationId);
             this.scrollAnimationId = null;
         }
 
         const win = this.pipWindow || window;
-        try {
-            win.scrollTo({
-                top: targetY,
-                behavior: 'smooth'
-            });
-        } catch (e) {
+        const startY = win.scrollY || win.pageYOffset || 0;
+        const distance = targetY - startY;
+
+        if (Math.abs(distance) < 2) {
             win.scrollTo(0, targetY);
+            return;
         }
+
+        const duration = 750;
+        const startTime = performance.now();
+
+        const cubicBezier = (t) => {
+            const p = 1 - t;
+            return 1 - p * p * p;
+        };
+
+        const step = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const ease = cubicBezier(progress);
+
+            win.scrollTo(0, startY + distance * ease);
+
+            if (progress < 1) {
+                this.scrollAnimationId = requestAnimationFrame(step);
+            } else {
+                this.scrollAnimationId = null;
+            }
+        };
+
+        this.scrollAnimationId = requestAnimationFrame(step);
     }
 
     async seekToTime(timeMs, isAutoSync = false) {
