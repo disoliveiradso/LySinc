@@ -224,8 +224,6 @@ class GoogleService {
 const KPOE_SERVERS = [
   'https://lyricsplus.prjktla.my.id',
   'https://lyricsplus.binimum.org',
-  'https://lyricsplus.prjktla.workers.dev',
-  'https://lyricsplus-seven.vercel.app',
   'https://lyrics-plus-backend.vercel.app'
 ];
 const UNISON_BASE_URL = 'https://unison.boidu.dev';
@@ -995,8 +993,45 @@ const LyricsService = {
     }
 
     const allResults = [];
-    let fallbackBiniResult = null;
 
+    // 1. Consultar os servidores primários LyricsPlus primeiro
+    const fetchPromises = KPOE_SERVERS.map(async (base) => {
+      const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+      const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
+      
+      try {
+        const response = await fetchWithTimeout(url, {}, 3500);
+        if (response.ok) {
+          const payload = await response.json();
+          if (payload) {
+            const lines = this.convertKPoeLyrics(payload);
+            if (lines && lines.length > 0) {
+              let sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
+
+              if (sourceLabel.toLowerCase() === 'qq') sourceLabel = 'QQ Music';
+              if (sourceLabel.toLowerCase() === 'netease') sourceLabel = 'NetEase';
+              if (sourceLabel.toLowerCase() === 'musixmatch') sourceLabel = 'Musixmatch';
+              
+              return { lines, source: sourceLabel };
+            }
+          }
+        }
+      } catch (err) {}
+      return null;
+    });
+
+    const results = await Promise.all(fetchPromises);
+    results.forEach(res => {
+      if (res) {
+        allResults.push(res);
+      }
+    });
+
+    if (allResults.length > 0) {
+      return allResults;
+    }
+
+    // 2. Se os servidores primários não retornarem letras, consultar a API de cache binimum.org como fallback
     try {
       let cacheData = null;
 
@@ -1035,52 +1070,12 @@ const LyricsService = {
             const ttmlText = await ttmlRes.text();
             const lines = this.parseTTML(ttmlText);
             if (lines && lines.length > 0) {
-              fallbackBiniResult = { lines, source: 'Binimum' };
+              allResults.push({ lines, source: 'Binimum' });
             }
           }
         }
       }
-    } catch (e) {
-      console.error('Cache API failed', e);
-    }
-
-    const shuffledServers = [...KPOE_SERVERS].filter(s => s && !s.includes('geeked') && !s.includes('atomix')).sort(() => Math.random() - 0.5).slice(0, 3);
-
-    const fetchPromises = shuffledServers.map(async (base) => {
-      const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
-      const url = `${normalizedBase}/v2/lyrics/get?${params.toString()}`;
-      
-      try {
-        const response = await fetchWithTimeout(url, {}, 3500);
-        if (response.ok) {
-          const payload = await response.json();
-          if (payload) {
-            const lines = this.convertKPoeLyrics(payload);
-            if (lines && lines.length > 0) {
-              let sourceLabel = payload?.metadata?.source || payload?.metadata?.provider || 'LyricsPlus (KPoe)';
-
-              if (sourceLabel.toLowerCase() === 'qq') sourceLabel = 'QQ Music';
-              if (sourceLabel.toLowerCase() === 'netease') sourceLabel = 'NetEase';
-              if (sourceLabel.toLowerCase() === 'musixmatch') sourceLabel = 'Musixmatch';
-              
-              return { lines, source: sourceLabel };
-            }
-          }
-        }
-      } catch (err) {}
-      return null;
-    });
-
-    const results = await Promise.all(fetchPromises);
-    results.forEach(res => {
-      if (res) {
-        allResults.push(res);
-      }
-    });
-
-    if (fallbackBiniResult) {
-      allResults.push(fallbackBiniResult);
-    }
+    } catch (e) {}
 
     return allResults;
   },
