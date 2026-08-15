@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.5.0">
+    <link rel="stylesheet" href="style.css?v=2.6.0">
 </head>
 
 <body class="bg-[#050505] text-white flex flex-col min-h-screen">
@@ -434,9 +434,9 @@
 
             <div id="floating-controls-wrapper"
                 class="hidden sticky max-md:top-[56px] md:top-[88px] h-0 overflow-visible z-40 pointer-events-none opacity-0 transition-opacity duration-300 flex items-center px-2 w-full mt-4">
-                <div id="floating-lyrics-menu" class="flex items-center relative pointer-events-auto h-10">
+                <div id="floating-lyrics-menu" class="flex items-center relative pointer-events-none h-10">
                     <button id="btn-floating-toggle" title="Opções das Letras"
-                        class="hidden opacity-0 scale-95 w-0 border-0 px-0 mr-0 h-10 shrink-0 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20 relative">
+                        class="hidden opacity-0 scale-95 w-0 border-0 px-0 mr-0 h-10 shrink-0 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 hover:border-white/25 text-white/80 hover:text-white transition-all duration-300 ease-out hover:scale-105 shadow-2xl z-20 relative pointer-events-none">
                         <svg id="icon-floating-toggle-mobile" class="w-5 h-5 transition-transform duration-300 md:hidden" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
@@ -447,7 +447,7 @@
                         </svg>
                     </button>
 
-                    <div id="floating-menus-wrapper" class="max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 relative closed">
+                    <div id="floating-menus-wrapper" class="max-md:absolute max-md:left-0 max-md:top-full max-md:mt-2 relative closed pointer-events-none">
                         <div id="floating-menu-content"
                             class="menu-drawer closed flex max-md:flex-col md:flex-row items-center bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-full shadow-2xl max-md:h-auto md:py-1.5 max-md:py-3 max-md:space-y-3 md:gap-3 max-md:px-4 md:px-4 min-w-0 origin-left">
                             <div class="flex items-center gap-1 max-md:justify-center">
@@ -1258,7 +1258,7 @@
         </div>
     </div>
 
-    <script type="module" src="app.js?v=2.5.0"></script>
+    <script type="module" src="app.js?v=2.6.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const url = new URL(window.location.href);

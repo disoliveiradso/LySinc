@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.5.0';
-import SpotifyService from './spotify.js?v=2.5.0';
-import LyricsService from './lyrics.js?v=2.5.0';
-import MusicBrainzService from './musicbrainz.js?v=2.5.0';
-import SupabaseService from './supabase.js?v=2.5.0';
+import Config from './config.js?v=2.6.0';
+import SpotifyService from './spotify.js?v=2.6.0';
+import LyricsService from './lyrics.js?v=2.6.0';
+import MusicBrainzService from './musicbrainz.js?v=2.6.0';
+import SupabaseService from './supabase.js?v=2.6.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3450,14 +3450,20 @@ class LySincApp {
             this.artistImages = {};
         }
 
-        const fetchedLyrics = await LyricsService.getLyrics(
-            state.trackName,
-            state.artists,
-            state.albumName,
-            state.durationMs,
-            this.userForcedProvider ? this.currentLyricsProvider : null,
-            state.isrc
-        );
+        let fetchedLyrics = null;
+        try {
+            fetchedLyrics = await LyricsService.getLyrics(
+                state.trackName,
+                state.artists,
+                state.albumName,
+                state.durationMs,
+                this.userForcedProvider ? this.currentLyricsProvider : null,
+                state.isrc
+            );
+        } catch (err) {
+            console.error('[LySinc] Erro na busca de letras:', err);
+            fetchedLyrics = null;
+        }
 
         if (requestTrackId !== this.currentTrackId) return;
 
@@ -3500,9 +3506,14 @@ class LySincApp {
             this.lyricsData = null;
             this.lyrics = [];
             this.lyricsContainer.innerHTML = `
-                <div class="text-center text-white/40 text-xl py-20">
-                    Letras não disponíveis para esta música.<br>
-                    <span class="text-sm mt-2 block">Tente tocar outra música no Spotify para testar a sincronização!</span>
+                <div class="flex-1 w-full min-h-[40vh] flex flex-col items-center justify-center text-center px-4 py-16">
+                    <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                    </div>
+                    <div class="text-white/80 text-lg font-medium">Letras não disponíveis para esta música</div>
+                    <div class="text-white/40 text-sm mt-1 max-w-sm">Tente selecionar outra música no Spotify para testar a sincronização.</div>
                 </div>`;
             if (topMenu) {
                 topMenu.classList.remove('hidden');

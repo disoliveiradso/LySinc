@@ -1231,70 +1231,75 @@ const LyricsService = {
   },
 
   async getLyrics(trackName, artistName, albumName, durationMs, provider = 'betterlyrics', isrc = null) {
-    const resolved = await this.resolveSongMetadata(trackName, artistName, albumName, durationMs, null, isrc, `${artistName} - ${trackName}`);
-    const metadata = resolved.metadata || { title: trackName, artist: artistName, album: albumName, durationMs };
+    try {
+      const resolved = await this.resolveSongMetadata(trackName, artistName, albumName, durationMs, null, isrc, `${artistName} - ${trackName}`).catch(() => ({ metadata: null }));
+      const metadata = (resolved && resolved.metadata) ? resolved.metadata : { title: trackName, artist: artistName, album: albumName, durationMs };
 
-    const cacheKey = `lysinc_cache_${metadata.title}_${metadata.artist}`;
-    const cachedData = localStorage.getItem(cacheKey);
-    let sortedSources;
+      const cacheKey = `lysinc_cache_${metadata.title}_${metadata.artist}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      let sortedSources;
 
-    if (cachedData) {
-      try {
-        sortedSources = JSON.parse(cachedData);
-      } catch (e) {
-        sortedSources = null;
-      }
-    }
-
-    if (!sortedSources) {
-      const collectedSources = [];
-
-      const fetchPromises = [
-        this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved.catalogIsrc, metadata).catch(() => null),
-        this.fetchLyricsFromUnison(metadata).catch(() => null),
-        this.fetchLyricsFromLrclib(metadata).catch(() => null)
-      ];
-
-      const results = await Promise.all(fetchPromises);
-      const [youLyResults, unisonResult, lrclibResult] = results;
-
-      if (youLyResults && youLyResults.length > 0) {
-        collectedSources.push(...youLyResults);
-      }
-      if (unisonResult && unisonResult.lines && unisonResult.lines.length > 0) {
-        collectedSources.push(unisonResult);
-      }
-      if (lrclibResult && lrclibResult.lines && lrclibResult.lines.length > 0) {
-        collectedSources.push(lrclibResult);
-      }
-
-      if (collectedSources.length > 0) {
-        sortedSources = this.mergeAndSortSources(collectedSources);
+      if (cachedData) {
         try {
-          localStorage.setItem(cacheKey, JSON.stringify(sortedSources));
-        } catch (e) {}
-      }
-    }
-
-    if (sortedSources && sortedSources.length > 0) {
-      let selectedSource = sortedSources[0];
-      if (provider && provider !== 'betterlyrics') {
-        const forced = sortedSources.find(src => src.source.toLowerCase() === provider.toLowerCase());
-        if (forced) {
-          selectedSource = forced;
+          sortedSources = JSON.parse(cachedData);
+        } catch (e) {
+          sortedSources = null;
         }
       }
 
-      return {
-        original: selectedSource.lines,
-        translation: null,
-        romanized: null,
-        source: selectedSource.source,
-        availableSources: sortedSources
-      };
-    }
+      if (!sortedSources) {
+        const collectedSources = [];
 
-    return null;
+        const fetchPromises = [
+          this.fetchLyricsFromYouLyPlus(metadata.title, metadata.artist, resolved ? resolved.catalogIsrc : null, metadata).catch(() => null),
+          this.fetchLyricsFromUnison(metadata).catch(() => null),
+          this.fetchLyricsFromLrclib(metadata).catch(() => null)
+        ];
+
+        const results = await Promise.all(fetchPromises);
+        const [youLyResults, unisonResult, lrclibResult] = results;
+
+        if (youLyResults && youLyResults.length > 0) {
+          collectedSources.push(...youLyResults);
+        }
+        if (unisonResult && unisonResult.lines && unisonResult.lines.length > 0) {
+          collectedSources.push(unisonResult);
+        }
+        if (lrclibResult && lrclibResult.lines && lrclibResult.lines.length > 0) {
+          collectedSources.push(lrclibResult);
+        }
+
+        if (collectedSources.length > 0) {
+          sortedSources = this.mergeAndSortSources(collectedSources);
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(sortedSources));
+          } catch (e) {}
+        }
+      }
+
+      if (sortedSources && sortedSources.length > 0) {
+        let selectedSource = sortedSources[0];
+        if (provider && provider !== 'betterlyrics') {
+          const forced = sortedSources.find(src => src.source.toLowerCase() === provider.toLowerCase());
+          if (forced) {
+            selectedSource = forced;
+          }
+        }
+
+        return {
+          original: selectedSource.lines,
+          translation: null,
+          romanized: null,
+          source: selectedSource.source,
+          availableSources: sortedSources
+        };
+      }
+
+      return null;
+    } catch (err) {
+      console.error('[LyricsService] Erro em getLyrics:', err);
+      return null;
+    }
   }
 };
 
