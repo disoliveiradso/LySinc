@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.4.0';
-import SpotifyService from './spotify.js?v=2.4.0';
-import LyricsService from './lyrics.js?v=2.4.0';
-import MusicBrainzService from './musicbrainz.js?v=2.4.0';
-import SupabaseService from './supabase.js?v=2.4.0';
+import Config from './config.js?v=2.4.1';
+import SpotifyService from './spotify.js?v=2.4.1';
+import LyricsService from './lyrics.js?v=2.4.1';
+import MusicBrainzService from './musicbrainz.js?v=2.4.1';
+import SupabaseService from './supabase.js?v=2.4.1';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3739,6 +3739,8 @@ class LySincApp {
 
             if (!line.isWordSynced) {
                 lineClass += ' line-synced';
+            }
+
             const isInstrumental = line.isInstrumental || (line.text.length === 1 && (line.text[0].text.trim() === '♪' || line.text[0].text.trim().includes('♪')));
             if (isInstrumental) {
                 lineClass += ' instrumental-line';
