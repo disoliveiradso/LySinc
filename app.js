@@ -1,8 +1,8 @@
-import Config from './config.js?v=2.2.1';
-import SpotifyService from './spotify.js?v=2.2.1';
-import LyricsService from './lyrics.js?v=2.2.1';
-import MusicBrainzService from './musicbrainz.js?v=2.2.1';
-import SupabaseService from './supabase.js?v=2.2.1';
+import Config from './config.js?v=2.3.0';
+import SpotifyService from './spotify.js?v=2.3.0';
+import LyricsService from './lyrics.js?v=2.3.0';
+import MusicBrainzService from './musicbrainz.js?v=2.3.0';
+import SupabaseService from './supabase.js?v=2.3.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3089,25 +3089,16 @@ class LySincApp {
 
             this.updateTrackDetails(state);
         } else {
-            const elapsed = Date.now() - this.lastSyncTime;
+            const elapsed = this.isPlaying && this.lastSyncTime > 0 ? (Date.now() - this.lastSyncTime) : 0;
             const currentLocalProgress = this.progressMs + elapsed;
-            const diff = Math.abs(state.progressMs - currentLocalProgress);
-            const isSeek = diff > 5000;
+            const targetProgress = state.progressMs + safeCompensation;
+            const diff = Math.abs(targetProgress - currentLocalProgress);
 
-            const syncThreshold = (state.progressMs < 10000) ? 150 : 800;
-            const isOutOfSync = diff > syncThreshold;
-
-            if (isSeek || isOutOfSync) {
-                const isBackwardJump = state.progressMs < currentLocalProgress;
-                if (!isSeek && isBackwardJump && diff < 3000) {
-                    console.log(`[LySinc] Ignorado ajuste para trás devido a lag do Spotify (diff=${diff}ms)`);
-                } else {
-                    this.progressMs = state.progressMs + safeCompensation;
-                    this.lastSyncTime = Date.now();
-                    console.log(`[LySinc] Sincronização alinhada com Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms (diff=${diff}ms)`);
-                }
-            } else {
-                console.log(`[LySinc] Ignorado lag menor do Spotify: API=${state.progressMs}ms, Local=${currentLocalProgress}ms`);
+            if (diff > 400 || !this.isPlaying) {
+                this.progressMs = targetProgress;
+                this.lastSyncTime = Date.now();
+            } else if (diff > 50) {
+                this.progressMs += (targetProgress - currentLocalProgress) * 0.3;
             }
         }
 
@@ -3430,6 +3421,13 @@ class LySincApp {
         if (this.btnRecenter) {
             this.btnRecenter.classList.add('hidden', 'opacity-0');
         }
+        if (this.btnFloatingToggle) {
+            this.btnFloatingToggle.classList.remove('opacity-100', 'scale-100', 'w-10', 'mr-3');
+            this.btnFloatingToggle.classList.add('hidden', 'opacity-0', 'scale-95', 'w-0', 'border-0', 'px-0', 'mr-0');
+        }
+        if (this.floatingControlsWrapper) {
+            this.floatingControlsWrapper.classList.add('hidden', 'opacity-0');
+        }
         const topMenu = document.getElementById('lyrics-top-menu');
         if (topMenu) {
             topMenu.classList.remove('hidden');
@@ -3724,7 +3722,7 @@ class LySincApp {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
 
-            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2 transition-all duration-300';
+            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2';
             if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
@@ -3748,12 +3746,48 @@ class LySincApp {
 
             lineEl.className = lineClass;
 
-            lineEl.addEventListener('click', () => {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchStartTime = 0;
+
+            lineEl.addEventListener('touchstart', (evt) => {
+                if (evt.touches && evt.touches[0]) {
+                    touchStartX = evt.touches[0].clientX;
+                    touchStartY = evt.touches[0].clientY;
+                    touchStartTime = Date.now();
+                }
+            }, { passive: true });
+
+            const triggerLineSeek = (evt) => {
+                if (evt) {
+                    evt.stopPropagation();
+                }
                 const firstSyl = line.text[0];
                 if (firstSyl) {
                     this.seekToTime(firstSyl.timestamp);
+                    this.isUserInteracting = false;
+                    this.currentActiveIdsKey = '';
+                    if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                    if (this.btnRecenter) {
+                        this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+                        this.btnRecenter.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => this.btnRecenter.classList.add('hidden'), 300);
+                    }
                 }
-            });
+            };
+
+            lineEl.addEventListener('click', triggerLineSeek);
+            lineEl.addEventListener('touchend', (evt) => {
+                if (evt.changedTouches && evt.changedTouches[0]) {
+                    const endX = evt.changedTouches[0].clientX;
+                    const endY = evt.changedTouches[0].clientY;
+                    const dist = Math.hypot(endX - touchStartX, endY - touchStartY);
+                    const duration = Date.now() - touchStartTime;
+                    if (dist < 10 && duration < 400) {
+                        triggerLineSeek(evt);
+                    }
+                }
+            }, { passive: true });
 
             const lineContainer = document.createElement('div');
             lineContainer.className = 'lyrics-line-container';
