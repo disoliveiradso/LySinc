@@ -495,16 +495,20 @@ const LyricsService = {
         }];
       }
 
-      lines.push({
-        id: i,
-        text: finalSyllables,
-        background: false,
-        backgroundText: [],
-        oppositeTurn: false,
-        timestamp: current.timestamp,
-        endtime,
-        isWordSynced: isEnhanced && current.syllables.length > 0,
-      });
+      const rawTextStr = (current.text || '').trim();
+      const sylTextStr = finalSyllables.map(s => s.text).join('').trim();
+      if (rawTextStr || sylTextStr) {
+        lines.push({
+          id: i,
+          text: finalSyllables,
+          background: false,
+          backgroundText: [],
+          oppositeTurn: false,
+          timestamp: current.timestamp,
+          endtime,
+          isWordSynced: isEnhanced && current.syllables.length > 0,
+        });
+      }
     }
 
     return lines;
@@ -769,6 +773,12 @@ const LyricsService = {
           }
         }
 
+        const lineTextStr = mainSyllables.map(s => s.text).join('').trim();
+        const bgTextStr = bgSyllables.map(s => s.text).join('').trim();
+        if (!lineTextStr && !bgTextStr && !p.textContent?.trim()) {
+          continue;
+        }
+
         lines.push({
           id: i,
           text: mainSyllables,
@@ -905,7 +915,9 @@ const LyricsService = {
         translation: translationText,
       };
 
-      if (mainSyllables.length > 0 || backgroundSyllables.length > 0 || lineText.trim() !== '') {
+      const mainTextStr = mainSyllables.map(s => s.text).join('').trim();
+      const bgTextStr = backgroundSyllables.map(s => s.text).join('').trim();
+      if (mainTextStr || bgTextStr || lineText.trim()) {
         lines.push(lineResult);
       }
     }
