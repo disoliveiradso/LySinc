@@ -247,9 +247,7 @@ body, html {
 
 .lyric-line.inactive {
     color: rgba(255, 255, 255, 0.45);
-    transform: scale3d(0.88, 0.88, 1) translateY(0);
-    margin-top: -0.15em;
-    margin-bottom: -0.15em;
+    transform: scale3d(0.72, 0.72, 1) translateY(0);
     filter: none;
     opacity: 0.6;
     transition: transform 0.75s cubic-bezier(0.25, 1, 0.35, 1), 

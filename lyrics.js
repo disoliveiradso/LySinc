@@ -905,7 +905,9 @@ const LyricsService = {
         translation: translationText,
       };
 
-      lines.push(lineResult);
+      if (mainSyllables.length > 0 || backgroundSyllables.length > 0 || lineText.trim() !== '') {
+        lines.push(lineResult);
+      }
     }
 
     return lines;
