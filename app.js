@@ -1416,19 +1416,19 @@ class LySincApp {
 
                 if (this.btnRecenter && !this.pipWindow && !isSongFinished) {
                     if (this.floatingControlsWrapper) {
-                        this.floatingControlsWrapper.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
-                        this.floatingControlsWrapper.classList.add('opacity-100', 'pointer-events-auto');
+                        this.floatingControlsWrapper.classList.remove('hidden', 'opacity-0');
                     }
-                    this.btnRecenter.classList.remove('hidden');
+                    this.btnRecenter.classList.remove('hidden', 'pointer-events-none');
+                    this.btnRecenter.classList.add('pointer-events-auto');
                     requestAnimationFrame(() => {
-                        this.btnRecenter.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                        this.btnRecenter.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                        this.btnRecenter.classList.remove('opacity-0', 'scale-95');
+                        this.btnRecenter.classList.add('opacity-100', 'scale-100');
                     });
                 }
             }
         };
 
-        const handleRecenterClick = (e) => {
+        const handleRecenter = (e) => {
             if (e) {
                 if (e.cancelable) e.preventDefault();
                 e.stopPropagation();
@@ -1439,8 +1439,8 @@ class LySincApp {
             this.ignoreUserInteractionUntil = Date.now() + 1500;
 
             if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
-            this.btnRecenter.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
-            this.btnRecenter.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            this.btnRecenter.classList.remove('opacity-100', 'scale-100');
+            this.btnRecenter.classList.add('opacity-0', 'scale-95');
 
             if (this.btnRecenterTimeoutId) clearTimeout(this.btnRecenterTimeoutId);
             this.btnRecenterTimeoutId = setTimeout(() => {
@@ -1482,8 +1482,8 @@ class LySincApp {
         };
 
         if (this.btnRecenter) {
-            this.btnRecenter.addEventListener('click', handleRecenterClick);
-            this.btnRecenter.addEventListener('touchend', handleRecenterClick);
+            this.btnRecenter.addEventListener('click', handleRecenter);
+            this.btnRecenter.addEventListener('touchend', handleRecenter);
         }
 
         let lastUserScrollTop = window.scrollY;
@@ -3751,7 +3751,7 @@ class LySincApp {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
 
-            let lineClass = 'lyric-line max-md:py-0.5 max-md:my-0.5 md:py-1 md:my-0.5';
+            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2';
             if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
