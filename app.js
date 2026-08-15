@@ -1,8 +1,8 @@
-import Config from './config.js?v=3.5.0';
-import SpotifyService from './spotify.js?v=3.5.0';
-import LyricsService from './lyrics.js?v=3.5.0';
-import MusicBrainzService from './musicbrainz.js?v=3.5.0';
-import SupabaseService from './supabase.js?v=3.5.0';
+import Config from './config.js?v=3.6.0';
+import SpotifyService from './spotify.js?v=3.6.0';
+import LyricsService from './lyrics.js?v=3.6.0';
+import MusicBrainzService from './musicbrainz.js?v=3.6.0';
+import SupabaseService from './supabase.js?v=3.6.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3888,7 +3888,7 @@ class LySincApp {
 
             if (line.backgroundText && line.backgroundText.length > 0) {
                 const bgVocal = document.createElement('div');
-                bgVocal.className = 'background-vocal-container text-lg md:text-xl font-bold text-white/75 mt-1.5';
+                bgVocal.className = 'background-vocal-container font-semibold mt-1';
 
                 let bgDomLines = [];
                 if (line.isWordSynced) {
