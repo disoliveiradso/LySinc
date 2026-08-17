@@ -510,20 +510,12 @@ const SpotifyService = {
 
             let topTracks = [];
             try {
-                const topTracksRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=BR`, {
+                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(artist.name)}&type=track&limit=5`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (topTracksRes.ok) {
-                    const data = await topTracksRes.json();
-                    topTracks = (data.tracks || []).slice(0, 5);
-                } else {
-                    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(artist.name)}&type=track&limit=5`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (searchRes.ok) {
-                        const data = await searchRes.json();
-                        topTracks = (data.tracks?.items || []).slice(0, 5);
-                    }
+                if (searchRes.ok) {
+                    const data = await searchRes.json();
+                    topTracks = (data.tracks?.items || []).slice(0, 5);
                 }
             } catch (e) { }
 
