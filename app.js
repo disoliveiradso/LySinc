@@ -1434,18 +1434,21 @@ class LySincApp {
                 return;
             }
             if (e && e.target) {
-                const t = e.target;
-                if (
-                    t.closest('#btn-floating-toggle') ||
-                    t.closest('#btn-recenter') ||
-                    t.closest('#btn-recenter-drawer') ||
-                    t.closest('#floating-controls-wrapper') ||
-                    t.closest('#lyrics-top-menu') ||
-                    t.closest('#top-menu') ||
-                    t.closest('#trackinfo-box') ||
-                    t.closest('button')
-                ) {
-                    return;
+                let t = e.target;
+                if (t.nodeType === 3) t = t.parentElement;
+                if (t && typeof t.closest === 'function') {
+                    if (
+                        t.closest('#btn-floating-toggle') ||
+                        t.closest('#btn-recenter') ||
+                        t.closest('#btn-recenter-drawer') ||
+                        t.closest('#floating-controls-wrapper') ||
+                        t.closest('#lyrics-top-menu') ||
+                        t.closest('#top-menu') ||
+                        t.closest('#trackinfo-box') ||
+                        t.closest('button')
+                    ) {
+                        return;
+                    }
                 }
             }
             if (!this.isUserInteracting && this.lyrics.length > 0) {
@@ -4125,7 +4128,7 @@ class LySincApp {
 
             this.lyricsContainer.appendChild(creditsBlock);
 
-            this.updateMusicBrainzUI();
+            this.updateMetadataFooterUI();
         }
 
         if (keepScroll) {
