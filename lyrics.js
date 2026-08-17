@@ -495,9 +495,9 @@ const LyricsService = {
         }];
       }
 
-      const rawTextStr = (current.text || '').trim();
-      const sylTextStr = finalSyllables.map(s => s.text).join('').trim();
-      if (rawTextStr || sylTextStr) {
+      const rawTextStr = (current.text || '').replace(/[\r\n]/g, '').trim();
+      const sylTextStr = finalSyllables.map(s => s.text).join('').replace(/[\r\n]/g, '').trim();
+      if (rawTextStr.length > 0 && sylTextStr.length > 0) {
         lines.push({
           id: i,
           text: finalSyllables,

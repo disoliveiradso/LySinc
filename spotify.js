@@ -502,18 +502,22 @@ const SpotifyService = {
         const token = await this.getValidToken();
         if (!token || !artistId) return null;
         try {
-            const [artistRes, topTracksRes] = await Promise.all([
-                fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }),
-                fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=BR`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-            ]);
-
+            const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             if (!artistRes.ok) return null;
             const artist = await artistRes.json();
-            const topTracks = topTracksRes.ok ? (await topTracksRes.json()).tracks?.slice(0, 5) : [];
+
+            let topTracks = [];
+            try {
+                const topTracksRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=BR`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (topTracksRes.ok) {
+                    const data = await topTracksRes.json();
+                    topTracks = (data.tracks || []).slice(0, 5);
+                }
+            } catch (e) {}
 
             return {
                 id: artist.id,

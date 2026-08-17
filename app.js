@@ -3169,7 +3169,9 @@ class LySincApp {
             }
         }
 
-        this.showScreen('main');
+        if (this.currentScreen === 'main' || this.currentScreen === 'idle') {
+            this.showScreen('main');
+        }
 
         if (trackChanged) {
             // Setup marquee only on track change (or resize), and only after screen is visible
@@ -3906,7 +3908,7 @@ class LySincApp {
 
                 domLines.forEach((domLineSyls, domLineIdx) => {
                     const lineWrapper = document.createElement('span');
-                    lineWrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
+                    lineWrapper.className = 'dom-lyric-line-wrapper block max-w-full break-words';
 
                     domLineSyls.forEach((syl, sylIdx) => {
                         const sylSpan = document.createElement('span');
