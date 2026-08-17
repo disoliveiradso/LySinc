@@ -508,17 +508,6 @@ const SpotifyService = {
             if (!artistRes.ok) return null;
             const artist = await artistRes.json();
 
-            let topTracks = [];
-            try {
-                const topTracksRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=BR`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (topTracksRes.ok) {
-                    const data = await topTracksRes.json();
-                    topTracks = (data.tracks || []).slice(0, 5);
-                }
-            } catch (e) {}
-
             return {
                 id: artist.id,
                 name: artist.name,
@@ -527,13 +516,7 @@ const SpotifyService = {
                 popularity: artist.popularity,
                 images: artist.images || [],
                 externalUrl: artist.external_urls?.spotify,
-                topTracks: topTracks.map(t => ({
-                    id: t.id,
-                    name: t.name,
-                    albumArt: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url,
-                    durationMs: t.duration_ms,
-                    explicit: t.explicit
-                }))
+                topTracks: []
             };
         } catch (e) {
             return null;
