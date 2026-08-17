@@ -3508,11 +3508,7 @@ class LySincApp {
             topMenu.classList.remove('hidden');
             topMenu.classList.add('flex');
         }
-        const advancedControls = document.getElementById('lyrics-advanced-controls');
-        if (advancedControls) {
-            advancedControls.classList.remove('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
-            advancedControls.classList.add('opacity-0', 'max-w-0', 'pointer-events-none');
-        }
+
 
         this.currentTrackArtistsRaw = state.artistsRaw || [];
         if (this.currentTrackArtistsRaw.length > 0) {
@@ -3563,11 +3559,7 @@ class LySincApp {
                 topMenu.classList.remove('hidden');
                 topMenu.classList.add('flex');
             }
-            const advancedControls = document.getElementById('lyrics-advanced-controls');
-            if (advancedControls) {
-                advancedControls.classList.remove('opacity-0', 'max-w-0', 'pointer-events-none');
-                advancedControls.classList.add('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
-            }
+
 
             this.activeLineId = null;
             this.currentActiveIdsKey = '';
@@ -3596,11 +3588,7 @@ class LySincApp {
                 topMenu.classList.remove('hidden');
                 topMenu.classList.add('flex');
             }
-            const advancedControls = document.getElementById('lyrics-advanced-controls');
-            if (advancedControls) {
-                advancedControls.classList.remove('opacity-100', 'max-w-[500px]', 'pointer-events-auto');
-                advancedControls.classList.add('opacity-0', 'max-w-0', 'pointer-events-none');
-            }
+
         }
     }
 
