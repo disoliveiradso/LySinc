@@ -450,7 +450,7 @@ const SpotifyService = {
                 },
                 durationMs: data.duration_ms,
                 explicit: data.explicit,
-                popularity: data.popularity,
+                popularity: data.popularity !== undefined ? data.popularity : 0,
                 isrc: data.external_ids?.isrc,
                 previewUrl: data.preview_url,
                 externalUrl: data.external_urls?.spotify
@@ -478,7 +478,7 @@ const SpotifyService = {
                 totalTracks: data.total_tracks,
                 type: data.album_type,
                 label: data.label,
-                popularity: data.popularity,
+                popularity: data.popularity !== undefined ? data.popularity : 0,
                 copyrights: data.copyrights || [],
                 genres: data.genres || [],
                 images: data.images || [],
@@ -523,8 +523,8 @@ const SpotifyService = {
                 id: artist.id,
                 name: artist.name,
                 genres: artist.genres || [],
-                followers: artist.followers?.total,
-                popularity: artist.popularity,
+                followers: artist.followers?.total !== undefined ? artist.followers.total : 0,
+                popularity: artist.popularity !== undefined ? artist.popularity : 0,
                 images: artist.images || [],
                 externalUrl: artist.external_urls?.spotify,
                 topTracks: topTracks.map(t => ({

@@ -12,8 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.7.6">
-    <link rel="stylesheet" href="details.css?v=4.7.6">
+    <link rel="stylesheet" href="style.css?v=4.8.0">
+    <link rel="stylesheet" href="details.css?v=4.8.0">
 </head>
 
 <body class="bg-[#050505] text-white flex flex-col min-h-screen">
@@ -408,6 +408,23 @@
             </div>
         </section>
 
+        <!-- Tela de Detalhes do Spotify -->
+        <section id="screen-spotify-details"
+            class="hidden flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 pt-16 pb-20 px-4 space-y-6">
+            <div class="flex items-center justify-between">
+                <button id="btn-details-back"
+                    class="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span id="details-back-label" class="font-semibold">Voltar</span>
+                </button>
+            </div>
+            <div id="details-loading" class="hidden flex items-center justify-center py-20">
+                <div class="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <div id="details-content" class="flex flex-col space-y-6"></div>
+        </section>
 
         <section id="screen-main"
             class="hidden flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full relative z-10 pt-16">
@@ -1625,7 +1642,7 @@
         </div>
     </div>
 
-    <script type="module" src="app.js?v=4.6.0"></script>
+    <script type="module" src="app.js?v=4.8.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const url = new URL(window.location.href);

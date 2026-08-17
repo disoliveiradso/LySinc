@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.7.6';
-import SpotifyService from './spotify.js?v=4.7.6';
-import LyricsService from './lyrics.js?v=4.7.6';
-import MusicBrainzService from './musicbrainz.js?v=4.7.6';
-import SupabaseService from './supabase.js?v=4.7.6';
+import Config from './config.js?v=4.7.5';
+import SpotifyService from './spotify.js?v=4.7.5';
+import LyricsService from './lyrics.js?v=4.7.5';
+import MusicBrainzService from './musicbrainz.js?v=4.7.5';
+import SupabaseService from './supabase.js?v=4.7.5';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -345,12 +345,12 @@ class LySincApp {
         this.btnSubmitReport = document.getElementById('btn-submit-report');
         this.reportTermsCheckbox = document.getElementById('report-terms-checkbox');
         this.wrapperReportTermsCheckbox = document.getElementById('wrapper-report-terms-checkbox');
-        
+
         // Terms & Privacy Screens
         this.btnOpenFeedbackTerms = document.getElementById('btn-open-feedback-terms');
         this.btnTermsFeedbackBack = document.getElementById('btn-terms-feedback-back');
         this.btnAcceptFeedbackTerms = document.getElementById('btn-accept-feedback-terms');
-        
+
         this.privacyTermsCheckbox = document.getElementById('privacy-terms-checkbox');
         this.wrapperPrivacyTermsCheckbox = document.getElementById('wrapper-privacy-terms-checkbox');
         this.step2PrivacyTermsCheckbox = document.getElementById('step2-privacy-terms-checkbox');
@@ -397,16 +397,22 @@ class LySincApp {
         this.confirmRemoveClientIdModal = document.getElementById('confirm-remove-client-id-modal');
         this.btnCancelRemoveClientId = document.getElementById('btn-cancel-remove-client-id');
         this.btnConfirmRemoveClientId = document.getElementById('btn-confirm-remove-client-id');
-        
+
         this.removeClientIdOptionsModal = document.getElementById('remove-client-id-options-modal');
         this.btnRemoveLocalOnly = document.getElementById('btn-remove-local-only');
         this.btnRemoveBoth = document.getElementById('btn-remove-both');
         this.btnCancelRemoveOptions = document.getElementById('btn-cancel-remove-options');
-        
+
 
         this.btnOpenRepos = document.getElementById('btn-open-repos');
         this.btnReposClose = document.getElementById('btn-repos-close');
         this.reposModal = document.getElementById('repos-modal');
+
+        this.screenSpotifyDetails = document.getElementById('screen-spotify-details');
+        this.btnDetailsBack = document.getElementById('btn-details-back');
+        this.detailsBackLabel = document.getElementById('details-back-label');
+        this.detailsLoading = document.getElementById('details-loading');
+        this.detailsContent = document.getElementById('details-content');
 
         this.syncOffset = 0;
 
@@ -430,10 +436,13 @@ class LySincApp {
         this.isUserInteracting = false;
         this.userScrollTimeout = null;
         this.lastAutoScrollTime = 0;
-        
+
         this.hasAcceptedFeedback = false;
         this.hasAcceptedPrivacy = false;
-        this.hasAcceptedClientIdTerms = false;        window.showToast = (message, type) => this.showToast(message, type);
+        this.hasAcceptedClientIdTerms = false;
+        this.detailsHistory = [];
+        this.currentDetailsState = null;
+        window.showToast = (message, type) => this.showToast(message, type);
 
         this.init();
     }
@@ -461,7 +470,7 @@ class LySincApp {
     async init() {
         try {
             console.log("%c LySinc v2.0 - Sincronização & Supabase Ativos ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
-            
+
             // Checkbox de termos: só manter marcado se client_id estiver salvo
             const savedClientId = Config.getClientId();
             const acceptedPrivacy = localStorage.getItem('lysinc_accepted_privacy') === 'true';
@@ -479,7 +488,7 @@ class LySincApp {
                 localStorage.removeItem('lysinc_accepted_privacy');
                 this.hasAcceptedPrivacy = false;
             }
-            
+
             const acceptedClientIdTerms = localStorage.getItem('lysinc_accepted_client_id_terms') === 'true';
             if (acceptedClientIdTerms && savedClientId) {
                 this.hasAcceptedClientIdTerms = true;
@@ -488,7 +497,7 @@ class LySincApp {
                 localStorage.removeItem('lysinc_accepted_client_id_terms');
                 this.hasAcceptedClientIdTerms = false;
             }
-            
+
             this.setupEventListeners();
             this.loadSettings();
             this.updateLoginButtonsState();
@@ -794,7 +803,7 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.btnCancelRemoveOptions) {
             this.btnCancelRemoveOptions.addEventListener('click', () => {
                 if (this.removeClientIdOptionsModal) {
@@ -803,7 +812,7 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.btnRemoveLocalOnly) {
             this.btnRemoveLocalOnly.addEventListener('click', () => {
                 if (this.removeClientIdOptionsModal) {
@@ -813,7 +822,7 @@ class LySincApp {
                 this.handleRemoveClientId(false);
             });
         }
-        
+
         if (this.btnRemoveBoth) {
             this.btnRemoveBoth.addEventListener('click', () => {
                 if (this.removeClientIdOptionsModal) {
@@ -910,7 +919,7 @@ class LySincApp {
                 this.showScreen('pre-login');
             });
         }
-        
+
         // Listeners for terms screens
         if (this.btnOpenFeedbackTerms) {
             this.btnOpenFeedbackTerms.addEventListener('click', () => this.showScreen('terms-feedback'));
@@ -945,7 +954,7 @@ class LySincApp {
                 else this.showScreen('pre-login');
             });
         }
-        
+
         if (this.wrapperPrivacyTermsCheckbox) {
             this.wrapperPrivacyTermsCheckbox.addEventListener('click', (e) => {
                 if (!this.hasAcceptedPrivacy) {
@@ -953,7 +962,7 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.wrapperStep2PrivacyTermsCheckbox) {
             this.wrapperStep2PrivacyTermsCheckbox.addEventListener('click', (e) => {
                 if (!this.hasAcceptedClientIdTerms) {
@@ -961,7 +970,7 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.wrapperReportTermsCheckbox) {
             this.wrapperReportTermsCheckbox.addEventListener('click', (e) => {
                 if (!this.hasAcceptedFeedback) {
@@ -969,21 +978,21 @@ class LySincApp {
                 }
             });
         }
-        
+
         if (this.btnAcceptPrivacyTerms) {
             this.btnAcceptPrivacyTerms.addEventListener('click', () => {
                 this.hasAcceptedPrivacy = true;
                 if (this.privacyTermsCheckbox) this.privacyTermsCheckbox.checked = true;
-                
+
                 if (this.btnConnect) {
                     this.btnConnect.disabled = false;
                     this.btnConnect.classList.remove('disabled:bg-neutral-600', 'disabled:text-neutral-400', 'disabled:cursor-not-allowed', 'disabled:pointer-events-none');
                     const wrapper = document.getElementById('wrapper-btn-connect');
                     if (wrapper) wrapper.removeAttribute('data-tooltip-follow');
                 }
-                
+
                 localStorage.setItem('lysinc_accepted_privacy', 'true');
-                
+
                 if (this.previousScreen) this.showScreen(this.previousScreen);
                 else this.showScreen('pre-login');
             });
@@ -992,18 +1001,18 @@ class LySincApp {
             this.btnAcceptClientIdTerms.addEventListener('click', () => {
                 this.hasAcceptedClientIdTerms = true;
                 if (this.step2PrivacyTermsCheckbox) this.step2PrivacyTermsCheckbox.checked = true;
-                
+
                 if (this.btnFlowStep2Save) {
                     this.updateStep2SaveButtonState();
                 }
-                
+
                 localStorage.setItem('lysinc_accepted_client_id_terms', 'true');
-                
+
                 if (this.previousScreen) this.showScreen(this.previousScreen);
                 else this.showScreen('pre-login');
             });
         }
-        
+
         // Report Form Logic
         if (this.reportTitle && this.reportCategory && this.reportMessage) {
             const checkForm = () => this.updateReportSubmitButtonState();
@@ -1011,23 +1020,23 @@ class LySincApp {
             this.reportCategory.addEventListener('change', checkForm);
             this.reportMessage.addEventListener('input', checkForm);
         }
-        
+
         if (this.btnSubmitReport) {
             this.btnSubmitReport.addEventListener('click', async () => {
                 const title = this.reportTitle.value.trim();
                 const category = this.reportCategory.value;
                 const message = this.reportMessage.value.trim();
-                
+
                 if (!title || !category || !message || !this.hasAcceptedFeedback) return;
-                
+
                 const btn = this.btnSubmitReport;
                 const originalText = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<span class="flex items-center space-x-2"><svg class="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Enviando...</span></span>';
-                
+
                 const clientId = Config.getClientId();
                 const success = await SupabaseService.saveErrorReport(title, category, message, clientId);
-                
+
                 if (success) {
                     this.showToast('Relatório enviado com sucesso! Obrigado pelo feedback.', 'success');
                     this.resetReportForm();
@@ -1035,7 +1044,7 @@ class LySincApp {
                 } else {
                     this.showToast('Erro ao enviar relatório. Tente novamente mais tarde.', 'error');
                 }
-                
+
                 btn.innerHTML = originalText;
                 this.updateReportSubmitButtonState();
             });
@@ -1101,12 +1110,28 @@ class LySincApp {
         }
 
 
-        
+
         if (this.btnErrorBackHome) {
             this.btnErrorBackHome.addEventListener('click', () => {
                 this.stopPolling();
                 this.showScreen('pre-login');
                 if (this.btnLogout) this.btnLogout.classList.add('hidden');
+            });
+        }
+
+        if (this.btnDetailsBack) {
+            this.btnDetailsBack.addEventListener('click', () => {
+                this.closeSpotifyDetailsEmbed();
+                if (this.detailsHistory && this.detailsHistory.length > 0) {
+                    const prev = this.detailsHistory.pop();
+                    if (prev && prev.screen === 'spotify-details' && prev.detailsState) {
+                        this.openSpotifyDetails(prev.detailsState.type, prev.detailsState.id, true);
+                        return;
+                    }
+                }
+                this.detailsHistory = [];
+                this.currentDetailsState = null;
+                this.showScreen('main');
             });
         }
 
@@ -1366,13 +1391,13 @@ class LySincApp {
                 if (text) {
                     customTooltip.textContent = text;
                     customTooltip.style.opacity = '1';
-                    
+
                     const tooltipRect = customTooltip.getBoundingClientRect();
                     let top = e.clientY + 15;
                     let left = e.clientX + 15;
                     if (left + tooltipRect.width > window.innerWidth) left = e.clientX - tooltipRect.width - 10;
                     if (top + tooltipRect.height > window.innerHeight) top = e.clientY - tooltipRect.height - 10;
-                    
+
                     customTooltip.style.top = `${top}px`;
                     customTooltip.style.left = `${left}px`;
                 }
@@ -2738,7 +2763,7 @@ class LySincApp {
             const isTitleValid = this.reportTitle && this.reportTitle.value.trim().length > 0;
             const isCategoryValid = this.reportCategory && this.reportCategory.value.length > 0;
             const isMessageValid = this.reportMessage && this.reportMessage.value.trim().length > 0;
-            
+
             if (isTitleValid && isCategoryValid && isMessageValid && this.hasAcceptedFeedback) {
                 this.btnSubmitReport.disabled = false;
                 this.btnSubmitReport.classList.remove('opacity-50', 'pointer-events-none', 'bg-neutral-600', 'text-white/70');
@@ -2870,7 +2895,7 @@ class LySincApp {
             this.confirmRemoveClientIdModal.classList.add('hidden');
             this.confirmRemoveClientIdModal.classList.remove('flex');
         }
-        
+
         if (removeFromGlobal) {
             await SupabaseService.removeClientId();
             localStorage.removeItem('lysinc_accepted_privacy');
@@ -2888,11 +2913,11 @@ class LySincApp {
         } else {
             Config.setClientId('');
         }
-        
+
         this.updateLoginButtonsState();
         this.toggleSettingsModal(false);
         this.showToast('Client ID removido com sucesso.', 'info');
-        
+
         // Fazer logout para garantir que o estado local está limpo
         setTimeout(() => {
             SpotifyService.logout();
@@ -3052,8 +3077,15 @@ class LySincApp {
             if (this.screenTermsClientId) this.screenTermsClientId.classList.remove('hidden');
         } else if (screenName === 'spotify-details') {
             if (this.screenSpotifyDetails) this.screenSpotifyDetails.classList.remove('hidden');
+        if (screenName !== 'spotify-details') {
+            this.closeSpotifyDetailsEmbed();
         }
-        
+
+        if (screenName === 'main') {
+            this.detailsHistory = [];
+            this.currentDetailsState = null;
+        }
+
         if (screenName !== 'main') {
             window.scrollTo(0, 0);
         }
@@ -3191,11 +3223,29 @@ class LySincApp {
     }
 
     updateTrackDetails(state) {
-        this.trackName.textContent = state.trackName;
-        this.trackArtists.textContent = state.artists;
+        if (this.trackName) {
+            this.trackName.textContent = state.trackName;
+            this.trackName.classList.add('cursor-pointer', 'hover:underline');
+            this.trackName.onclick = () => { if (state.trackId) this.openSpotifyDetails('track', state.trackId); };
+        }
+        if (this.trackinfoTitle) {
+            this.trackinfoTitle.textContent = state.trackName;
+            this.trackinfoTitle.classList.add('cursor-pointer', 'hover:underline');
+            this.trackinfoTitle.onclick = () => { if (state.trackId) this.openSpotifyDetails('track', state.trackId); };
+        }
+        if (this.trackinfoArt) {
+            this.trackinfoArt.classList.add('cursor-pointer', 'hover:opacity-80', 'transition-opacity');
+            this.trackinfoArt.onclick = () => { if (state.albumId) this.openSpotifyDetails('album', state.albumId); };
+        }
 
-        if (this.trackinfoTitle) this.trackinfoTitle.textContent = state.trackName;
-        if (this.trackinfoArtist) this.trackinfoArtist.textContent = state.artists;
+        if (state.artistsRaw && state.artistsRaw.length > 0) {
+            const artistLinks = state.artistsRaw.map(a => `<span class="hover:underline cursor-pointer transition-colors hover:text-white" onclick="event.stopPropagation(); window.app.openSpotifyDetails('artist','${a.id}')">${this._esc(a.name)}</span>`).join(', ');
+            if (this.trackArtists) this.trackArtists.innerHTML = artistLinks;
+            if (this.trackinfoArtist) this.trackinfoArtist.innerHTML = artistLinks;
+        } else if (state.artists) {
+            if (this.trackArtists) this.trackArtists.textContent = state.artists;
+            if (this.trackinfoArtist) this.trackinfoArtist.textContent = state.artists;
+        }
 
         this.isExplicit = !!state.explicit;
 
@@ -3572,7 +3622,7 @@ class LySincApp {
             const currentProgressMs = this.progressMs + elapsed + this.syncOffset;
 
             if (this.isPlaying && currentProgressMs > 500) {
-                this.seekToTime(currentProgressMs, true).catch(() => {});
+                this.seekToTime(currentProgressMs, true).catch(() => { });
             }
 
             this.updateLyricsSync(currentProgressMs);
@@ -4019,10 +4069,23 @@ class LySincApp {
             mainFlex.className = 'flex flex-wrap gap-3 items-center justify-start max-w-full';
             creditsBlock.appendChild(mainFlex);
 
+            if (this.currentTrackState?.trackId) {
+                const trackPill = document.createElement('div');
+                trackPill.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 hover:text-white transition-colors max-w-full';
+                trackPill.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                    <span class="font-medium truncate min-w-0">${this._esc(this.currentTrackState.trackName)}</span>
+                `;
+                trackPill.addEventListener('click', () => this.openSpotifyDetails('track', this.currentTrackState.trackId));
+                mainFlex.appendChild(trackPill);
+            }
+
             if (this.currentTrackArtistsRaw && this.currentTrackArtistsRaw.length > 0) {
                 this.currentTrackArtistsRaw.forEach(artist => {
                     const artistInfo = document.createElement('div');
-                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
+                    artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 hover:text-white transition-colors max-w-full';
 
                     const imgUrl = this.artistImages && this.artistImages[artist.id];
                     let iconHtml = '';
@@ -4030,7 +4093,7 @@ class LySincApp {
                         iconHtml = `<img src="${imgUrl}" class="w-5 h-5 rounded-full object-cover shrink-0" alt="${artist.name}">`;
                     } else {
                         iconHtml = `
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         `;
@@ -4040,18 +4103,32 @@ class LySincApp {
                         ${iconHtml}
                         <span class="font-medium truncate min-w-0">${artist.name}</span>
                     `;
+                    artistInfo.addEventListener('click', () => this.openSpotifyDetails('artist', artist.id));
                     mainFlex.appendChild(artistInfo);
                 });
             } else if (this.currentTrackArtists) {
                 const artistInfo = document.createElement('div');
                 artistInfo.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 max-w-full';
                 artistInfo.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-pink-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <span class="font-medium truncate min-w-0">${this.currentTrackArtists}</span>
                 `;
                 mainFlex.appendChild(artistInfo);
+            }
+
+            if (this.currentTrackState?.albumId) {
+                const albumPill = document.createElement('div');
+                albumPill.className = 'flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 hover:text-white transition-colors max-w-full';
+                albumPill.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 100-4 2 2 0 000 4zm0-10a2 2 0 100-4 2 2 0 000 4zm12 0a2 2 0 100-4 2 2 0 000 4zm0 0v10a2 2 0 100-4 2 2 0 000 4z" />
+                    </svg>
+                    <span class="font-medium truncate min-w-0">${this._esc(this.currentTrackState.albumName || 'Álbum')}</span>
+                `;
+                albumPill.addEventListener('click', () => this.openSpotifyDetails('album', this.currentTrackState.albumId));
+                mainFlex.appendChild(albumPill);
             }
 
             const mbPills = document.createElement('div');
@@ -4582,17 +4659,17 @@ class LySincApp {
         document.body.appendChild(balloon);
 
         const rect = element.getBoundingClientRect();
-        
+
         // Espera renderizar para pegar o tamanho
         requestAnimationFrame(() => {
             const balloonRect = balloon.getBoundingClientRect();
             let top = rect.top - balloonRect.height - 8;
             let left = rect.left + (rect.width / 2) - (balloonRect.width / 2);
-            
+
             if (top < 10) top = rect.bottom + 8;
             if (left < 10) left = 10;
             if (left + balloonRect.width > window.innerWidth - 10) left = window.innerWidth - balloonRect.width - 10;
-            
+
             balloon.style.top = `${top}px`;
             balloon.style.left = `${left}px`;
             balloon.style.opacity = '1';
@@ -4721,18 +4798,35 @@ class LySincApp {
     // SPOTIFY DETAILS PAGES
     // ==========================================
 
-    async openSpotifyDetails(type, id) {
-        // Show the screen immediately with loading state
-        this.showScreen('spotify-details');
-        window.scrollTo(0, 0);
-
-        if (this.detailsLoading) this.detailsLoading.classList.remove('hidden');
+    closeSpotifyDetailsEmbed() {
         if (this.detailsContent) {
-            this.detailsContent.classList.add('hidden');
+            const iframes = this.detailsContent.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                try {
+                    iframe.src = 'about:blank';
+                } catch (e) { }
+                iframe.remove();
+            });
             this.detailsContent.innerHTML = '';
         }
+    }
 
-        // Configure back button label
+    async openSpotifyDetails(type, id, isBack = false) {
+        if (!isBack) {
+            if (this.currentScreen === 'spotify-details' && this.currentDetailsState) {
+                this.detailsHistory.push({ screen: 'spotify-details', detailsState: { ...this.currentDetailsState } });
+            } else {
+                this.detailsHistory = [{ screen: 'main' }];
+            }
+        }
+        this.currentDetailsState = { type, id };
+
+        this.closeSpotifyDetailsEmbed();
+        this.showScreen('spotify-details');
+
+        if (this.detailsLoading) this.detailsLoading.classList.remove('hidden');
+        if (this.detailsContent) this.detailsContent.classList.add('hidden');
+
         const backLabels = { track: 'Voltar', album: 'Voltar', artist: 'Voltar' };
         if (this.detailsBackLabel) this.detailsBackLabel.textContent = backLabels[type] || 'Voltar';
 
@@ -4757,13 +4851,12 @@ class LySincApp {
             this.detailsContent.innerHTML = html;
             this.detailsContent.classList.remove('hidden');
 
-            // Animate popularity bars after render
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 const fills = this.detailsContent.querySelectorAll('.details-popularity-fill[data-pop]');
                 fills.forEach(el => {
                     el.style.width = el.dataset.pop + '%';
                 });
-            });
+            }, 50);
         }
     }
 
@@ -4785,19 +4878,22 @@ class LySincApp {
     }
 
     _formatFollowers(n) {
-        if (!n) return '—';
-        if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.', ',') + 'M';
-        if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
-        return n.toLocaleString('pt-BR');
+        if (n === undefined || n === null || n === '') return '—';
+        const num = Number(n);
+        if (isNaN(num)) return '—';
+        return num.toLocaleString('pt-BR');
     }
 
     renderTrackDetails(track) {
         const artUrl = track.album?.images?.[0]?.url || '';
-        const artists = track.artists?.map(a => a.name).join(', ') || '—';
         const year = track.album?.releaseDate?.substring(0, 4) || '—';
         const duration = this._formatMs(track.durationMs);
-        const popPct = track.popularity || 0;
+        const popPct = track.popularity !== undefined ? track.popularity : 0;
         const embedUrl = `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`;
+
+        const artistsHtml = (track.artists || []).map(a =>
+            `<span class="hover:underline cursor-pointer transition-colors hover:text-white" onclick="event.stopPropagation(); window.app.openSpotifyDetails('artist','${a.id}')">${this._esc(a.name)}</span>`
+        ).join(', ');
 
         return `
         <div class="details-hero">
@@ -4806,14 +4902,14 @@ class LySincApp {
             <div class="details-hero-info">
                 <span class="details-hero-type">Música</span>
                 <h1 class="details-hero-title">${this._esc(track.name)}</h1>
-                <p class="details-hero-subtitle">${this._esc(artists)}</p>
+                <p class="details-hero-subtitle">${artistsHtml || '—'}</p>
                 <div class="details-hero-meta">
-                    <span>${this._esc(track.album?.name || '—')}</span>
+                    ${track.album ? `<span class="cursor-pointer hover:underline" onclick="window.app.openSpotifyDetails('album','${track.album.id}')">${this._esc(track.album.name)}</span>` : '<span>—</span>'}
                     <span>•</span>
                     <span>${year}</span>
                     <span>•</span>
                     <span>${duration}</span>
-                    ${track.explicit ? '<span>•</span><span>🅴 Explícita</span>' : ''}
+                    ${track.explicit ? '<span>•</span><span class="inline-flex items-center px-1.5 py-0.5 rounded bg-white/20 text-white text-[10px] font-bold">E</span>' : ''}
                 </div>
                 <a class="details-open-btn" href="${track.externalUrl || '#'}" target="_blank" rel="noopener">
                     <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
@@ -4829,10 +4925,22 @@ class LySincApp {
         <div class="flex flex-col space-y-2">
             <p class="details-section-header">Detalhes da Faixa</p>
             <div class="details-meta-pills">
-                ${track.album?.name ? `<span class="details-meta-pill">💿 ${this._esc(track.album.name)}</span>` : ''}
-                ${year !== '—' ? `<span class="details-meta-pill">📅 ${year}</span>` : ''}
-                ${track.album?.totalTracks ? `<span class="details-meta-pill">🎵 ${track.album.totalTracks} faixas no álbum</span>` : ''}
-                ${track.isrc ? `<span class="details-meta-pill">🔑 ISRC: ${this._esc(track.isrc)}</span>` : ''}
+                ${track.album?.name ? `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('album','${track.album.id}')">
+                    <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                    ${this._esc(track.album.name)}
+                </span>` : ''}
+                ${year !== '—' ? `<span class="details-meta-pill">
+                    <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    ${year}
+                </span>` : ''}
+                ${track.album?.totalTracks ? `<span class="details-meta-pill">
+                    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                    ${track.album.totalTracks} faixas no álbum
+                </span>` : ''}
+                ${track.isrc ? `<span class="details-meta-pill">
+                    <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                    ISRC: ${this._esc(track.isrc)}
+                </span>` : ''}
             </div>
         </div>
 
@@ -4842,40 +4950,49 @@ class LySincApp {
                 <div class="details-popularity-bar flex-1">
                     <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
                 </div>
-                <span class="text-xs text-white/40 font-mono w-8">${popPct}</span>
+                <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
             </div>
         </div>
 
         <div class="flex flex-col space-y-2">
             <p class="details-section-header">Artistas</p>
             <div class="details-meta-pills">
-                ${(track.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">🎤 ${this._esc(a.name)}</span>`).join('')}
+                ${(track.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">
+                    <svg class="w-4 h-4 text-pink-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    ${this._esc(a.name)}
+                </span>`).join('')}
             </div>
         </div>
 
-        <div class="flex flex-col space-y-2">
+        ${track.album ? `<div class="flex flex-col space-y-2">
             <p class="details-section-header">Álbum</p>
-            ${track.album ? `<div class="details-meta-pill w-fit cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('album','${track.album.id}')">💿 ${this._esc(track.album.name)}</div>` : ''}
-        </div>
+            <div class="details-meta-pill w-fit cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('album','${track.album.id}')">
+                <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                ${this._esc(track.album.name)}
+            </div>
+        </div>` : ''}
         `;
     }
 
     renderAlbumDetails(album) {
         const artUrl = album.images?.[0]?.url || '';
-        const artists = album.artists?.map(a => a.name).join(', ') || '—';
         const year = album.releaseDate?.substring(0, 4) || '—';
         const typeLabel = { album: 'Álbum', single: 'Single', compilation: 'Compilação' }[album.type] || 'Álbum';
-        const popPct = album.popularity || 0;
+        const popPct = album.popularity !== undefined ? album.popularity : 0;
         const embedUrl = `https://open.spotify.com/embed/album/${album.id}?utm_source=generator&theme=0`;
         const currentTrackId = this.currentTrackState?.trackId;
 
+        const artistsHtml = (album.artists || []).map(a =>
+            `<span class="hover:underline cursor-pointer transition-colors hover:text-white" onclick="event.stopPropagation(); window.app.openSpotifyDetails('artist','${a.id}')">${this._esc(a.name)}</span>`
+        ).join(', ');
+
         const trackListHtml = (album.tracks || []).map(t => {
             const isCurrent = t.id === currentTrackId;
-            return `<div class="details-track-item${isCurrent ? ' is-current' : ''}">
+            return `<div class="details-track-item${isCurrent ? ' is-current' : ''}" onclick="window.app.openSpotifyDetails('track','${t.id}')">
                 <span class="details-track-number">${t.trackNumber}</span>
                 <div class="flex flex-col flex-1 min-w-0">
-                    <span class="details-track-name">${this._esc(t.name)}${t.explicit ? ' <span class="text-[10px] text-white/30">🅴</span>' : ''}</span>
-                    ${t.artists && t.artists !== artists ? `<span class="text-[11px] text-white/30 truncate">${this._esc(t.artists)}</span>` : ''}
+                    <span class="details-track-name">${this._esc(t.name)}${t.explicit ? ' <span class="inline-flex items-center px-1 py-0.2 rounded bg-white/20 text-white text-[9px] font-bold">E</span>' : ''}</span>
+                    ${t.artists ? `<span class="text-[11px] text-white/40 truncate">${this._esc(t.artists)}</span>` : ''}
                 </div>
                 <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
             </div>`;
@@ -4887,7 +5004,7 @@ class LySincApp {
 
         const copyHtml = (album.copyrights || [])
             .filter((c, i, arr) => arr.findIndex(x => x.text === c.text) === i)
-            .map(c => `<span class="text-[11px] text-white/25">${this._esc(c.text)}</span>`)
+            .map(c => `<span class="text-[11px] text-white/30">${this._esc(c.text)}</span>`)
             .join('');
 
         return `
@@ -4897,7 +5014,7 @@ class LySincApp {
             <div class="details-hero-info">
                 <span class="details-hero-type">${typeLabel}</span>
                 <h1 class="details-hero-title">${this._esc(album.name)}</h1>
-                <p class="details-hero-subtitle">${this._esc(artists)}</p>
+                <p class="details-hero-subtitle">${artistsHtml || '—'}</p>
                 <div class="details-hero-meta">
                     <span>${year}</span>
                     <span>•</span>
@@ -4923,18 +5040,21 @@ class LySincApp {
                 <div class="details-popularity-bar flex-1">
                     <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
                 </div>
-                <span class="text-xs text-white/40 font-mono w-8">${popPct}</span>
+                <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
             </div>
         </div>
 
         <div class="flex flex-col space-y-2">
             <p class="details-section-header">Artistas</p>
             <div class="details-meta-pills">
-                ${(album.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">🎤 ${this._esc(a.name)}</span>`).join('')}
+                ${(album.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">
+                    <svg class="w-4 h-4 text-pink-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    ${this._esc(a.name)}
+                </span>`).join('')}
             </div>
         </div>
 
-        ${trackListHtml ? `<div class="flex flex-col space-y-1"><p class="details-section-header">Faixas</p><div class="details-tracklist">${trackListHtml}</div></div>` : ''}
+        ${trackListHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Faixas do Álbum</p><div class="details-tracklist">${trackListHtml}</div></div>` : ''}
 
         ${copyHtml ? `<div class="flex flex-col gap-1 pt-2">${copyHtml}</div>` : ''}
         `;
@@ -4943,7 +5063,7 @@ class LySincApp {
     renderArtistDetails(artist) {
         const artUrl = artist.images?.[0]?.url || artist.images?.[1]?.url || '';
         const followers = this._formatFollowers(artist.followers);
-        const popPct = artist.popularity || 0;
+        const popPct = artist.popularity !== undefined ? artist.popularity : 0;
         const embedUrl = `https://open.spotify.com/embed/artist/${artist.id}?utm_source=generator&theme=0`;
 
         const genresHtml = (artist.genres || []).slice(0, 6)
@@ -4951,11 +5071,11 @@ class LySincApp {
             .join('');
 
         const topTracksHtml = (artist.topTracks || []).map((t, i) => `
-            <div class="details-top-track">
-                ${t.albumArt ? `<img class="details-top-track-art" src="${t.albumArt}" alt="">` : `<div class="details-top-track-art bg-white/5 rounded"></div>`}
+            <div class="details-top-track" onclick="window.app.openSpotifyDetails('track','${t.id}')">
+                ${t.albumArt ? `<img class="details-top-track-art" src="${t.albumArt}" alt="">` : `<div class="details-top-track-art bg-white/5 rounded flex items-center justify-center text-white/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg></div>`}
                 <div class="flex flex-col flex-1 min-w-0">
                     <span class="details-track-name">${this._esc(t.name)}</span>
-                    ${t.explicit ? '<span class="text-[10px] text-white/30">🅴 Explícita</span>' : ''}
+                    ${t.explicit ? '<span class="inline-flex items-center px-1 py-0.2 rounded bg-white/20 text-white text-[9px] font-bold w-fit mt-0.5">E</span>' : ''}
                 </div>
                 <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
             </div>`).join('');
@@ -4968,7 +5088,10 @@ class LySincApp {
                 <span class="details-hero-type">Artista</span>
                 <h1 class="details-hero-title">${this._esc(artist.name)}</h1>
                 <div class="details-hero-meta">
-                    <span>👥 ${followers} seguidores</span>
+                    <span class="inline-flex items-center gap-1.5 text-white/80">
+                        <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        ${followers} seguidores
+                    </span>
                 </div>
                 <a class="details-open-btn" href="${artist.externalUrl || '#'}" target="_blank" rel="noopener">
                     <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
@@ -4989,11 +5112,11 @@ class LySincApp {
                 <div class="details-popularity-bar flex-1">
                     <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
                 </div>
-                <span class="text-xs text-white/40 font-mono w-8">${popPct}</span>
+                <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
             </div>
         </div>
 
-        ${topTracksHtml ? `<div class="flex flex-col space-y-1"><p class="details-section-header">Top Faixas</p><div class="flex flex-col gap-0.5">${topTracksHtml}</div></div>` : ''}
+        ${topTracksHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Top Faixas</p><div class="flex flex-col gap-1.5">${topTracksHtml}</div></div>` : ''}
         `;
     }
 
