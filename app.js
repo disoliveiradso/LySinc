@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.3.0';
-import SpotifyService from './spotify.js?v=4.3.0';
-import LyricsService from './lyrics.js?v=4.3.0';
-import MusicBrainzService from './musicbrainz.js?v=4.3.0';
-import SupabaseService from './supabase.js?v=4.3.0';
+import Config from './config.js?v=4.4.0';
+import SpotifyService from './spotify.js?v=4.4.0';
+import LyricsService from './lyrics.js?v=4.4.0';
+import MusicBrainzService from './musicbrainz.js?v=4.4.0';
+import SupabaseService from './supabase.js?v=4.4.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3375,7 +3375,7 @@ class LySincApp {
         const textWidth = targetToAnimate.scrollWidth;
 
         if (textWidth > containerWidth) {
-            const scrollDistance = textWidth - containerWidth + 30; // +30px extra to show the end clearly
+            const scrollDistance = textWidth - containerWidth;
             const pixelsPerSecond = 35; // Smooth reading speed
             const durationMs = (scrollDistance / pixelsPerSecond) * 1000;
 
