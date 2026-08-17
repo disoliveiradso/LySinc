@@ -250,6 +250,7 @@ class LySincApp {
         this.screenTermsFeedback = document.getElementById('screen-terms-feedback');
         this.screenTermsPrivacy = document.getElementById('screen-terms-privacy');
         this.screenTermsClientId = document.getElementById('screen-terms-client-id');
+        this.screenSpotifyDetails = document.getElementById('screen-spotify-details');
         this.errorScreenMessage = document.getElementById('error-screen-message');
         this.btnErrorBackHome = document.getElementById('btn-error-back-home');
 
@@ -264,6 +265,11 @@ class LySincApp {
         this.trackName = document.getElementById('track-name');
         this.trackArtists = document.getElementById('track-artists');
         this.explicitIconHeader = document.getElementById('explicit-icon-header');
+
+        this.btnDetailsBack = document.getElementById('btn-details-back');
+        this.detailsBackLabel = document.getElementById('details-back-label');
+        this.detailsLoading = document.getElementById('details-loading');
+        this.detailsContent = document.getElementById('details-content');
 
         this.lyricsContainer = document.getElementById('lyrics-container');
         this.progressBar = document.getElementById('progress-bar');
@@ -1039,6 +1045,43 @@ class LySincApp {
         if (this.btnFlowStep3Back) {
             this.btnFlowStep3Back.addEventListener('click', () => this.showScreen('pre-login'));
         }
+
+        // Spotify Details: back button
+        if (this.btnDetailsBack) {
+            this.btnDetailsBack.addEventListener('click', () => {
+                const back = this.previousScreen || 'main';
+                this.showScreen(back);
+            });
+        }
+
+        // Spotify Details: click on album art → album details
+        if (this.albumArt) {
+            this.albumArt.addEventListener('click', () => {
+                if (this.currentTrackState?.albumId) {
+                    this.openSpotifyDetails('album', this.currentTrackState.albumId);
+                }
+            });
+        }
+
+        // Spotify Details: click on track name → track details
+        if (this.trackName) {
+            this.trackName.addEventListener('click', () => {
+                if (this.currentTrackState?.trackId) {
+                    this.openSpotifyDetails('track', this.currentTrackState.trackId);
+                }
+            });
+        }
+
+        // Spotify Details: click on track artists → first artist details
+        if (this.trackArtists) {
+            this.trackArtists.addEventListener('click', () => {
+                const artistId = this.currentTrackState?.artistsRaw?.[0]?.id;
+                if (artistId) {
+                    this.openSpotifyDetails('artist', artistId);
+                }
+            });
+        }
+
         if (this.btnLoginSystemAccount) {
             this.btnLoginSystemAccount.addEventListener('click', async () => {
                 const isAuth = await SpotifyService.isAuthenticated();
@@ -2980,6 +3023,7 @@ class LySincApp {
         if (this.screenTermsFeedback) this.screenTermsFeedback.classList.add('hidden');
         if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.add('hidden');
         if (this.screenTermsClientId) this.screenTermsClientId.classList.add('hidden');
+        if (this.screenSpotifyDetails) this.screenSpotifyDetails.classList.add('hidden');
 
         if (screenName === 'pre-login') {
             if (this.screenPreLogin) this.screenPreLogin.classList.remove('hidden');
@@ -3003,6 +3047,8 @@ class LySincApp {
             if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.remove('hidden');
         } else if (screenName === 'terms-client-id') {
             if (this.screenTermsClientId) this.screenTermsClientId.classList.remove('hidden');
+        } else if (screenName === 'spotify-details') {
+            if (this.screenSpotifyDetails) this.screenSpotifyDetails.classList.remove('hidden');
         }
         
         if (screenName !== 'main') {
@@ -4675,6 +4721,296 @@ class LySincApp {
                 }
             }
         });
+    }
+
+    // ==========================================
+    // SPOTIFY DETAILS PAGES
+    // ==========================================
+
+    async openSpotifyDetails(type, id) {
+        // Show the screen immediately with loading state
+        this.showScreen('spotify-details');
+        window.scrollTo(0, 0);
+
+        if (this.detailsLoading) this.detailsLoading.classList.remove('hidden');
+        if (this.detailsContent) {
+            this.detailsContent.classList.add('hidden');
+            this.detailsContent.innerHTML = '';
+        }
+
+        // Configure back button label
+        const backLabels = { track: 'Voltar', album: 'Voltar', artist: 'Voltar' };
+        if (this.detailsBackLabel) this.detailsBackLabel.textContent = backLabels[type] || 'Voltar';
+
+        let html = '';
+        try {
+            if (type === 'track') {
+                const data = await SpotifyService.getTrack(id);
+                html = data ? this.renderTrackDetails(data) : this._detailsErrorHtml('Não foi possível carregar os dados da música.');
+            } else if (type === 'album') {
+                const data = await SpotifyService.getAlbum(id);
+                html = data ? this.renderAlbumDetails(data) : this._detailsErrorHtml('Não foi possível carregar os dados do álbum.');
+            } else if (type === 'artist') {
+                const data = await SpotifyService.getArtist(id);
+                html = data ? this.renderArtistDetails(data) : this._detailsErrorHtml('Não foi possível carregar os dados do artista.');
+            }
+        } catch (e) {
+            html = this._detailsErrorHtml('Ocorreu um erro ao carregar as informações.');
+        }
+
+        if (this.detailsLoading) this.detailsLoading.classList.add('hidden');
+        if (this.detailsContent) {
+            this.detailsContent.innerHTML = html;
+            this.detailsContent.classList.remove('hidden');
+
+            // Animate popularity bars after render
+            requestAnimationFrame(() => {
+                const fills = this.detailsContent.querySelectorAll('.details-popularity-fill[data-pop]');
+                fills.forEach(el => {
+                    el.style.width = el.dataset.pop + '%';
+                });
+            });
+        }
+    }
+
+    _detailsErrorHtml(msg) {
+        return `<div class="flex flex-col items-center justify-center py-16 space-y-3 text-center px-4">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-white/50 text-sm">${msg}</p>
+        </div>`;
+    }
+
+    _formatMs(ms) {
+        if (!ms) return '—';
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${m}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    _formatFollowers(n) {
+        if (!n) return '—';
+        if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.', ',') + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+        return n.toLocaleString('pt-BR');
+    }
+
+    renderTrackDetails(track) {
+        const artUrl = track.album?.images?.[0]?.url || '';
+        const artists = track.artists?.map(a => a.name).join(', ') || '—';
+        const year = track.album?.releaseDate?.substring(0, 4) || '—';
+        const duration = this._formatMs(track.durationMs);
+        const popPct = track.popularity || 0;
+        const embedUrl = `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`;
+
+        return `
+        <div class="details-hero">
+            <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
+            <img class="details-hero-art" src="${artUrl}" alt="Capa">
+            <div class="details-hero-info">
+                <span class="details-hero-type">Música</span>
+                <h1 class="details-hero-title">${this._esc(track.name)}</h1>
+                <p class="details-hero-subtitle">${this._esc(artists)}</p>
+                <div class="details-hero-meta">
+                    <span>${this._esc(track.album?.name || '—')}</span>
+                    <span>•</span>
+                    <span>${year}</span>
+                    <span>•</span>
+                    <span>${duration}</span>
+                    ${track.explicit ? '<span>•</span><span>🅴 Explícita</span>' : ''}
+                </div>
+                <a class="details-open-btn" href="${track.externalUrl || '#'}" target="_blank" rel="noopener">
+                    <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
+                    Abrir no Spotify
+                </a>
+            </div>
+        </div>
+
+        <div class="details-embed-container">
+            <iframe src="${embedUrl}" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Detalhes da Faixa</p>
+            <div class="details-meta-pills">
+                ${track.album?.name ? `<span class="details-meta-pill">💿 ${this._esc(track.album.name)}</span>` : ''}
+                ${year !== '—' ? `<span class="details-meta-pill">📅 ${year}</span>` : ''}
+                ${track.album?.totalTracks ? `<span class="details-meta-pill">🎵 ${track.album.totalTracks} faixas no álbum</span>` : ''}
+                ${track.isrc ? `<span class="details-meta-pill">🔑 ISRC: ${this._esc(track.isrc)}</span>` : ''}
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Popularidade</p>
+            <div class="flex items-center gap-3">
+                <div class="details-popularity-bar flex-1">
+                    <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
+                </div>
+                <span class="text-xs text-white/40 font-mono w-8">${popPct}</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Artistas</p>
+            <div class="details-meta-pills">
+                ${(track.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">🎤 ${this._esc(a.name)}</span>`).join('')}
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Álbum</p>
+            ${track.album ? `<div class="details-meta-pill w-fit cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('album','${track.album.id}')">💿 ${this._esc(track.album.name)}</div>` : ''}
+        </div>
+        `;
+    }
+
+    renderAlbumDetails(album) {
+        const artUrl = album.images?.[0]?.url || '';
+        const artists = album.artists?.map(a => a.name).join(', ') || '—';
+        const year = album.releaseDate?.substring(0, 4) || '—';
+        const typeLabel = { album: 'Álbum', single: 'Single', compilation: 'Compilação' }[album.type] || 'Álbum';
+        const popPct = album.popularity || 0;
+        const embedUrl = `https://open.spotify.com/embed/album/${album.id}?utm_source=generator&theme=0`;
+        const currentTrackId = this.currentTrackState?.trackId;
+
+        const trackListHtml = (album.tracks || []).map(t => {
+            const isCurrent = t.id === currentTrackId;
+            return `<div class="details-track-item${isCurrent ? ' is-current' : ''}">
+                <span class="details-track-number">${t.trackNumber}</span>
+                <div class="flex flex-col flex-1 min-w-0">
+                    <span class="details-track-name">${this._esc(t.name)}${t.explicit ? ' <span class="text-[10px] text-white/30">🅴</span>' : ''}</span>
+                    ${t.artists && t.artists !== artists ? `<span class="text-[11px] text-white/30 truncate">${this._esc(t.artists)}</span>` : ''}
+                </div>
+                <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
+            </div>`;
+        }).join('');
+
+        const genresHtml = album.genres?.length
+            ? album.genres.map(g => `<span class="details-genre-pill">${this._esc(g)}</span>`).join('')
+            : '';
+
+        const copyHtml = (album.copyrights || [])
+            .filter((c, i, arr) => arr.findIndex(x => x.text === c.text) === i)
+            .map(c => `<span class="text-[11px] text-white/25">${this._esc(c.text)}</span>`)
+            .join('');
+
+        return `
+        <div class="details-hero">
+            <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
+            <img class="details-hero-art" src="${artUrl}" alt="Capa">
+            <div class="details-hero-info">
+                <span class="details-hero-type">${typeLabel}</span>
+                <h1 class="details-hero-title">${this._esc(album.name)}</h1>
+                <p class="details-hero-subtitle">${this._esc(artists)}</p>
+                <div class="details-hero-meta">
+                    <span>${year}</span>
+                    <span>•</span>
+                    <span>${album.totalTracks} faixas</span>
+                    ${album.label ? `<span>•</span><span>${this._esc(album.label)}</span>` : ''}
+                </div>
+                <a class="details-open-btn" href="${album.externalUrl || '#'}" target="_blank" rel="noopener">
+                    <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
+                    Abrir no Spotify
+                </a>
+            </div>
+        </div>
+
+        <div class="details-embed-container">
+            <iframe src="${embedUrl}" height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Popularidade</p>
+            <div class="flex items-center gap-3">
+                <div class="details-popularity-bar flex-1">
+                    <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
+                </div>
+                <span class="text-xs text-white/40 font-mono w-8">${popPct}</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Artistas</p>
+            <div class="details-meta-pills">
+                ${(album.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">🎤 ${this._esc(a.name)}</span>`).join('')}
+            </div>
+        </div>
+
+        ${trackListHtml ? `<div class="flex flex-col space-y-1"><p class="details-section-header">Faixas</p><div class="details-tracklist">${trackListHtml}</div></div>` : ''}
+
+        ${copyHtml ? `<div class="flex flex-col gap-1 pt-2">${copyHtml}</div>` : ''}
+        `;
+    }
+
+    renderArtistDetails(artist) {
+        const artUrl = artist.images?.[0]?.url || artist.images?.[1]?.url || '';
+        const followers = this._formatFollowers(artist.followers);
+        const popPct = artist.popularity || 0;
+        const embedUrl = `https://open.spotify.com/embed/artist/${artist.id}?utm_source=generator&theme=0`;
+
+        const genresHtml = (artist.genres || []).slice(0, 6)
+            .map(g => `<span class="details-genre-pill">${this._esc(g)}</span>`)
+            .join('');
+
+        const topTracksHtml = (artist.topTracks || []).map((t, i) => `
+            <div class="details-top-track">
+                ${t.albumArt ? `<img class="details-top-track-art" src="${t.albumArt}" alt="">` : `<div class="details-top-track-art bg-white/5 rounded"></div>`}
+                <div class="flex flex-col flex-1 min-w-0">
+                    <span class="details-track-name">${this._esc(t.name)}</span>
+                    ${t.explicit ? '<span class="text-[10px] text-white/30">🅴 Explícita</span>' : ''}
+                </div>
+                <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
+            </div>`).join('');
+
+        return `
+        <div class="details-hero">
+            <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
+            ${artUrl ? `<img class="details-hero-art is-artist" src="${artUrl}" alt="${this._esc(artist.name)}">` : ''}
+            <div class="details-hero-info">
+                <span class="details-hero-type">Artista</span>
+                <h1 class="details-hero-title">${this._esc(artist.name)}</h1>
+                <div class="details-hero-meta">
+                    <span>👥 ${followers} seguidores</span>
+                </div>
+                <a class="details-open-btn" href="${artist.externalUrl || '#'}" target="_blank" rel="noopener">
+                    <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
+                    Abrir no Spotify
+                </a>
+            </div>
+        </div>
+
+        <div class="details-embed-container">
+            <iframe src="${embedUrl}" height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+
+        ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
+
+        <div class="flex flex-col space-y-2">
+            <p class="details-section-header">Popularidade</p>
+            <div class="flex items-center gap-3">
+                <div class="details-popularity-bar flex-1">
+                    <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
+                </div>
+                <span class="text-xs text-white/40 font-mono w-8">${popPct}</span>
+            </div>
+        </div>
+
+        ${topTracksHtml ? `<div class="flex flex-col space-y-1"><p class="details-section-header">Top Faixas</p><div class="flex flex-col gap-0.5">${topTracksHtml}</div></div>` : ''}
+        `;
+    }
+
+    _esc(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
 }

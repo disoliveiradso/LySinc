@@ -295,6 +295,7 @@ const SpotifyService = {
                 artists: data.item?.artists?.map(a => a.name).join(', ') || '',
                 artistsRaw: data.item?.artists?.map(a => ({ id: a.id, name: a.name })) || [],
                 albumName: data.item?.album?.name,
+                albumId: data.item?.album?.id || null,
                 albumArtUrl: data.item?.album?.images?.[0]?.url || '',
                 releaseDate: data.item?.album?.release_date ? data.item.album.release_date.substring(0, 4) : null,
                 durationMs: data.item?.duration_ms,
@@ -421,6 +422,116 @@ const SpotifyService = {
             return profile;
         } catch (error) {
             console.error('[LySinc 2.0] Erro ao buscar perfil do Spotify:', error);
+            return null;
+        }
+    },
+
+    // Busca dados completos de uma faixa pelo ID
+    async getTrack(trackId) {
+        const token = await this.getValidToken();
+        if (!token || !trackId) return null;
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return {
+                id: data.id,
+                name: data.name,
+                artists: data.artists?.map(a => ({ id: a.id, name: a.name })) || [],
+                album: {
+                    id: data.album?.id,
+                    name: data.album?.name,
+                    releaseDate: data.album?.release_date,
+                    totalTracks: data.album?.total_tracks,
+                    type: data.album?.album_type,
+                    images: data.album?.images || []
+                },
+                durationMs: data.duration_ms,
+                explicit: data.explicit,
+                popularity: data.popularity,
+                isrc: data.external_ids?.isrc,
+                previewUrl: data.preview_url,
+                externalUrl: data.external_urls?.spotify
+            };
+        } catch (e) {
+            return null;
+        }
+    },
+
+    // Busca dados completos de um álbum pelo ID
+    async getAlbum(albumId) {
+        const token = await this.getValidToken();
+        if (!token || !albumId) return null;
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return {
+                id: data.id,
+                name: data.name,
+                artists: data.artists?.map(a => ({ id: a.id, name: a.name })) || [],
+                releaseDate: data.release_date,
+                totalTracks: data.total_tracks,
+                type: data.album_type,
+                label: data.label,
+                popularity: data.popularity,
+                copyrights: data.copyrights || [],
+                genres: data.genres || [],
+                images: data.images || [],
+                tracks: data.tracks?.items?.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    trackNumber: t.track_number,
+                    durationMs: t.duration_ms,
+                    explicit: t.explicit,
+                    artists: t.artists?.map(a => a.name).join(', ')
+                })) || [],
+                externalUrl: data.external_urls?.spotify
+            };
+        } catch (e) {
+            return null;
+        }
+    },
+
+    // Busca dados completos de um artista pelo ID
+    async getArtist(artistId) {
+        const token = await this.getValidToken();
+        if (!token || !artistId) return null;
+        try {
+            const [artistRes, topTracksRes] = await Promise.all([
+                fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=BR`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            if (!artistRes.ok) return null;
+            const artist = await artistRes.json();
+            const topTracks = topTracksRes.ok ? (await topTracksRes.json()).tracks?.slice(0, 5) : [];
+
+            return {
+                id: artist.id,
+                name: artist.name,
+                genres: artist.genres || [],
+                followers: artist.followers?.total,
+                popularity: artist.popularity,
+                images: artist.images || [],
+                externalUrl: artist.external_urls?.spotify,
+                topTracks: topTracks.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    albumArt: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url,
+                    durationMs: t.duration_ms,
+                    explicit: t.explicit
+                }))
+            };
+        } catch (e) {
             return null;
         }
     }
