@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.7.5';
-import SpotifyService from './spotify.js?v=4.7.5';
-import LyricsService from './lyrics.js?v=4.7.5';
-import MusicBrainzService from './musicbrainz.js?v=4.7.5';
-import SupabaseService from './supabase.js?v=4.7.5';
+import Config from './config.js?v=4.8.2';
+import SpotifyService from './spotify.js?v=4.8.2';
+import LyricsService from './lyrics.js?v=4.8.2';
+import MusicBrainzService from './musicbrainz.js?v=4.8.2';
+import SupabaseService from './supabase.js?v=4.8.2';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3073,10 +3073,10 @@ class LySincApp {
             if (this.screenTermsFeedback) this.screenTermsFeedback.classList.remove('hidden');
         } else if (screenName === 'terms-privacy') {
             if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.remove('hidden');
-        } else if (screenName === 'terms-client-id') {
-            if (this.screenTermsClientId) this.screenTermsClientId.classList.remove('hidden');
         } else if (screenName === 'spotify-details') {
             if (this.screenSpotifyDetails) this.screenSpotifyDetails.classList.remove('hidden');
+        }
+
         if (screenName !== 'spotify-details') {
             this.closeSpotifyDetailsEmbed();
         }
