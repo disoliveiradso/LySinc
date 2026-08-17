@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.8.2';
-import SpotifyService from './spotify.js?v=4.8.2';
-import LyricsService from './lyrics.js?v=4.8.2';
-import MusicBrainzService from './musicbrainz.js?v=4.8.2';
-import SupabaseService from './supabase.js?v=4.8.2';
+import Config from './config.js?v=4.8.3';
+import SpotifyService from './spotify.js?v=4.8.3';
+import LyricsService from './lyrics.js?v=4.8.3';
+import MusicBrainzService from './musicbrainz.js?v=4.8.3';
+import SupabaseService from './supabase.js?v=4.8.3';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1132,6 +1132,22 @@ class LySincApp {
                 this.detailsHistory = [];
                 this.currentDetailsState = null;
                 this.showScreen('main');
+
+                // Restore autoscroll or scroll position
+                if (this.savedWasUserInteracting === false) {
+                    this.isUserInteracting = false;
+                    if (this.lyricsContainer) this.lyricsContainer.classList.remove('user-scrolling');
+                    if (this.btnRecenter) this.btnRecenter.classList.add('opacity-0', 'hidden');
+                    if (this.isPlaying && this.lastSyncTime > 0) {
+                        const elapsed = Date.now() - this.lastSyncTime;
+                        this.updateLyricsSync(this.progressMs + elapsed + this.syncOffset);
+                    }
+                } else {
+                    this.isUserInteracting = true;
+                    if (this.savedLyricsScrollY !== undefined) {
+                        window.scrollTo(0, this.savedLyricsScrollY);
+                    }
+                }
             });
         }
 
@@ -4813,6 +4829,10 @@ class LySincApp {
 
     async openSpotifyDetails(type, id, isBack = false) {
         if (!isBack) {
+            if (this.currentScreen === 'main') {
+                this.savedLyricsScrollY = window.scrollY;
+                this.savedWasUserInteracting = !!this.isUserInteracting;
+            }
             if (this.currentScreen === 'spotify-details' && this.currentDetailsState) {
                 this.detailsHistory.push({ screen: 'spotify-details', detailsState: { ...this.currentDetailsState } });
             } else {
@@ -4919,7 +4939,7 @@ class LySincApp {
         </div>
 
         <div class="details-embed-container">
-            <iframe src="${embedUrl}" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            <iframe src="${embedUrl}" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" loading="lazy"></iframe>
         </div>
 
         <div class="flex flex-col space-y-2">
@@ -4948,7 +4968,7 @@ class LySincApp {
             <p class="details-section-header">Popularidade</p>
             <div class="flex items-center gap-3">
                 <div class="details-popularity-bar flex-1">
-                    <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
+                    <div class="details-popularity-fill" style="width:${popPct}%" data-pop="${popPct}"></div>
                 </div>
                 <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
             </div>
@@ -5029,7 +5049,7 @@ class LySincApp {
         </div>
 
         <div class="details-embed-container">
-            <iframe src="${embedUrl}" height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            <iframe src="${embedUrl}" height="480" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" loading="lazy"></iframe>
         </div>
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
@@ -5038,7 +5058,7 @@ class LySincApp {
             <p class="details-section-header">Popularidade</p>
             <div class="flex items-center gap-3">
                 <div class="details-popularity-bar flex-1">
-                    <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
+                    <div class="details-popularity-fill" style="width:${popPct}%" data-pop="${popPct}"></div>
                 </div>
                 <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
             </div>
@@ -5101,7 +5121,7 @@ class LySincApp {
         </div>
 
         <div class="details-embed-container">
-            <iframe src="${embedUrl}" height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+            <iframe src="${embedUrl}" height="480" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" loading="lazy"></iframe>
         </div>
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
@@ -5110,7 +5130,7 @@ class LySincApp {
             <p class="details-section-header">Popularidade</p>
             <div class="flex items-center gap-3">
                 <div class="details-popularity-bar flex-1">
-                    <div class="details-popularity-fill" style="width:0%" data-pop="${popPct}"></div>
+                    <div class="details-popularity-fill" style="width:${popPct}%" data-pop="${popPct}"></div>
                 </div>
                 <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
             </div>

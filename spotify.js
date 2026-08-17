@@ -523,7 +523,7 @@ const SpotifyService = {
                 id: artist.id,
                 name: artist.name,
                 genres: artist.genres || [],
-                followers: artist.followers?.total !== undefined ? artist.followers.total : 0,
+                followers: (artist.followers && typeof artist.followers === 'object') ? (artist.followers.total ?? 0) : (artist.followers ?? 0),
                 popularity: artist.popularity !== undefined ? artist.popularity : 0,
                 images: artist.images || [],
                 externalUrl: artist.external_urls?.spotify,
