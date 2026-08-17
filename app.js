@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.8.3';
-import SpotifyService from './spotify.js?v=4.8.3';
-import LyricsService from './lyrics.js?v=4.8.3';
-import MusicBrainzService from './musicbrainz.js?v=4.8.3';
-import SupabaseService from './supabase.js?v=4.8.3';
+import Config from './config.js?v=4.9.0';
+import SpotifyService from './spotify.js?v=4.9.0';
+import LyricsService from './lyrics.js?v=4.9.0';
+import MusicBrainzService from './musicbrainz.js?v=4.9.0';
+import SupabaseService from './supabase.js?v=4.9.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -4815,16 +4815,35 @@ class LySincApp {
     // ==========================================
 
     closeSpotifyDetailsEmbed() {
+        if (this._activePreviewAudio) {
+            try {
+                this._activePreviewAudio.pause();
+                this._activePreviewAudio = null;
+            } catch (e) { }
+        }
         if (this.detailsContent) {
-            const iframes = this.detailsContent.querySelectorAll('iframe');
-            iframes.forEach(iframe => {
-                try {
-                    iframe.src = 'about:blank';
-                } catch (e) { }
-                iframe.remove();
-            });
             this.detailsContent.innerHTML = '';
         }
+    }
+
+    togglePreviewAudio(url, btn) {
+        if (this._activePreviewAudio) {
+            if (this._activePreviewAudio.src === url && !this._activePreviewAudio.paused) {
+                this._activePreviewAudio.pause();
+                if (btn) btn.innerHTML = `<svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+                return;
+            }
+            this._activePreviewAudio.pause();
+        }
+
+        const audio = new Audio(url);
+        this._activePreviewAudio = audio;
+        if (btn) btn.innerHTML = `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+
+        audio.play().catch(() => { });
+        audio.onended = () => {
+            if (btn) btn.innerHTML = `<svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+        };
     }
 
     async openSpotifyDetails(type, id, isBack = false) {
@@ -4909,7 +4928,6 @@ class LySincApp {
         const year = track.album?.releaseDate?.substring(0, 4) || '—';
         const duration = this._formatMs(track.durationMs);
         const popPct = track.popularity !== undefined ? track.popularity : 0;
-        const embedUrl = `https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`;
 
         const artistsHtml = (track.artists || []).map(a =>
             `<span class="hover:underline cursor-pointer transition-colors hover:text-white" onclick="event.stopPropagation(); window.app.openSpotifyDetails('artist','${a.id}')">${this._esc(a.name)}</span>`
@@ -4938,9 +4956,17 @@ class LySincApp {
             </div>
         </div>
 
-        <div class="details-embed-container">
-            <iframe src="${embedUrl}" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" loading="lazy"></iframe>
-        </div>
+        ${track.previewUrl ? `
+        <div class="details-preview-card flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+            <button onclick="window.app.togglePreviewAudio('${track.previewUrl}', this)" class="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shrink-0 transition-transform active:scale-95 shadow-lg shadow-emerald-500/20">
+                <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div class="flex flex-col flex-1 min-w-0">
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Prévia de 30 segundos</span>
+                <span class="text-sm font-semibold text-white truncate">${this._esc(track.name)}</span>
+                <span class="text-xs text-white/50 truncate">${this._esc(track.artists?.map(a => a.name).join(', ') || '')}</span>
+            </div>
+        </div>` : ''}
 
         <div class="flex flex-col space-y-2">
             <p class="details-section-header">Detalhes da Faixa</p>
@@ -4999,7 +5025,6 @@ class LySincApp {
         const year = album.releaseDate?.substring(0, 4) || '—';
         const typeLabel = { album: 'Álbum', single: 'Single', compilation: 'Compilação' }[album.type] || 'Álbum';
         const popPct = album.popularity !== undefined ? album.popularity : 0;
-        const embedUrl = `https://open.spotify.com/embed/album/${album.id}?utm_source=generator&theme=0`;
         const currentTrackId = this.currentTrackState?.trackId;
 
         const artistsHtml = (album.artists || []).map(a =>
@@ -5048,10 +5073,6 @@ class LySincApp {
             </div>
         </div>
 
-        <div class="details-embed-container">
-            <iframe src="${embedUrl}" height="480" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" loading="lazy"></iframe>
-        </div>
-
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
 
         <div class="flex flex-col space-y-2">
@@ -5084,7 +5105,6 @@ class LySincApp {
         const artUrl = artist.images?.[0]?.url || artist.images?.[1]?.url || '';
         const followers = this._formatFollowers(artist.followers);
         const popPct = artist.popularity !== undefined ? artist.popularity : 0;
-        const embedUrl = `https://open.spotify.com/embed/artist/${artist.id}?utm_source=generator&theme=0`;
 
         const genresHtml = (artist.genres || []).slice(0, 6)
             .map(g => `<span class="details-genre-pill">${this._esc(g)}</span>`)
@@ -5118,10 +5138,6 @@ class LySincApp {
                     Abrir no Spotify
                 </a>
             </div>
-        </div>
-
-        <div class="details-embed-container">
-            <iframe src="${embedUrl}" height="480" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" sandbox="allow-forms allow-popups allow-same-origin allow-scripts" loading="lazy"></iframe>
         </div>
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
