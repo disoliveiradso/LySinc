@@ -77,7 +77,7 @@ const SpotifyService = {
         }
 
         const code = urlParams.get('code');
-        
+
         if (code) {
             const codeVerifier = window.sessionStorage.getItem('spotify_code_verifier');
             if (codeVerifier) {
@@ -243,7 +243,7 @@ const SpotifyService = {
                     response = await fetch('https://api.spotify.com/v1/me/player?additional_types=track,episode', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                } catch (e) {}
+                } catch (e) { }
             }
 
             if (response.status === 204) {
@@ -258,8 +258,8 @@ const SpotifyService = {
                     if (errData.error && errData.error.message) {
                         errorMsg = errData.error.message;
                     }
-                } catch(e) {}
-                
+                } catch (e) { }
+
                 let finalMsg = '';
                 if (this.currentUserProfile && this.currentUserProfile.product !== 'premium') {
                     finalMsg = 'Sua conta do Spotify é Gratuita (Free). O Spotify exige uma assinatura Premium para que o LySinc acesse a reprodução atual.';
@@ -268,7 +268,7 @@ const SpotifyService = {
                 } else {
                     finalMsg = 'Sua conta não tem autorização ou o Client ID está em Development Mode e você não está na lista branca.';
                 }
-                
+
                 console.warn('[LySinc] Spotify API 403 Forbidden:', finalMsg);
                 return { isForbidden: true, errorReason: finalMsg };
             }
@@ -380,7 +380,7 @@ const SpotifyService = {
 
             if (!response.ok) return {};
             const data = await response.json();
-            
+
             const imageMap = {};
             if (data.artists) {
                 data.artists.forEach(artist => {
@@ -508,6 +508,17 @@ const SpotifyService = {
             if (!artistRes.ok) return null;
             const artist = await artistRes.json();
 
+            let topTracks = [];
+            try {
+                const topTracksRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?country=BR`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (topTracksRes.ok) {
+                    const data = await topTracksRes.json();
+                    topTracks = (data.tracks || []).slice(0, 5);
+                }
+            } catch (e) { }
+
             return {
                 id: artist.id,
                 name: artist.name,
@@ -516,7 +527,13 @@ const SpotifyService = {
                 popularity: artist.popularity,
                 images: artist.images || [],
                 externalUrl: artist.external_urls?.spotify,
-                topTracks: []
+                topTracks: topTracks.map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    albumArt: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url,
+                    durationMs: t.duration_ms,
+                    explicit: t.explicit
+                }))
             };
         } catch (e) {
             return null;
