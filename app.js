@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.5.0';
-import SpotifyService from './spotify.js?v=4.5.0';
-import LyricsService from './lyrics.js?v=4.5.0';
-import MusicBrainzService from './musicbrainz.js?v=4.5.0';
-import SupabaseService from './supabase.js?v=4.5.0';
+import Config from './config.js?v=4.6.0';
+import SpotifyService from './spotify.js?v=4.6.0';
+import LyricsService from './lyrics.js?v=4.6.0';
+import MusicBrainzService from './musicbrainz.js?v=4.6.0';
+import SupabaseService from './supabase.js?v=4.6.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -1490,22 +1490,19 @@ class LySincApp {
 
         window.addEventListener('touchmove', (e) => {
             if (this.isProgrammaticScrolling) return;
-            const currentY = window.scrollY;
-            if (Math.abs(currentY - lastUserScrollTop) > 4 && Date.now() - this.lastAutoScrollTime > 600) {
-                handleUserInteraction(e);
-            }
-            lastUserScrollTop = currentY;
+            handleUserInteraction(e);
         }, { passive: true });
 
         window.addEventListener('wheel', (e) => {
             if (this.isProgrammaticScrolling) return;
-            if (Math.abs(e.deltaY) > 2 && Date.now() - this.lastAutoScrollTime > 600) {
-                handleUserInteraction(e);
-            }
+            handleUserInteraction(e);
         }, { passive: true });
 
-        window.addEventListener('scroll', () => {
+        window.addEventListener('scroll', (e) => {
             this.updateFloatingMenuVisibility();
+            if (!this.isProgrammaticScrolling && this.lyrics.length > 0) {
+                handleUserInteraction(e);
+            }
         }, { passive: true });
 
         const handleFloatingToggle = (e) => {
@@ -3960,33 +3957,12 @@ class LySincApp {
             if (this.currentLyricsMode === 'translation' && hasTranslation) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
-                const transText = getLineText(line, 'translation') || line.translation || line.translationText;
-                const wrappedTrans = wrapText(domCtx, transText, maxWidth);
-
-                wrappedTrans.forEach((str, lineIdx) => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
-                    wrapper.textContent = str;
-                    transEl.appendChild(wrapper);
-                    if (lineIdx < wrappedTrans.length - 1) transEl.appendChild(document.createElement('br'));
-                });
-
+                transEl.textContent = getLineText(line, 'translation') || line.translation || line.translationText;
                 lineContainer.appendChild(transEl);
             } else if (this.currentLyricsMode === 'romanized' && hasRomanization) {
                 const romEl = document.createElement('div');
                 romEl.className = 'lyrics-romanization-container';
-
-                const romText = getLineText(line, 'romanized') || line.romanized || line.romanizedText;
-                const wrappedRom = wrapText(domCtx, romText, maxWidth);
-
-                wrappedRom.forEach((str, lineIdx) => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'dom-lyric-line-wrapper inline-block max-w-full break-words';
-                    wrapper.textContent = str;
-                    romEl.appendChild(wrapper);
-                    if (lineIdx < wrappedRom.length - 1) romEl.appendChild(document.createElement('br'));
-                });
-
+                romEl.textContent = getLineText(line, 'romanized') || line.romanized || line.romanizedText;
                 lineContainer.appendChild(romEl);
             }
 

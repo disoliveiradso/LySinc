@@ -353,9 +353,12 @@ body, html {
 
 .lyrics-translation-container,
 .lyrics-romanization-container {
-    padding-top: 0.2em;
+    padding-top: 0.1em;
+    margin-top: 0.05em;
     opacity: 0.45;
     font-size: 0.6em;
+    white-space: normal;
+    word-break: normal;
     overflow-wrap: break-word;
     font-weight: normal;
     transition: opacity 0.3s ease, color 0.3s;

@@ -21,16 +21,39 @@ const MusicBrainzService = {
         }
 
         try {
-            let url = `${this.PROXY_URL}/?q=${encodeURIComponent(queryTerm)}`;
-            let response = await fetch(url);
-            let searchData = response.ok ? await response.json() : null;
+            let searchData = null;
 
-            // Fallback se a busca estrita com Lucene não retornar resultados
-            if ((!searchData || !searchData.recordings || searchData.recordings.length === 0) && !isrc) {
-                const fallbackQuery = `${cleanArtist} ${cleanTrack}`;
-                url = `${this.PROXY_URL}/?q=${encodeURIComponent(fallbackQuery)}`;
-                response = await fetch(url);
+            // 1. Tenta buscar pela proxy do Worker
+            try {
+                let url = `${this.PROXY_URL}/?q=${encodeURIComponent(queryTerm)}`;
+                let response = await fetch(url);
                 searchData = response.ok ? await response.json() : null;
+            } catch (e) {}
+
+            // 2. Fallback: se a busca por ISRC ou Lucene estrita não retornou nada, tenta busca textual mais ampla
+            if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
+                const fallbackQuery = `${cleanArtist} ${cleanTrack}`.trim();
+                if (fallbackQuery) {
+                    try {
+                        let url = `${this.PROXY_URL}/?q=${encodeURIComponent(fallbackQuery)}`;
+                        let response = await fetch(url);
+                        searchData = response.ok ? await response.json() : null;
+                    } catch (e) {}
+                }
+            }
+
+            // 3. Fallback direto à API oficial do MusicBrainz caso a proxy falhe
+            if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
+                const directQuery = isrc ? `isrc:${isrc}` : `recording:"${cleanTrack || trackName}" AND artist:"${cleanArtist || artistName}"`;
+                try {
+                    const mbUrl = `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(directQuery)}&fmt=json`;
+                    const res = await fetch(mbUrl, {
+                        headers: { 'User-Agent': 'LySinc/4.6.0 ( https://github.com/disoliveiradso/LySinc )' }
+                    });
+                    if (res.ok) {
+                        searchData = await res.json();
+                    }
+                } catch (e) {}
             }
 
             if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
