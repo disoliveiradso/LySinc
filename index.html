@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.2.0">
+    <link rel="stylesheet" href="style.css?v=4.3.0">
 </head>
 
 <body class="bg-[#050505] text-white flex flex-col min-h-screen">
@@ -647,22 +647,6 @@
                                 <button id="btn-font-increase-floating" class="hover:bg-white/10 text-white/60 hover:text-white transition-colors w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm" title="Aumentar Fonte">A+</button>
                             </div>
                         </div>
-
-                        <div id="trackinfo-box" class="absolute left-0 top-full trackinfo-drawer closed flex flex-col bg-white/10 backdrop-blur-md border border-white/15 max-md:rounded-2xl md:rounded-[24px] shadow-2xl p-4 gap-3 w-full mt-2 pointer-events-none z-50 box-border">
-                            <div class="flex items-center gap-4">
-                                <img id="trackinfo-art" src="" class="w-20 h-20 md:w-24 md:h-24 rounded-lg object-cover shadow-lg shrink-0">
-                                <div class="flex flex-col overflow-hidden flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 max-w-full overflow-hidden">
-                                        <span id="trackinfo-title" class="font-bold text-white text-lg md:text-xl truncate">...</span>
-                                        <span id="explicit-icon-trackinfo" class="hidden shrink-0 flex items-center justify-center bg-white/30 text-white text-[11px] font-bold w-5 h-5 rounded-sm" title="Explícita">E</span>
-                                    </div>
-                                    <span id="trackinfo-artist" class="text-white/70 text-base md:text-lg truncate">...</span>
-                                </div>
-                            </div>
-                            <div class="w-full bg-white/10 h-[3px] rounded-full overflow-hidden">
-                                <div id="trackinfo-progress" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full w-0 transition-all duration-300 ease-out"></div>
-                            </div>
-                        </div>
                     </div>
 
                     <button id="btn-recenter-drawer"
@@ -1255,7 +1239,7 @@
         </div>
     </div>
 
-    <script type="module" src="app.js?v=4.2.0"></script>
+    <script type="module" src="app.js?v=4.3.0"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const url = new URL(window.location.href);

@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.2.0';
-import SpotifyService from './spotify.js?v=4.2.0';
-import LyricsService from './lyrics.js?v=4.2.0';
-import MusicBrainzService from './musicbrainz.js?v=4.2.0';
-import SupabaseService from './supabase.js?v=4.2.0';
+import Config from './config.js?v=4.3.0';
+import SpotifyService from './spotify.js?v=4.3.0';
+import LyricsService from './lyrics.js?v=4.3.0';
+import MusicBrainzService from './musicbrainz.js?v=4.3.0';
+import SupabaseService from './supabase.js?v=4.3.0';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3346,14 +3346,17 @@ class LySincApp {
         // Ensure the main container clips overflowing content
         container.classList.add('overflow-hidden');
 
-        // Animate the parent wrapper for track-name (to include explicit icon), or the element itself for track-artists
-        const targetToAnimate = (element.id === 'track-name') ? element.parentElement : element;
+        // Animate the parent wrapper for track-name & trackinfo-title (to include explicit icon), or the element itself for track-artists
+        const isTitleElement = (element.id === 'track-name' || element.id === 'trackinfo-title');
+        const targetToAnimate = isTitleElement ? element.parentElement : element;
 
-        // Force the element to expand to its true content width so it doesn't wrap or shrink
+        // Force the element to expand to its true content width so it doesn't wrap or truncate with ellipsis
         targetToAnimate.style.width = 'max-content';
         targetToAnimate.style.maxWidth = 'none';
         targetToAnimate.classList.remove('overflow-hidden');
         element.style.whiteSpace = 'nowrap';
+        element.classList.remove('truncate');
+        element.style.textOverflow = 'clip';
 
         // Cancel existing animations
         if (targetToAnimate.marqueeAnim) {
@@ -3413,6 +3416,8 @@ class LySincApp {
         } else {
             // Fits perfectly, reset
             targetToAnimate.style.transform = 'translateX(0)';
+            element.classList.add('truncate');
+            element.style.textOverflow = '';
         }
     }
 
