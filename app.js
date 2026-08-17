@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.9.2';
-import SpotifyService from './spotify.js?v=4.9.2';
-import LyricsService from './lyrics.js?v=4.9.2';
-import MusicBrainzService from './musicbrainz.js?v=4.9.2';
-import SupabaseService from './supabase.js?v=4.9.2';
+import Config from './config.js?v=4.9.3';
+import SpotifyService from './spotify.js?v=4.9.3';
+import LyricsService from './lyrics.js?v=4.9.3';
+import MusicBrainzService from './musicbrainz.js?v=4.9.3';
+import SupabaseService from './supabase.js?v=4.9.3';
 
 
 const wrapText = (ctx, text, maxWidth) => {

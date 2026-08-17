@@ -426,16 +426,28 @@ const SpotifyService = {
         }
     },
 
-    // Busca dados completos de uma faixa pelo ID
+    // Busca dados completos de uma faixa pelo ID ou Nome
     async getTrack(trackId) {
         const token = await this.getValidToken();
         if (!token || !trackId) return null;
         try {
-            const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) return null;
-            const data = await response.json();
+            let data = null;
+            if (typeof trackId === 'string' && /^[0-9A-Za-z]{22}$/.test(trackId)) {
+                const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) data = await response.json();
+            }
+            if (!data) {
+                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(trackId)}&type=track&limit=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (searchRes.ok) {
+                    const searchData = await searchRes.json();
+                    data = searchData.tracks?.items?.[0] || null;
+                }
+            }
+            if (!data) return null;
             return {
                 id: data.id,
                 name: data.name,
@@ -460,16 +472,28 @@ const SpotifyService = {
         }
     },
 
-    // Busca dados completos de um álbum pelo ID
+    // Busca dados completos de um álbum pelo ID ou Nome
     async getAlbum(albumId) {
         const token = await this.getValidToken();
         if (!token || !albumId) return null;
         try {
-            const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) return null;
-            const data = await response.json();
+            let data = null;
+            if (typeof albumId === 'string' && /^[0-9A-Za-z]{22}$/.test(albumId)) {
+                const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) data = await response.json();
+            }
+            if (!data) {
+                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(albumId)}&type=album&limit=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (searchRes.ok) {
+                    const searchData = await searchRes.json();
+                    data = searchData.albums?.items?.[0] || null;
+                }
+            }
+            if (!data) return null;
             return {
                 id: data.id,
                 name: data.name,
@@ -497,16 +521,35 @@ const SpotifyService = {
         }
     },
 
-    // Busca dados completos de um artista pelo ID
+    // Busca dados completos de um artista pelo ID ou Nome
     async getArtist(artistId) {
         const token = await this.getValidToken();
         if (!token || !artistId) return null;
         try {
-            const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!artistRes.ok) return null;
-            const artist = await artistRes.json();
+            let artist = null;
+
+            // Se for ID do Spotify de 22 caracteres
+            if (typeof artistId === 'string' && /^[0-9A-Za-z]{22}$/.test(artistId)) {
+                const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (artistRes.ok) {
+                    artist = await artistRes.json();
+                }
+            }
+
+            // Se não for ID ou se a busca direta falhar, busca por nome do artista
+            if (!artist) {
+                const searchArtistRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistId)}&type=artist&limit=1`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (searchArtistRes.ok) {
+                    const searchData = await searchArtistRes.json();
+                    artist = searchData.artists?.items?.[0] || null;
+                }
+            }
+
+            if (!artist) return null;
 
             let topTracks = [];
             try {
