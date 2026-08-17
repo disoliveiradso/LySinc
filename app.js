@@ -3810,7 +3810,7 @@ class LySincApp {
             const lineEl = document.createElement('div');
             lineEl.id = `line-${line.id}`;
 
-            let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2';
+            let lineClass = 'lyric-line py-1 my-0.5 md:py-1.5 md:my-1';
             if (line.isFim) lineClass += ' is-fim-line';
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
@@ -3988,20 +3988,21 @@ class LySincApp {
                 lineContainer.appendChild(bgVocal);
             }
 
-            const hasTranslation = line.translation || line.translationText;
-            const hasRomanization = line.romanized || line.romanizedText;
+            const transText = (getLineText(line, 'translation') || line.translation || line.translationText || '').trim();
+            const romText = (getLineText(line, 'romanized') || line.romanized || line.romanizedText || '').trim();
 
-            if (this.currentLyricsMode === 'translation' && hasTranslation) {
+            if (this.currentLyricsMode === 'translation' && transText && transText.length > 0) {
                 const transEl = document.createElement('div');
                 transEl.className = 'lyrics-translation-container';
-                transEl.textContent = getLineText(line, 'translation') || line.translation || line.translationText;
+                transEl.textContent = transText;
                 lineContainer.appendChild(transEl);
-            } else if (this.currentLyricsMode === 'romanized' && hasRomanization) {
+            } else if (this.currentLyricsMode === 'romanized' && romText && romText.length > 0) {
                 const romEl = document.createElement('div');
                 romEl.className = 'lyrics-romanization-container';
-                romEl.textContent = getLineText(line, 'romanized') || line.romanized || line.romanizedText;
+                romEl.textContent = romText;
                 lineContainer.appendChild(romEl);
             }
+
 
             lineEl.appendChild(lineContainer);
             this.lyricsContainer.appendChild(lineEl);
