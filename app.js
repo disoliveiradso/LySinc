@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.9.5';
-import SpotifyService from './spotify.js?v=4.9.5';
-import LyricsService from './lyrics.js?v=4.9.5';
-import MusicBrainzService from './musicbrainz.js?v=4.9.5';
-import SupabaseService from './supabase.js?v=4.9.5';
+import Config from './config.js?v=4.9.6';
+import SpotifyService from './spotify.js?v=4.9.6';
+import LyricsService from './lyrics.js?v=4.9.6';
+import MusicBrainzService from './musicbrainz.js?v=4.9.6';
+import SupabaseService from './supabase.js?v=4.9.6';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3737,36 +3737,60 @@ class LySincApp {
 
         const result = [];
 
+        const isLineInstrumental = (l) => {
+            if (!l) return false;
+            if (l.isInstrumental) return true;
+            if (l.text && l.text.length === 1 && l.text[0].text && l.text[0].text.trim().includes('♪')) return true;
+            return false;
+        };
+
         const firstLine = lines[0];
         if (firstLine.timestamp > 5000) {
-            result.push({
-                id: -1,
-                text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
-                background: false,
-                backgroundText: [],
-                timestamp: 0,
-                endtime: firstLine.timestamp - 500,
-                isWordSynced: true
-            });
+            if (isLineInstrumental(firstLine)) {
+                // Se a primeira linha já é instrumental, esticamos ela até o início
+                firstLine.timestamp = 0;
+                if (firstLine.text && firstLine.text[0]) firstLine.text[0].timestamp = 0;
+            } else {
+                result.push({
+                    id: -1,
+                    text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
+                    background: false,
+                    backgroundText: [],
+                    timestamp: 0,
+                    endtime: firstLine.timestamp - 500,
+                    isWordSynced: true,
+                    isInstrumental: true
+                });
+            }
         }
 
         for (let i = 0; i < lines.length; i++) {
             const currentLine = lines[i];
             if (i > 0) {
                 const prevLine = lines[i - 1];
-
                 const prevEndtime = prevLine.endtime || (prevLine.timestamp + 3000);
 
                 if (currentLine.timestamp - prevEndtime > 5000) {
-                    result.push({
-                        id: i - 0.5,
-                        text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
-                        background: false,
-                        backgroundText: [],
-                        timestamp: prevEndtime + 1000,
-                        endtime: currentLine.timestamp - 1500,
-                        isWordSynced: true
-                    });
+                    if (isLineInstrumental(currentLine)) {
+                        // Se a próxima linha já é instrumental, apenas estica ela pra trás
+                        currentLine.timestamp = prevEndtime + 500;
+                        if (currentLine.text && currentLine.text[0]) currentLine.text[0].timestamp = currentLine.timestamp;
+                    } else if (isLineInstrumental(prevLine)) {
+                        // Se a linha anterior é instrumental, apenas estica ela pra frente
+                        prevLine.endtime = currentLine.timestamp - 500;
+                        if (prevLine.text && prevLine.text[0]) prevLine.text[0].endtime = currentLine.timestamp - 1500;
+                    } else {
+                        result.push({
+                            id: i - 0.5,
+                            text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
+                            background: false,
+                            backgroundText: [],
+                            timestamp: prevEndtime + 1000,
+                            endtime: currentLine.timestamp - 1500,
+                            isWordSynced: true,
+                            isInstrumental: true
+                        });
+                    }
                 }
             }
             result.push(currentLine);
@@ -3778,16 +3802,16 @@ class LySincApp {
             if (this.durationMs - lastEndtime > 5000) {
                 const alignRight = lastLine ? (lastLine.oppositeTurn || lastLine.alignment === 'end') : false;
                 result.push({
-                    id: lines.length + 0.5,
-                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs + 3600000 }],
+                    id: 'fim',
+                    text: [{ text: 'Fim', timestamp: lastEndtime + 500, endtime: this.durationMs }],
                     background: false,
                     backgroundText: [],
                     timestamp: lastEndtime + 500,
-                    endtime: this.durationMs + 3600000,
+                    endtime: this.durationMs,
                     isWordSynced: true,
                     isFim: true,
-                    alignment: alignRight ? 'end' : 'start',
-                    oppositeTurn: alignRight
+                    oppositeTurn: alignRight,
+                    alignment: alignRight ? 'end' : 'start'
                 });
             }
         }
@@ -3879,7 +3903,10 @@ class LySincApp {
             lineEl.id = `line-${line.id}`;
 
             let lineClass = 'lyric-line max-md:py-1.5 max-md:my-1 md:py-3 md:my-2';
-            if (line.isFim) lineClass += ' is-fim-line';
+            if (line.isFim) {
+                lineClass += ' is-fim-line notranslate';
+                lineEl.setAttribute('translate', 'no');
+            }
             if (this.activeLineId === line.id) {
                 lineClass += ' active';
             } else {
@@ -4267,7 +4294,11 @@ class LySincApp {
     updateLyricsSync(currentProgressMs) {
         if (this.lyrics.length === 0) return;
 
-        const activeLines = this.lyrics.filter(line => currentProgressMs >= line.timestamp && currentProgressMs < line.endtime);
+        const activeLines = this.lyrics.filter(line => {
+            if (line.isFim && currentProgressMs >= line.timestamp) return true;
+            return currentProgressMs >= line.timestamp && currentProgressMs < line.endtime;
+        });
+        
         const activeLineIds = new Set(activeLines.map(l => l.id));
 
         let minActiveId = Infinity;
@@ -4515,7 +4546,8 @@ class LySincApp {
         if (!token) return;
 
         try {
-            const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${timeMs}`, {
+            const positionMs = Math.round(timeMs);
+            const response = await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${positionMs}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -4991,16 +5023,6 @@ class LySincApp {
         </div>
 
         <div class="flex flex-col space-y-2">
-            <p class="details-section-header">Popularidade</p>
-            <div class="flex items-center gap-3">
-                <div class="details-popularity-bar flex-1">
-                    <div class="details-popularity-fill" style="width:${popPct}%" data-pop="${popPct}"></div>
-                </div>
-                <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
-            </div>
-        </div>
-
-        <div class="flex flex-col space-y-2">
             <p class="details-section-header">Artistas</p>
             <div class="details-meta-pills">
                 ${(track.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">
@@ -5076,16 +5098,6 @@ class LySincApp {
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
 
         <div class="flex flex-col space-y-2">
-            <p class="details-section-header">Popularidade</p>
-            <div class="flex items-center gap-3">
-                <div class="details-popularity-bar flex-1">
-                    <div class="details-popularity-fill" style="width:${popPct}%" data-pop="${popPct}"></div>
-                </div>
-                <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
-            </div>
-        </div>
-
-        <div class="flex flex-col space-y-2">
             <p class="details-section-header">Artistas</p>
             <div class="details-meta-pills">
                 ${(album.artists || []).map(a => `<span class="details-meta-pill cursor-pointer hover:bg-white/10 transition-colors" onclick="window.app.openSpotifyDetails('artist','${a.id}')">
@@ -5141,16 +5153,6 @@ class LySincApp {
         </div>
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
-
-        <div class="flex flex-col space-y-2">
-            <p class="details-section-header">Popularidade</p>
-            <div class="flex items-center gap-3">
-                <div class="details-popularity-bar flex-1">
-                    <div class="details-popularity-fill" style="width:${popPct}%" data-pop="${popPct}"></div>
-                </div>
-                <span class="text-xs text-white/60 font-mono w-8 text-right">${popPct}%</span>
-            </div>
-        </div>
 
         ${topTracksHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Top Faixas</p><div class="flex flex-col gap-1.5">${topTracksHtml}</div></div>` : ''}
         `;

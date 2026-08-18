@@ -222,8 +222,7 @@ class GoogleService {
 }
 
 const KPOE_SERVERS = [
-  'https://lyricsplus.binimum.org',
-  'https://lyricsplus.prjktla.my.id'
+  'https://lyricsplus.binimum.org'
 ];
 const UNISON_BASE_URL = 'https://unison.boidu.dev';
 const FETCH_TIMEOUT_MS = 8000;
