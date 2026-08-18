@@ -426,26 +426,38 @@ const SpotifyService = {
         }
     },
 
+    // Auxiliar: Sanitiza e extrai ID limpo do Spotify
+    _cleanId(id) {
+        if (!id || typeof id !== 'string') return '';
+        return id.replace(/^spotify:(track|album|artist):/, '').trim();
+    },
+
     // Busca dados completos de uma faixa pelo ID ou Nome
     async getTrack(trackId) {
         const token = await this.getValidToken();
         if (!token || !trackId) return null;
+        const cleanId = this._cleanId(trackId);
+
         try {
             let data = null;
-            if (typeof trackId === 'string' && /^[0-9A-Za-z]{22}$/.test(trackId)) {
-                const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) data = await response.json();
+            if (cleanId) {
+                try {
+                    const response = await fetch(`https://api.spotify.com/v1/tracks/${cleanId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) data = await response.json();
+                } catch (e) { }
             }
             if (!data) {
-                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(trackId)}&type=track&limit=1`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (searchRes.ok) {
-                    const searchData = await searchRes.json();
-                    data = searchData.tracks?.items?.[0] || null;
-                }
+                try {
+                    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(trackId)}&type=track&limit=1`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (searchRes.ok) {
+                        const searchData = await searchRes.json();
+                        data = searchData.tracks?.items?.[0] || null;
+                    }
+                } catch (e) { }
             }
             if (!data) return null;
             return {
@@ -462,7 +474,7 @@ const SpotifyService = {
                 },
                 durationMs: data.duration_ms,
                 explicit: data.explicit,
-                popularity: data.popularity !== undefined ? data.popularity : 0,
+                popularity: data.popularity !== undefined ? Number(data.popularity) : 0,
                 isrc: data.external_ids?.isrc,
                 previewUrl: data.preview_url,
                 externalUrl: data.external_urls?.spotify
@@ -476,22 +488,28 @@ const SpotifyService = {
     async getAlbum(albumId) {
         const token = await this.getValidToken();
         if (!token || !albumId) return null;
+        const cleanId = this._cleanId(albumId);
+
         try {
             let data = null;
-            if (typeof albumId === 'string' && /^[0-9A-Za-z]{22}$/.test(albumId)) {
-                const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) data = await response.json();
+            if (cleanId) {
+                try {
+                    const response = await fetch(`https://api.spotify.com/v1/albums/${cleanId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) data = await response.json();
+                } catch (e) { }
             }
             if (!data) {
-                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(albumId)}&type=album&limit=1`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (searchRes.ok) {
-                    const searchData = await searchRes.json();
-                    data = searchData.albums?.items?.[0] || null;
-                }
+                try {
+                    const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(albumId)}&type=album&limit=1`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (searchRes.ok) {
+                        const searchData = await searchRes.json();
+                        data = searchData.albums?.items?.[0] || null;
+                    }
+                } catch (e) { }
             }
             if (!data) return null;
             return {
@@ -502,7 +520,7 @@ const SpotifyService = {
                 totalTracks: data.total_tracks,
                 type: data.album_type,
                 label: data.label,
-                popularity: data.popularity !== undefined ? data.popularity : 0,
+                popularity: data.popularity !== undefined ? Number(data.popularity) : 0,
                 copyrights: data.copyrights || [],
                 genres: data.genres || [],
                 images: data.images || [],
@@ -525,28 +543,34 @@ const SpotifyService = {
     async getArtist(artistId) {
         const token = await this.getValidToken();
         if (!token || !artistId) return null;
+        const cleanId = this._cleanId(artistId);
+
         try {
             let artist = null;
 
-            // Se for ID do Spotify de 22 caracteres
-            if (typeof artistId === 'string' && /^[0-9A-Za-z]{22}$/.test(artistId)) {
-                const artistRes = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (artistRes.ok) {
-                    artist = await artistRes.json();
-                }
+            // 1. Tenta buscar diretamente pelo ID do Spotify
+            if (cleanId) {
+                try {
+                    const artistRes = await fetch(`https://api.spotify.com/v1/artists/${cleanId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (artistRes.ok) {
+                        artist = await artistRes.json();
+                    }
+                } catch (e) { }
             }
 
-            // Se não for ID ou se a busca direta falhar, busca por nome do artista
+            // 2. Se a busca por ID falhar, tenta via Search API
             if (!artist) {
-                const searchArtistRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistId)}&type=artist&limit=1`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (searchArtistRes.ok) {
-                    const searchData = await searchArtistRes.json();
-                    artist = searchData.artists?.items?.[0] || null;
-                }
+                try {
+                    const searchArtistRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistId)}&type=artist&limit=1`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (searchArtistRes.ok) {
+                        const searchData = await searchArtistRes.json();
+                        artist = searchData.artists?.items?.[0] || null;
+                    }
+                } catch (e) { }
             }
 
             if (!artist) return null;
@@ -562,12 +586,18 @@ const SpotifyService = {
                 }
             } catch (e) { }
 
+            const followersCount = (artist.followers && typeof artist.followers === 'object' && artist.followers.total !== undefined)
+                ? artist.followers.total
+                : (typeof artist.followers === 'number' ? artist.followers : 0);
+
+            const popularityVal = artist.popularity !== undefined ? Number(artist.popularity) : 0;
+
             return {
                 id: artist.id,
                 name: artist.name,
                 genres: artist.genres || [],
-                followers: (artist.followers && typeof artist.followers === 'object') ? (artist.followers.total ?? 0) : (artist.followers ?? 0),
-                popularity: artist.popularity !== undefined ? artist.popularity : 0,
+                followers: followersCount,
+                popularity: popularityVal,
                 images: artist.images || [],
                 externalUrl: artist.external_urls?.spotify,
                 topTracks: topTracks.map(t => ({
