@@ -588,13 +588,18 @@ const SpotifyService = {
                 } catch (e) { }
             }
 
-            if (!artist) return null;
+            // Se ainda não tiver artista (API oficial bloqueada com 429, etc), cria um objeto básico para tentar via Pathfinder
+            if (!artist && cleanId) {
+                artist = { id: cleanId, name: 'Carregando...', followers: { total: 0 }, popularity: 0 };
+            } else if (!artist) {
+                return null;
+            }
 
             // 3. Fallback de Segurança: Se a API retornou o artista mas omitiu seguidores/popularidade (anomalia de token), busca pelo nome pra preencher
             let followersCount = artist.followers?.total !== undefined ? Number(artist.followers.total) : (Number(artist.followers) || 0);
             let popularityVal = artist.popularity !== undefined ? Number(artist.popularity) : 0;
 
-            if ((followersCount === 0 || popularityVal === 0) && artist.name) {
+            if ((followersCount === 0 || popularityVal === 0) && artist.name && artist.name !== 'Carregando...') {
                 try {
                     const fallbackRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent('"' + artist.name + '"')}&type=artist&limit=1`, {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -617,6 +622,9 @@ const SpotifyService = {
             if (isNaN(followersCount)) followersCount = 0;
             if (isNaN(popularityVal)) popularityVal = 0;
 
+            let topTracks = [];
+            let albums = [];
+
             const SPOTIFY_PROXY = 'https://lysinc.disoliveira-dso.workers.dev/spotify/pathfinder/';
             try {
                 const operationName = 'queryArtistOverview';
@@ -634,19 +642,31 @@ const SpotifyService = {
                 if (pfRes.ok) {
                     const pfData = await pfRes.json();
                     const overview = pfData.data?.artistUnion;
-                    if (overview) {
+                    if (overview && overview.profile) {
+                        if (artist.name === 'Carregando...') {
+                            artist.name = overview.profile.name || artist.name;
+                        }
                         artist.biography = overview.profile?.biography?.text || '';
                         artist.worldRank = overview.stats?.worldRank || 0;
                         artist.monthlyListeners = overview.stats?.monthlyListeners || 0;
 
-                        // Traduzir a biografia se existir
-                        if (artist.biography) {
+                        if (overview.visuals?.avatarImage?.sources?.length > 0) {
+                            if (!artist.images || artist.images.length === 0) {
+                                artist.images = [{ url: overview.visuals.avatarImage.sources[0].url }];
+                            }
+                        }
+
+                        if (artist.biography && !artist.biography.includes('Tradução') && /[a-zA-Z]/.test(artist.biography)) {
                             try {
-                                const trUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=pt&dt=t&q=${encodeURIComponent(artist.biography)}`;
-                                const trRes = await fetch(trUrl);
+                                const trRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=pt&dt=t&q=${encodeURIComponent(artist.biography)}`);
                                 if (trRes.ok) {
                                     const trData = await trRes.json();
-                                    const translatedText = trData[0].map(item => item[0]).join('');
+                                    let translatedText = '';
+                                    if (trData && trData[0]) {
+                                        trData[0].forEach(part => {
+                                            if (part[0]) translatedText += part[0];
+                                        });
+                                    }
                                     if (translatedText) artist.biography = translatedText;
                                 }
                             } catch (e) { }
@@ -664,13 +684,12 @@ const SpotifyService = {
                                     return {
                                         id: id,
                                         name: t.name || '',
-                                        albumArt: '', // Será preenchido via API oficial
+                                        albumArt: '', 
                                         durationMs: t.duration?.totalMilliseconds || 0,
                                         explicit: t.contentRating?.label === 'EXPLICIT'
                                     };
                                 }).slice(0, 10);
 
-                                // Enriquecer com API oficial para pegar capas e durações completas
                                 if (trackIds.length > 0) {
                                     try {
                                         const idsParam = trackIds.slice(0, 10).join(',');
@@ -714,9 +733,25 @@ const SpotifyService = {
                 }
             } catch (e) { }
 
+            // Último recurso: MusicBrainz para pegar pelo menos o nome, caso Pathfinder falhe ou não retorne nome
+            if (artist.name === 'Carregando...') {
+                try {
+                    const mbRes = await fetch(`https://musicbrainz.org/ws/2/artist/?query=${artist.id}&fmt=json`, {
+                        headers: { 'User-Agent': 'LySinc/1.0' }
+                    });
+                    if (mbRes.ok) {
+                        const mbData = await mbRes.json();
+                        const mbArtist = mbData.artists?.[0];
+                        if (mbArtist) {
+                            artist.name = mbArtist.name;
+                        }
+                    }
+                } catch (e) { }
+            }
+
             return {
                 id: artist.id,
-                name: artist.name,
+                name: artist.name !== 'Carregando...' ? artist.name : 'Artista Desconhecido',
                 followers: followersCount,
                 popularity: popularityVal,
                 genres: artist.genres || [],
