@@ -469,7 +469,7 @@ class LySincApp {
 
     async init() {
         try {
-            console.log("%c LySinc v2.0 - Sincronização & Supabase Ativos ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
+            console.log("%c LySinc v4.9.8 - Sincronização & Supabase Ativos ", "background: #10b981; color: #000; font-weight: bold; padding: 4px; border-radius: 4px;");
 
             // Checkbox de termos: só manter marcado se client_id estiver salvo
             const savedClientId = Config.getClientId();

@@ -42,20 +42,6 @@ const MusicBrainzService = {
                 }
             }
 
-            // 3. Fallback direto à API oficial do MusicBrainz caso a proxy falhe
-            if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
-                const directQuery = isrc ? `isrc:${isrc}` : `recording:"${cleanTrack || trackName}" AND artist:"${cleanArtist || artistName}"`;
-                try {
-                    const mbUrl = `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(directQuery)}&fmt=json`;
-                    const res = await fetch(mbUrl, {
-                        headers: { 'User-Agent': 'LySinc/4.6.0 ( https://github.com/disoliveiradso/LySinc )' }
-                    });
-                    if (res.ok) {
-                        searchData = await res.json();
-                    }
-                } catch (e) {}
-            }
-
             if (!searchData || !searchData.recordings || searchData.recordings.length === 0) {
                 return null;
             }
