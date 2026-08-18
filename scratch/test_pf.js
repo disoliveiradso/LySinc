@@ -1,3 +1,4 @@
+const fs = require('fs');
 async function run() {
     const embedRes = await fetch('https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC', { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' } });
     const html = await embedRes.text();
@@ -11,14 +12,7 @@ async function run() {
         headers: { Authorization: token, 'App-Platform': 'WebPlayer' }
     });
     const data = await pfRes.json();
-    console.log('Keys of artistUnion:', Object.keys(data.data.artistUnion));
-    if (data.data.artistUnion.discography) {
-        console.log('Top Tracks:', data.data.artistUnion.discography.topTracks?.items?.length);
-        console.log('Albums:', data.data.artistUnion.discography.albums?.items?.length);
-        console.log('Singles:', data.data.artistUnion.discography.singles?.items?.length);
-        
-        console.log('Top Track 1:', data.data.artistUnion.discography.topTracks.items[0].track.name, 'Duration:', data.data.artistUnion.discography.topTracks.items[0].track.duration.totalMilliseconds, 'Explicit:', data.data.artistUnion.discography.topTracks.items[0].track.contentRating.label);
-        console.log('Album 1:', data.data.artistUnion.discography.albums.items[0].releases.items[0].name, 'Year:', data.data.artistUnion.discography.albums.items[0].releases.items[0].date.year);
-    }
+    fs.writeFileSync('scratch/pf_output.json', JSON.stringify(data.data.artistUnion.discography.topTracks.items[0], null, 2));
+    console.log('Done');
 }
 run();

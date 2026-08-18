@@ -491,7 +491,7 @@ const SpotifyService = {
                         const albumData = await albumRes.json();
                         result.copyrights = albumData.copyrights || [];
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
             return result;
         } catch (e) {
@@ -617,16 +617,13 @@ const SpotifyService = {
             if (isNaN(followersCount)) followersCount = 0;
             if (isNaN(popularityVal)) popularityVal = 0;
 
-            let topTracks = [];
-            let albums = [];
-
             const SPOTIFY_PROXY = 'https://lysinc.disoliveira-dso.workers.dev/spotify/pathfinder/';
             try {
                 const operationName = 'queryArtistOverview';
                 const sha256Hash = 'ae0e2958a4ab645b35ca19ac04d0495ae12d9c5d7b7286217674801a9aab281a';
                 const variables = JSON.stringify({ "uri": `spotify:artist:${artist.id}`, "locale": "", "includePrerelease": false });
                 const extensions = JSON.stringify({ "persistedQuery": { "version": 1, "sha256Hash": sha256Hash } });
-                
+
                 const params = new URLSearchParams({
                     operationName: operationName,
                     variables: variables,
@@ -641,7 +638,7 @@ const SpotifyService = {
                         artist.biography = overview.profile?.biography?.text || '';
                         artist.worldRank = overview.stats?.worldRank || 0;
                         artist.monthlyListeners = overview.stats?.monthlyListeners || 0;
-                        
+
                         // Traduzir a biografia se existir
                         if (artist.biography) {
                             try {
@@ -652,24 +649,47 @@ const SpotifyService = {
                                     const translatedText = trData[0].map(item => item[0]).join('');
                                     if (translatedText) artist.biography = translatedText;
                                 }
-                            } catch (e) {}
+                            } catch (e) { }
                         }
 
                         if (overview.discography) {
                             const disco = overview.discography;
-                            
+
                             if (disco.topTracks && disco.topTracks.items) {
+                                const trackIds = [];
                                 topTracks = disco.topTracks.items.map(item => {
                                     const t = item.track || {};
-                                    const images = t.albumOfTrack?.coverArt?.sources || [];
+                                    const id = t.id || t.uri?.split(':').pop();
+                                    if (id) trackIds.push(id);
                                     return {
-                                        id: t.id || t.uri?.split(':').pop(),
+                                        id: id,
                                         name: t.name || '',
-                                        albumArt: images[0]?.url || images[1]?.url || images[2]?.url || '',
+                                        albumArt: '', // Será preenchido via API oficial
                                         durationMs: t.duration?.totalMilliseconds || 0,
                                         explicit: t.contentRating?.label === 'EXPLICIT'
                                     };
                                 }).slice(0, 10);
+
+                                // Enriquecer com API oficial para pegar capas e durações completas
+                                if (trackIds.length > 0) {
+                                    try {
+                                        const idsParam = trackIds.slice(0, 10).join(',');
+                                        const enrichRes = await fetch(`https://api.spotify.com/v1/tracks?ids=${idsParam}`, {
+                                            headers: { 'Authorization': `Bearer ${token}` }
+                                        });
+                                        if (enrichRes.ok) {
+                                            const enrichData = await enrichRes.json();
+                                            enrichData.tracks.forEach((fullTrack, idx) => {
+                                                if (fullTrack && topTracks[idx]) {
+                                                    topTracks[idx].albumArt = fullTrack.album?.images?.[0]?.url || fullTrack.album?.images?.[1]?.url || '';
+                                                    if (!topTracks[idx].durationMs) {
+                                                        topTracks[idx].durationMs = fullTrack.duration_ms || 0;
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } catch (e) {}
+                                }
                             }
 
                             const parseReleases = (nodeList, type) => {
@@ -692,7 +712,7 @@ const SpotifyService = {
                         }
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
 
             return {
                 id: artist.id,
@@ -702,13 +722,7 @@ const SpotifyService = {
                 genres: artist.genres || [],
                 images: artist.images || [],
                 externalUrl: artist.external_urls?.spotify || '',
-                topTracks: topTracks.map(t => ({
-                    id: t.id,
-                    name: t.name,
-                    albumArt: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url,
-                    durationMs: t.duration_ms,
-                    explicit: t.explicit
-                })),
+                topTracks: topTracks,
                 albums: albums,
                 biography: artist.biography || '',
                 worldRank: artist.worldRank || 0,
