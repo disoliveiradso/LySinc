@@ -5150,10 +5150,10 @@ class LySincApp {
                 <span class="details-hero-type">Artista</span>
                 <h1 class="details-hero-title">${this._esc(artist.name)}</h1>
                 <div class="details-hero-meta">
-                    <span class="inline-flex items-center gap-1.5 text-white/80">
+                    ${artist.followers > 0 ? `<span class="inline-flex items-center gap-1.5 text-white/80">
                         <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         ${followers} seguidores
-                    </span>
+                    </span>` : ''}
                 </div>
                 <a class="details-open-btn" href="${artist.externalUrl || '#'}" target="_blank" rel="noopener">
                     <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
