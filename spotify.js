@@ -617,6 +617,9 @@ const SpotifyService = {
             if (isNaN(followersCount)) followersCount = 0;
             if (isNaN(popularityVal)) popularityVal = 0;
 
+            let topTracks = [];
+            let albums = [];
+
             const SPOTIFY_PROXY = 'https://lysinc.disoliveira-dso.workers.dev/spotify/pathfinder/';
             try {
                 const operationName = 'queryArtistOverview';
@@ -651,45 +654,45 @@ const SpotifyService = {
                                 }
                             } catch (e) {}
                         }
-                    }
-                }
-            } catch(e) {}
 
-            let topTracks = [];
-            try {
-                const searchRes = await fetch(`https://api.spotify.com/v1/artists/${artist.id}/top-tracks?market=BR`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (searchRes.ok) {
-                    const data = await searchRes.json();
-                    topTracks = (data.tracks || []).slice(0, 10);
-                }
-            } catch (e) { }
+                        if (overview.discography) {
+                            const disco = overview.discography;
+                            
+                            if (disco.topTracks && disco.topTracks.items) {
+                                topTracks = disco.topTracks.items.map(item => {
+                                    const t = item.track || {};
+                                    const images = t.albumOfTrack?.coverArt?.sources || [];
+                                    return {
+                                        id: t.id || t.uri?.split(':').pop(),
+                                        name: t.name || '',
+                                        albumArt: images[0]?.url || images[1]?.url || images[2]?.url || '',
+                                        durationMs: t.duration?.totalMilliseconds || 0,
+                                        explicit: t.contentRating?.label === 'EXPLICIT'
+                                    };
+                                }).slice(0, 10);
+                            }
 
-            let albums = [];
-            try {
-                const albumsRes = await fetch(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=50&market=BR`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (albumsRes.ok) {
-                    const data = await albumsRes.json();
-                    // Remover duplicatas de álbuns pelo nome
-                    const seen = new Set();
-                    for (const item of (data.items || [])) {
-                        const nameLower = item.name.toLowerCase();
-                        if (!seen.has(nameLower)) {
-                            seen.add(nameLower);
-                            albums.push({
-                                id: item.id,
-                                name: item.name,
-                                type: item.album_group, // 'album' ou 'single'
-                                releaseDate: item.release_date,
-                                art: item.images?.[1]?.url || item.images?.[0]?.url
-                            });
+                            const parseReleases = (nodeList, type) => {
+                                if (!nodeList || !nodeList.items) return [];
+                                return nodeList.items.map(group => {
+                                    const rel = group.releases?.items?.[0];
+                                    if (!rel) return null;
+                                    const images = rel.coverArt?.sources || [];
+                                    return {
+                                        id: rel.id || rel.uri?.split(':').pop(),
+                                        name: rel.name || '',
+                                        art: images[0]?.url || images[1]?.url || images[2]?.url || '',
+                                        releaseDate: rel.date?.year ? rel.date.year.toString() : '',
+                                        type: type
+                                    };
+                                }).filter(Boolean);
+                            };
+
+                            albums = [...parseReleases(disco.albums, 'album'), ...parseReleases(disco.singles, 'single')];
                         }
                     }
                 }
-            } catch (e) { }
+            } catch(e) {}
 
             return {
                 id: artist.id,
