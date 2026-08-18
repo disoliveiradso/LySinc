@@ -4975,6 +4975,18 @@ class LySincApp {
             `<span class="hover:underline cursor-pointer transition-colors hover:text-white" onclick="event.stopPropagation(); window.app.openSpotifyDetails('artist','${a.id}')">${this._esc(a.name)}</span>`
         ).join(', ');
 
+        const copyHtml = (track.copyrights || [])
+            .filter((c, i, arr) => arr.findIndex(x => x.text === c.text) === i)
+            .map(c => {
+                let txt = c.text;
+                txt = txt.replace(/^\([Cc]\)\s*/, '© ');
+                txt = txt.replace(/^\([Pp]\)\s*/, '℗ ');
+                if (c.type === 'C' && !txt.startsWith('©')) txt = '© ' + txt;
+                if (c.type === 'P' && !txt.startsWith('℗')) txt = '℗ ' + txt;
+                return `<span class="text-[11px] text-white/30">${this._esc(txt)}</span>`;
+            })
+            .join('');
+
         return `
         <div class="details-hero">
             <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
@@ -5049,6 +5061,8 @@ class LySincApp {
                 ${this._esc(track.album.name)}
             </div>
         </div>` : ''}
+
+        ${copyHtml ? `<div class="flex flex-col gap-1 pt-2">${copyHtml}</div>` : ''}
         `;
     }
 
@@ -5081,7 +5095,14 @@ class LySincApp {
 
         const copyHtml = (album.copyrights || [])
             .filter((c, i, arr) => arr.findIndex(x => x.text === c.text) === i)
-            .map(c => `<span class="text-[11px] text-white/30">${this._esc(c.text)}</span>`)
+            .map(c => {
+                let txt = c.text;
+                txt = txt.replace(/^\([Cc]\)\s*/, '© ');
+                txt = txt.replace(/^\([Pp]\)\s*/, '℗ ');
+                if (c.type === 'C' && !txt.startsWith('©')) txt = '© ' + txt;
+                if (c.type === 'P' && !txt.startsWith('℗')) txt = '℗ ' + txt;
+                return `<span class="text-[11px] text-white/30">${this._esc(txt)}</span>`;
+            })
             .join('');
 
         return `

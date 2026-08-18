@@ -460,7 +460,7 @@ const SpotifyService = {
                 } catch (e) { }
             }
             if (!data) return null;
-            return {
+            const result = {
                 id: data.id,
                 name: data.name,
                 artists: data.artists?.map(a => ({ id: a.id, name: a.name })) || [],
@@ -477,8 +477,23 @@ const SpotifyService = {
                 popularity: data.popularity !== undefined ? Number(data.popularity) : 0,
                 isrc: data.external_ids?.isrc,
                 previewUrl: data.preview_url,
-                externalUrl: data.external_urls?.spotify
+                externalUrl: data.external_urls?.spotify,
+                copyrights: []
             };
+
+            // Tenta buscar o album completo para obter os copyrights
+            if (data.album?.id) {
+                try {
+                    const albumRes = await fetch(`https://api.spotify.com/v1/albums/${data.album.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (albumRes.ok) {
+                        const albumData = await albumRes.json();
+                        result.copyrights = albumData.copyrights || [];
+                    }
+                } catch (e) {}
+            }
+            return result;
         } catch (e) {
             return null;
         }
