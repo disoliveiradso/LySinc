@@ -619,12 +619,37 @@ const SpotifyService = {
 
             let topTracks = [];
             try {
-                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(artist.name)}&type=track&limit=5`, {
+                const searchRes = await fetch(`https://api.spotify.com/v1/artists/${artist.id}/top-tracks?market=BR`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (searchRes.ok) {
                     const data = await searchRes.json();
-                    topTracks = (data.tracks?.items || []).slice(0, 5);
+                    topTracks = (data.tracks || []).slice(0, 5);
+                }
+            } catch (e) { }
+
+            let albums = [];
+            try {
+                const albumsRes = await fetch(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album,single&limit=50&market=BR`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (albumsRes.ok) {
+                    const data = await albumsRes.json();
+                    // Remover duplicatas de álbuns pelo nome
+                    const seen = new Set();
+                    for (const item of (data.items || [])) {
+                        const nameLower = item.name.toLowerCase();
+                        if (!seen.has(nameLower)) {
+                            seen.add(nameLower);
+                            albums.push({
+                                id: item.id,
+                                name: item.name,
+                                type: item.album_group, // 'album' ou 'single'
+                                releaseDate: item.release_date,
+                                art: item.images?.[1]?.url || item.images?.[0]?.url
+                            });
+                        }
+                    }
                 }
             } catch (e) { }
 
@@ -642,7 +667,8 @@ const SpotifyService = {
                     albumArt: t.album?.images?.[2]?.url || t.album?.images?.[0]?.url,
                     durationMs: t.duration_ms,
                     explicit: t.explicit
-                }))
+                })),
+                albums: albums
             };
         } catch (e) {
             return null;

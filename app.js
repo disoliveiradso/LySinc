@@ -5163,6 +5163,18 @@ class LySincApp {
                 <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
             </div>`).join('');
 
+        const renderAlbumItem = (a) => `
+            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/10" onclick="window.app.openSpotifyDetails('album','${a.id}')">
+                ${a.art ? `<img class="w-12 h-12 rounded bg-white/5 object-cover shadow-md" src="${a.art}" alt="Capa">` : `<div class="w-12 h-12 bg-white/5 rounded shadow-md flex items-center justify-center text-white/20"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div>`}
+                <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-sm font-semibold text-white truncate">${this._esc(a.name)}</span>
+                    <span class="text-[11px] text-white/40 font-medium">${a.releaseDate ? a.releaseDate.substring(0, 4) : ''}</span>
+                </div>
+            </div>`;
+
+        const albumsHtml = (artist.albums || []).filter(a => a.type === 'album').slice(0, 8).map(renderAlbumItem).join('');
+        const singlesHtml = (artist.albums || []).filter(a => a.type === 'single').slice(0, 8).map(renderAlbumItem).join('');
+
         return `
         <div class="details-hero">
             <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
@@ -5185,7 +5197,11 @@ class LySincApp {
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
 
-        ${topTracksHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Top Faixas</p><div class="flex flex-col gap-1.5">${topTracksHtml}</div></div>` : ''}
+        ${topTracksHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Músicas Populares</p><div class="flex flex-col gap-1.5">${topTracksHtml}</div></div>` : ''}
+        
+        ${albumsHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Álbuns</p><div class="flex flex-col gap-1">${albumsHtml}</div></div>` : ''}
+        
+        ${singlesHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Singles e EPs</p><div class="flex flex-col gap-1">${singlesHtml}</div></div>` : ''}
         `;
     }
 
