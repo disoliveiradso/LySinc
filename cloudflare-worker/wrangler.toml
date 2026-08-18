@@ -1,0 +1,6 @@
+name = "lysinc"
+main = "src/index.js"
+compatibility_date = "2023-10-02"
+
+[observability]
+enabled = true

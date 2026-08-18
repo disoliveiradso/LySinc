@@ -4,7 +4,7 @@
  */
 
 const MusicBrainzService = {
-    PROXY_URL: 'https://lysinc-musicbrainz.disoliveira-dso.workers.dev',
+    PROXY_URL: 'https://lysinc.disoliveira-dso.workers.dev/musicbrainz',
     cache: new Map(),
 
     async getTrackMetadata(isrc, trackName, artistName) {

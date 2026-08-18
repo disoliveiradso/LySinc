@@ -617,6 +617,31 @@ const SpotifyService = {
             if (isNaN(followersCount)) followersCount = 0;
             if (isNaN(popularityVal)) popularityVal = 0;
 
+            const SPOTIFY_PROXY = 'https://lysinc.disoliveira-dso.workers.dev/spotify/pathfinder/';
+            try {
+                const operationName = 'queryArtistOverview';
+                const sha256Hash = 'ae0e2958a4ab645b35ca19ac04d0495ae12d9c5d7b7286217674801a9aab281a';
+                const variables = JSON.stringify({ "uri": `spotify:artist:${artist.id}`, "locale": "", "includePrerelease": false });
+                const extensions = JSON.stringify({ "persistedQuery": { "version": 1, "sha256Hash": sha256Hash } });
+                
+                const params = new URLSearchParams({
+                    operationName: operationName,
+                    variables: variables,
+                    extensions: extensions
+                });
+
+                const pfRes = await fetch(`${SPOTIFY_PROXY}?${params.toString()}`);
+                if (pfRes.ok) {
+                    const pfData = await pfRes.json();
+                    const overview = pfData.data?.artistUnion;
+                    if (overview) {
+                        artist.biography = overview.profile?.biography?.text || '';
+                        artist.worldRank = overview.stats?.worldRank || 0;
+                        artist.monthlyListeners = overview.stats?.monthlyListeners || 0;
+                    }
+                }
+            } catch(e) {}
+
             let topTracks = [];
             try {
                 const searchRes = await fetch(`https://api.spotify.com/v1/artists/${artist.id}/top-tracks?market=BR`, {
@@ -656,11 +681,11 @@ const SpotifyService = {
             return {
                 id: artist.id,
                 name: artist.name,
-                genres: artist.genres || [],
                 followers: followersCount,
                 popularity: popularityVal,
+                genres: artist.genres || [],
                 images: artist.images || [],
-                externalUrl: artist.external_urls?.spotify,
+                externalUrl: artist.external_urls?.spotify || '',
                 topTracks: topTracks.map(t => ({
                     id: t.id,
                     name: t.name,
@@ -668,7 +693,10 @@ const SpotifyService = {
                     durationMs: t.duration_ms,
                     explicit: t.explicit
                 })),
-                albums: albums
+                albums: albums,
+                biography: artist.biography || '',
+                worldRank: artist.worldRank || 0,
+                monthlyListeners: artist.monthlyListeners || 0
             };
         } catch (e) {
             return null;
