@@ -215,13 +215,36 @@ const SpotifyService = {
         return true;
     },
 
-    // Obtém o token de acesso atual de forma segura
+    async getClientCredentialsToken() {
+        const cached = sessionStorage.getItem('lysinc_anon_spotify_token');
+        const expires = sessionStorage.getItem('lysinc_anon_spotify_expires');
+        if (cached && expires && Date.now() < Number(expires) - 60000) {
+            return cached;
+        }
+
+        try {
+            const res = await fetch('https://lysinc-musicbrainz.disoliveira-dso.workers.dev/spotify-token');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.access_token) {
+                    sessionStorage.setItem('lysinc_anon_spotify_token', data.access_token);
+                    sessionStorage.setItem('lysinc_anon_spotify_expires', (Date.now() + (data.expires_in || 3600) * 1000).toString());
+                    return data.access_token;
+                }
+            }
+        } catch (e) { }
+
+        return null;
+    },
+
+    // Obtém o token de acesso atual de forma segura (com fallback para dados públicos)
     async getValidToken() {
         const authenticated = await this.isAuthenticated();
-        if (!authenticated) {
-            return null;
+        if (authenticated) {
+            const token = localStorage.getItem(this.ACCESS_TOKEN_KEY);
+            if (token) return token;
         }
-        return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+        return await this.getClientCredentialsToken();
     },
 
     // Consulta o estado do player de reprodução atual no Spotify
@@ -260,15 +283,7 @@ const SpotifyService = {
                     }
                 } catch (e) { }
 
-                let finalMsg = '';
-                if (this.currentUserProfile && this.currentUserProfile.product !== 'premium') {
-                    finalMsg = 'Sua conta do Spotify é Gratuita (Free). O Spotify exige uma assinatura Premium para que o LySinc acesse a reprodução atual.';
-                } else if (Config.getClientId() !== Config.getSystemClientId()) {
-                    finalMsg = 'Você não adicionou o seu e-mail do Spotify na aba "User Management" do seu Client ID no painel de desenvolvedor. Isso é obrigatório para contas Premium.';
-                } else {
-                    finalMsg = 'Sua conta não tem autorização ou o Client ID está em Development Mode e você não está na lista branca.';
-                }
-
+                const finalMsg = errorMsg || 'Acesso negado. Certifique-se de que a conta do Spotify aberta no navegador seja a mesma cadastrada no painel de desenvolvedor do Spotify.';
                 console.warn('[LySinc] Spotify API 403 Forbidden:', finalMsg);
                 return { isForbidden: true, errorReason: finalMsg };
             }
@@ -360,7 +375,21 @@ const SpotifyService = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
         } catch (error) {
-            console.error('Erro ao pausar:', error);
+            console.error('Erro ao pausar música:', error);
+        }
+    },
+
+    // Altera a posição da música (Seek)
+    async seekTrack(positionMs) {
+        const token = await this.getValidToken();
+        if (!token) return;
+        try {
+            await fetch(`https://api.spotify.com/v1/me/player/seek?position_ms=${Math.floor(positionMs)}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch (error) {
+            console.error('Erro ao alterar posição da música:', error);
         }
     },
 
@@ -397,7 +426,7 @@ const SpotifyService = {
         }
     },
 
-    // Busca dados do perfil do usuário logado no Spotify (Nome, Usuário, Email, Avatar)
+    // Busca perfil do usuário logado
     async getUserProfile() {
         const token = await this.getValidToken();
         if (!token) return null;
@@ -413,10 +442,10 @@ const SpotifyService = {
             const data = await response.json();
             const profile = {
                 id: data.id,
-                display_name: data.display_name || data.id,
-                email: data.email || null,
-                images: data.images || [],
-                product: data.product
+                name: data.display_name || data.id,
+                email: data.email,
+                avatarUrl: data.images?.[0]?.url || '',
+                product: data.product || 'free'
             };
             this.currentUserProfile = profile;
             return profile;
@@ -434,13 +463,13 @@ const SpotifyService = {
 
     // Busca dados completos de uma faixa pelo ID ou Nome
     async getTrack(trackId) {
-        const token = await this.getValidToken();
-        if (!token || !trackId) return null;
+        let token = await this.getValidToken();
+        if (!trackId) return null;
         const cleanId = this._cleanId(trackId);
 
         try {
             let data = null;
-            if (cleanId) {
+            if (cleanId && /^[0-9A-Za-z_-]{20,24}$/.test(cleanId)) {
                 try {
                     const response = await fetch(`https://api.spotify.com/v1/tracks/${cleanId}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -486,13 +515,13 @@ const SpotifyService = {
 
     // Busca dados completos de um álbum pelo ID ou Nome
     async getAlbum(albumId) {
-        const token = await this.getValidToken();
-        if (!token || !albumId) return null;
+        let token = await this.getValidToken();
+        if (!albumId) return null;
         const cleanId = this._cleanId(albumId);
 
         try {
             let data = null;
-            if (cleanId) {
+            if (cleanId && /^[0-9A-Za-z_-]{20,24}$/.test(cleanId)) {
                 try {
                     const response = await fetch(`https://api.spotify.com/v1/albums/${cleanId}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -541,19 +570,25 @@ const SpotifyService = {
 
     // Busca dados completos de um artista pelo ID ou Nome
     async getArtist(artistId) {
-        const token = await this.getValidToken();
-        if (!token || !artistId) return null;
+        let token = await this.getValidToken();
+        if (!artistId) return null;
         const cleanId = this._cleanId(artistId);
 
         try {
             let artist = null;
 
             // 1. Tenta buscar diretamente pelo ID do Spotify
-            if (cleanId) {
+            if (cleanId && /^[0-9A-Za-z_-]{20,24}$/.test(cleanId)) {
                 try {
-                    const artistRes = await fetch(`https://api.spotify.com/v1/artists/${cleanId}`, {
+                    let artistRes = await fetch(`https://api.spotify.com/v1/artists/${cleanId}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    if (artistRes.status === 401) {
+                        token = await this.getValidToken();
+                        artistRes = await fetch(`https://api.spotify.com/v1/artists/${cleanId}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                    }
                     if (artistRes.ok) {
                         artist = await artistRes.json();
                     }
@@ -563,9 +598,15 @@ const SpotifyService = {
             // 2. Se a busca por ID falhar, tenta via Search API
             if (!artist) {
                 try {
-                    const searchArtistRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistId)}&type=artist&limit=1`, {
+                    let searchArtistRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistId)}&type=artist&limit=1`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
+                    if (searchArtistRes.status === 401) {
+                        token = await this.getValidToken();
+                        searchArtistRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistId)}&type=artist&limit=1`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                    }
                     if (searchArtistRes.ok) {
                         const searchData = await searchArtistRes.json();
                         artist = searchData.artists?.items?.[0] || null;
