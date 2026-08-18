@@ -5153,15 +5153,30 @@ class LySincApp {
             .map(g => `<span class="details-genre-pill">${this._esc(g)}</span>`)
             .join('');
 
-        const topTracksHtml = (artist.topTracks || []).map((t, i) => `
+        const top5 = (artist.topTracks || []).slice(0, 5);
+        const next5 = (artist.topTracks || []).slice(5, 10);
+
+        const renderTrack = (t, i) => `
             <div class="details-top-track" onclick="window.app.openSpotifyDetails('track','${t.id}')">
+                <span class="w-4 text-right text-white/40 text-xs font-medium mr-2">${i + 1}</span>
                 ${t.albumArt ? `<img class="details-top-track-art" src="${t.albumArt}" alt="">` : `<div class="details-top-track-art bg-white/5 rounded flex items-center justify-center text-white/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg></div>`}
                 <div class="flex flex-col flex-1 min-w-0">
                     <span class="details-track-name">${this._esc(t.name)}</span>
                     ${t.explicit ? '<span class="inline-flex items-center px-1 py-0.2 rounded bg-white/20 text-white text-[9px] font-bold w-fit mt-0.5">E</span>' : ''}
                 </div>
                 <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
-            </div>`).join('');
+            </div>`;
+
+        let topTracksHtml = top5.map((t, i) => renderTrack(t, i)).join('');
+        
+        if (next5.length > 0) {
+            topTracksHtml += `
+                <div id="more-tracks-list" class="hidden flex-col gap-1.5 mt-1.5">
+                    ${next5.map((t, i) => renderTrack(t, i + 5)).join('')}
+                </div>
+                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'Mostrar Mais' ? 'Mostrar Menos' : 'Mostrar Mais';" class="text-xs text-white/50 hover:text-white mt-2 uppercase font-bold text-left ml-7 transition-colors w-fit">Mostrar Mais</button>
+            `;
+        }
 
         const renderAlbumItem = (a) => `
             <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/10" onclick="window.app.openSpotifyDetails('album','${a.id}')">
@@ -5172,8 +5187,8 @@ class LySincApp {
                 </div>
             </div>`;
 
-        const albumsHtml = (artist.albums || []).filter(a => a.type === 'album').slice(0, 8).map(renderAlbumItem).join('');
-        const singlesHtml = (artist.albums || []).filter(a => a.type === 'single').slice(0, 8).map(renderAlbumItem).join('');
+        const albumsHtml = (artist.albums || []).filter(a => a.type === 'album').slice(0, 15).map(renderAlbumItem).join('');
+        const singlesHtml = (artist.albums || []).filter(a => a.type === 'single').slice(0, 15).map(renderAlbumItem).join('');
 
         return `
         <div class="details-hero">

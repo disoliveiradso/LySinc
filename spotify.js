@@ -638,6 +638,19 @@ const SpotifyService = {
                         artist.biography = overview.profile?.biography?.text || '';
                         artist.worldRank = overview.stats?.worldRank || 0;
                         artist.monthlyListeners = overview.stats?.monthlyListeners || 0;
+                        
+                        // Traduzir a biografia se existir
+                        if (artist.biography) {
+                            try {
+                                const trUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=pt&dt=t&q=${encodeURIComponent(artist.biography)}`;
+                                const trRes = await fetch(trUrl);
+                                if (trRes.ok) {
+                                    const trData = await trRes.json();
+                                    const translatedText = trData[0].map(item => item[0]).join('');
+                                    if (translatedText) artist.biography = translatedText;
+                                }
+                            } catch (e) {}
+                        }
                     }
                 }
             } catch(e) {}
@@ -649,7 +662,7 @@ const SpotifyService = {
                 });
                 if (searchRes.ok) {
                     const data = await searchRes.json();
-                    topTracks = (data.tracks || []).slice(0, 5);
+                    topTracks = (data.tracks || []).slice(0, 10);
                 }
             } catch (e) { }
 
