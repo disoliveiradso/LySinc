@@ -1,8 +1,8 @@
-import Config from './config.js?v=4.9.7';
-import SpotifyService from './spotify.js?v=4.9.7';
-import LyricsService from './lyrics.js?v=4.9.7';
-import MusicBrainzService from './musicbrainz.js?v=4.9.7';
-import SupabaseService from './supabase.js?v=4.9.7';
+import Config from './config.js?v=4.9.8';
+import SpotifyService from './spotify.js?v=4.9.8';
+import LyricsService from './lyrics.js?v=4.9.8';
+import MusicBrainzService from './musicbrainz.js?v=4.9.8';
+import SupabaseService from './supabase.js?v=4.9.8';
 
 
 const wrapText = (ctx, text, maxWidth) => {
@@ -3740,24 +3740,32 @@ class LySincApp {
         const isLineInstrumental = (l) => {
             if (!l) return false;
             if (l.isInstrumental) return true;
-            if (l.text && l.text.length === 1 && l.text[0].text && l.text[0].text.trim().includes('♪')) return true;
+            const fullText = (Array.isArray(l.text) ? l.text.map(s => s.text).join('') : (l.text || '')).trim();
+            if (/^[\s♪♫♬]+$/.test(fullText) && fullText.length > 0) return true;
             return false;
         };
 
+        lines.forEach(l => {
+            if (isLineInstrumental(l)) {
+                l.isInstrumental = true;
+                l.translation = '';
+                if (l.romanizedText) l.romanizedText = '';
+            }
+        });
+
         const firstLine = lines[0];
         if (firstLine.timestamp > 5000) {
-            if (isLineInstrumental(firstLine)) {
-                // Se a primeira linha já é instrumental, esticamos ela até o início
+            if (firstLine.isInstrumental) {
                 firstLine.timestamp = 0;
                 if (firstLine.text && firstLine.text[0]) firstLine.text[0].timestamp = 0;
             } else {
                 result.push({
                     id: -1,
-                    text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1500 }],
+                    text: [{ text: '♪', timestamp: 0, endtime: firstLine.timestamp - 1000 }],
                     background: false,
                     backgroundText: [],
                     timestamp: 0,
-                    endtime: firstLine.timestamp - 500,
+                    endtime: firstLine.timestamp - 1000,
                     isWordSynced: true,
                     isInstrumental: true
                 });
@@ -3771,22 +3779,20 @@ class LySincApp {
                 const prevEndtime = prevLine.endtime || (prevLine.timestamp + 3000);
 
                 if (currentLine.timestamp - prevEndtime > 5000) {
-                    if (isLineInstrumental(currentLine)) {
-                        // Se a próxima linha já é instrumental, apenas estica ela pra trás
+                    if (currentLine.isInstrumental) {
                         currentLine.timestamp = prevEndtime + 500;
                         if (currentLine.text && currentLine.text[0]) currentLine.text[0].timestamp = currentLine.timestamp;
-                    } else if (isLineInstrumental(prevLine)) {
-                        // Se a linha anterior é instrumental, apenas estica ela pra frente
-                        prevLine.endtime = currentLine.timestamp - 500;
-                        if (prevLine.text && prevLine.text[0]) prevLine.text[0].endtime = currentLine.timestamp - 1500;
+                    } else if (prevLine.isInstrumental) {
+                        prevLine.endtime = currentLine.timestamp - 1000;
+                        if (prevLine.text && prevLine.text[0]) prevLine.text[0].endtime = currentLine.timestamp - 1000;
                     } else {
                         result.push({
                             id: i - 0.5,
-                            text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1500 }],
+                            text: [{ text: '♪', timestamp: prevEndtime + 1000, endtime: currentLine.timestamp - 1000 }],
                             background: false,
                             backgroundText: [],
                             timestamp: prevEndtime + 1000,
-                            endtime: currentLine.timestamp - 1500,
+                            endtime: currentLine.timestamp - 1000,
                             isWordSynced: true,
                             isInstrumental: true
                         });

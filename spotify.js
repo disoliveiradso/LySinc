@@ -581,7 +581,7 @@ const SpotifyService = {
 
             if ((followersCount === 0 || popularityVal === 0) && artist.name) {
                 try {
-                    const fallbackRes = await fetch(`https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(artist.name)}&type=artist&limit=1`, {
+                    const fallbackRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent('"' + artist.name + '"')}&type=artist&limit=1`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (fallbackRes.ok) {
