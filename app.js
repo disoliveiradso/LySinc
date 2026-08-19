@@ -5004,7 +5004,7 @@ class LySincApp {
         return `
         <div class="flex flex-col items-center w-full mb-8">
             ${artUrl ? `<img class="details-hero-art shadow-2xl z-10" style="width: 160px; height: 160px; margin-bottom: 24px; border-radius: 12px;" src="${artUrl}" alt="Capa">` : ''}
-            <div class="details-hero w-full !flex-col !items-center !justify-center !p-6 text-center">
+            <div class="details-hero w-full !flex-col !items-center !justify-center !pt-4 !pb-5 !px-6 !gap-0 text-center">
                 <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
                 <div class="details-hero-info !flex-initial !justify-center items-center w-full text-center">
                     <span class="details-hero-type">Música</span>
@@ -5124,7 +5124,7 @@ class LySincApp {
         return `
         <div class="flex flex-col items-center w-full mb-8">
             ${artUrl ? `<img class="details-hero-art shadow-2xl z-10" style="width: 160px; height: 160px; margin-bottom: 24px; border-radius: 12px;" src="${artUrl}" alt="Capa">` : ''}
-            <div class="details-hero w-full !flex-col !items-center !justify-center !p-6 text-center">
+            <div class="details-hero w-full !flex-col !items-center !justify-center !pt-4 !pb-5 !px-6 !gap-0 text-center">
                 <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
                 <div class="details-hero-info !flex-initial !justify-center items-center w-full text-center">
                     <span class="details-hero-type">${typeLabel}</span>
@@ -5234,7 +5234,7 @@ class LySincApp {
         return `
         <div class="flex flex-col items-center w-full mb-8">
             ${artUrl ? `<img class="details-hero-art is-artist shadow-2xl z-10" style="width: 160px; height: 160px; margin-bottom: 24px; border-radius: 50%;" src="${artUrl}" alt="${this._esc(artist.name)}">` : ''}
-            <div class="details-hero w-full !flex-col !items-center !justify-center !p-6 text-center">
+            <div class="details-hero w-full !flex-col !items-center !justify-center !pt-4 !pb-5 !px-6 !gap-0 text-center">
                 <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
                 <div class="details-hero-info !flex-initial !justify-center items-center w-full text-center">
                     <span class="details-hero-type">Artista</span>
