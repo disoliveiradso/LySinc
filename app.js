@@ -5002,11 +5002,12 @@ class LySincApp {
             .join('');
 
         return `
-        <div class="details-hero">
-            <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
-            <img class="details-hero-art" src="${artUrl}" alt="Capa">
-            <div class="details-hero-info">
-                <span class="details-hero-type">Música</span>
+        <div class="flex flex-col items-center w-full mb-8">
+            ${artUrl ? `<img class="details-hero-art shadow-2xl z-10" style="width: 160px; height: 160px; margin-bottom: 24px; border-radius: 12px;" src="${artUrl}" alt="Capa">` : ''}
+            <div class="details-hero w-full !flex-col !items-center text-center">
+                <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
+                <div class="details-hero-info items-center w-full text-center">
+                    <span class="details-hero-type">Música</span>
                 <h1 class="details-hero-title">${this._esc(track.name)}</h1>
                 <p class="details-hero-subtitle">${artistsHtml || '—'}</p>
                 <div class="details-hero-meta">
@@ -5022,6 +5023,7 @@ class LySincApp {
                     Abrir no Spotify
                 </a>
             </div>
+        </div>
         </div>
 
         ${track.previewUrl ? `
@@ -5120,10 +5122,11 @@ class LySincApp {
             .join('');
 
         return `
-        <div class="details-hero">
-            <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
-            <img class="details-hero-art" src="${artUrl}" alt="Capa">
-            <div class="details-hero-info">
+        <div class="flex flex-col items-center w-full mb-8">
+            ${artUrl ? `<img class="details-hero-art shadow-2xl z-10" style="width: 160px; height: 160px; margin-bottom: 24px; border-radius: 12px;" src="${artUrl}" alt="Capa">` : ''}
+            <div class="details-hero w-full !flex-col !items-center text-center">
+                <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
+                <div class="details-hero-info items-center w-full text-center">
                 <span class="details-hero-type">${typeLabel}</span>
                 <h1 class="details-hero-title">${this._esc(album.name)}</h1>
                 <p class="details-hero-subtitle">${artistsHtml || '—'}</p>
@@ -5138,6 +5141,7 @@ class LySincApp {
                     Abrir no Spotify
                 </a>
             </div>
+        </div>
         </div>
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
@@ -5230,11 +5234,12 @@ class LySincApp {
         }
 
         return `
-        <div class="details-hero">
-            <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
-            ${artUrl ? `<img class="details-hero-art is-artist" src="${artUrl}" alt="${this._esc(artist.name)}">` : ''}
-            <div class="details-hero-info">
-                <span class="details-hero-type">Artista</span>
+        <div class="flex flex-col items-center w-full mb-8">
+            ${artUrl ? `<img class="details-hero-art is-artist shadow-2xl z-10" style="width: 160px; height: 160px; margin-bottom: 24px; border-radius: 50%;" src="${artUrl}" alt="${this._esc(artist.name)}">` : ''}
+            <div class="details-hero w-full !flex-col !items-center text-center">
+                <div class="details-hero-bg" style="background-image:url('${artUrl}')"></div>
+                <div class="details-hero-info items-center w-full text-center">
+                    <span class="details-hero-type">Artista</span>
                 <h1 class="details-hero-title">${this._esc(artist.name)}</h1>
                 <div class="details-hero-meta">
                     ${artist.followers > 0 ? `<span class="inline-flex items-center gap-1.5 text-white/80">
@@ -5255,6 +5260,7 @@ class LySincApp {
                     Abrir no Spotify
                 </a>
             </div>
+        </div>
         </div>
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
