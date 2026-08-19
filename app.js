@@ -1055,14 +1055,6 @@ class LySincApp {
             this.btnFlowStep3Back.addEventListener('click', () => this.showScreen('pre-login'));
         }
 
-        // Spotify Details: back button
-        if (this.btnDetailsBack) {
-            this.btnDetailsBack.addEventListener('click', () => {
-                const back = this.previousScreen || 'main';
-                this.showScreen(back);
-            });
-        }
-
         // Spotify Details: click on album art → album details
         if (this.albumArt) {
             this.albumArt.addEventListener('click', () => {
@@ -4949,6 +4941,14 @@ class LySincApp {
                 fills.forEach(el => {
                     el.style.width = el.dataset.pop + '%';
                 });
+
+                if (type === 'artist') {
+                    const c = document.getElementById('artist-bio-container');
+                    const b = document.getElementById('btn-more-bio');
+                    if(c && b && c.scrollHeight > 120) {
+                        b.classList.remove('hidden');
+                    }
+                }
             }, 50);
         }
     }
@@ -5186,13 +5186,13 @@ class LySincApp {
                 <div id="more-tracks-list" class="hidden flex-col">
                     ${next5.map((t, i) => renderTrack(t, i + 5)).join('')}
                 </div>
-                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 76px;">MOSTRAR MAIS</button>
+                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 44px;">MOSTRAR MAIS</button>
             `;
         }
 
         const renderAlbumItem = (a) => `
             <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent" onclick="window.app.openSpotifyDetails('album','${a.id}')">
-                ${a.art ? `<img class="w-[52px] h-[52px] rounded bg-white/5 object-cover shadow-sm" src="${a.art}" alt="Capa">` : `<div class="w-[52px] h-[52px] bg-white/5 rounded shadow-sm flex items-center justify-center text-white/20"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div>`}
+                ${a.art ? `<img class="w-[52px] h-[52px] rounded bg-white/5 object-cover shadow-sm shrink-0" src="${a.art}" alt="Capa">` : `<div class="w-[52px] h-[52px] bg-white/5 rounded shadow-sm flex items-center justify-center text-white/20 shrink-0"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div>`}
                 <div class="flex flex-col flex-1 min-w-0 justify-center">
                     <span class="text-[15px] font-bold text-white truncate hover:underline">${this._esc(a.name)}</span>
                     <span class="text-sm text-white/60 font-medium">${a.releaseDate ? a.releaseDate.substring(0, 4) : ''}</span>
@@ -5209,7 +5209,7 @@ class LySincApp {
                     <div id="more-${typeId}-list" class="hidden flex-col">
                         ${nX.map(renderAlbumItem).join('')}
                     </div>
-                    <button onclick="document.getElementById('more-${typeId}-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 84px;">MOSTRAR MAIS</button>
+                    <button onclick="document.getElementById('more-${typeId}-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 8px;">MOSTRAR MAIS</button>
                 `;
             }
             return html;
@@ -5220,7 +5220,7 @@ class LySincApp {
 
         let bioHtml = '';
         if (artist.biography) {
-            let rawBio = artist.biography.trim();
+            let rawBio = artist.biography.trim().replace(/^[ \t]+/gm, '');
             bioHtml = this._esc(rawBio);
             // Corrige tags de links embutidos (mesmo que o Google Translator adicione espaços)
             bioHtml = bioHtml.replace(/&lt;\s*a\s+href\s*=\s*(?:&quot;|"|\')\s*spotify:(artist|album|track):\s*([^&"'>\s]+)\s*(?:&quot;|"|\')\s*&gt;(.*?)&lt;\s*\/\s*a\s*&gt;/gi, 
@@ -5249,7 +5249,7 @@ class LySincApp {
                     </span>` : ''}
                 </div>
                 <a class="details-open-btn" href="${artist.externalUrl || '#'}" target="_blank" rel="noopener">
-                    <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 273.2 352 176C352 78.8 273.2 0 176 0Z"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 352 352" fill="currentColor"><path d="M279.84 156.64C223.52 123.2 129.36 119.68 75.68 136.4C66.88 139.04 58.08 133.76 55.44 125.84C52.8 117.04 58.08 108.24 66 105.6C128.48 87.12 231.44 90.64 296.56 129.36C304.48 133.76 307.12 144.32 302.72 152.24C298.32 158.4 287.76 161.04 279.84 156.64ZM278.08 205.92C273.68 212.08 265.76 214.72 259.6 210.32C212.08 181.28 139.92 172.48 84.48 190.08C77.44 191.84 69.52 188.32 67.76 181.28C66 174.24 69.52 166.32 76.56 164.56C140.8 145.2 220 154.88 274.56 188.32C279.84 190.96 282.48 199.76 278.08 205.92ZM256.96 254.32C253.44 259.6 247.28 261.36 242 257.84C200.64 232.32 148.72 227.04 87.12 241.12C80.96 242.88 75.68 238.48 73.92 233.2C72.16 227.04 76.56 221.76 81.84 220C148.72 205.04 206.8 211.2 252.56 239.36C258.72 242 259.6 249.04 256.96 254.32ZM176 0C78.8 0 0 78.8 0 176C0 273.2 78.8 352 176 352C273.2 352 352 176C352 78.8 273.2 0 176 0Z"/></svg>
                     Abrir no Spotify
                 </a>
             </div>
@@ -5266,9 +5266,19 @@ class LySincApp {
         ${bioHtml ? `
             <div class="details-section mt-8">
                 <h2 class="details-section-title">Sobre</h2>
-                <div class="text-sm text-white/70 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
-                    ${bioHtml}
+                <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
+                    <div id="artist-bio-container" class="text-sm text-white/70 leading-relaxed font-medium overflow-hidden transition-[max-height] duration-500 ease-in-out whitespace-pre-wrap" style="max-height: 120px;">${bioHtml}</div>
                 </div>
+                <button id="btn-more-bio" onclick="
+                    const c = document.getElementById('artist-bio-container');
+                    if(c.style.maxHeight === '120px') {
+                        c.style.maxHeight = '4000px';
+                        this.textContent = 'MOSTRAR MENOS';
+                    } else {
+                        c.style.maxHeight = '120px';
+                        this.textContent = 'MOSTRAR MAIS';
+                    }
+                " class="text-[11px] text-white/60 hover:text-white mt-3 uppercase font-bold text-left transition-colors w-fit tracking-widest hidden">MOSTRAR MAIS</button>
             </div>
         ` : ''}
         </div>
