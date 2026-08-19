@@ -4488,6 +4488,7 @@ class LySincApp {
     }
 
     scrollToLine(lineElement) {
+        if (this.currentScreen !== 'main') return;
         if (this.tempDisableScroll) return;
         this.currentActiveIdsKey = '';
         const absoluteLineTop = this.getAbsoluteOffsetTop(lineElement);
@@ -4507,6 +4508,7 @@ class LySincApp {
     }
 
     smoothScrollTo(target) {
+        if (this.currentScreen !== 'main') return;
         const targetY = Math.max(0, target);
         this.lastAutoScrollTime = Date.now();
         this.isProgrammaticScrolling = true;
@@ -5186,7 +5188,7 @@ class LySincApp {
                 <div id="more-tracks-list" class="hidden flex-col">
                     ${next5.map((t, i) => renderTrack(t, i + 5)).join('')}
                 </div>
-                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 44px;">MOSTRAR MAIS</button>
+                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 8px;">MOSTRAR MAIS</button>
             `;
         }
 
