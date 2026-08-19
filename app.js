@@ -2960,9 +2960,21 @@ class LySincApp {
     }
 
     clearAllSiteData() {
-        localStorage.clear();
-        sessionStorage.clear();
-        this.showToast('Todos os dados do site foram apagados. Recarregando...', 'info');
+        const removeLySincKeys = (storage) => {
+            const keysToRemove = [];
+            for (let i = 0; i < storage.length; i++) {
+                const key = storage.key(i);
+                if (key && key.toLowerCase().startsWith('lysinc')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => storage.removeItem(k));
+        };
+
+        removeLySincKeys(localStorage);
+        removeLySincKeys(sessionStorage);
+
+        this.showToast('Todos os dados do LySinc foram apagados. Recarregando...', 'info');
         setTimeout(() => window.location.reload(), 1500);
     }
 
