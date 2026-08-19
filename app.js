@@ -4338,7 +4338,9 @@ class LySincApp {
             this.clearHighlights();
 
             if (currentProgressMs < (this.lyrics[0]?.timestamp || 0)) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (this.currentScreen === 'main') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             }
         }
 
@@ -4901,7 +4903,9 @@ class LySincApp {
                 this.savedWasUserInteracting = !!this.isUserInteracting;
             }
             if (this.currentScreen === 'spotify-details' && this.currentDetailsState) {
-                this.detailsHistory.push({ screen: 'spotify-details', detailsState: { ...this.currentDetailsState } });
+                if (this.currentDetailsState.type !== type || this.currentDetailsState.id !== id) {
+                    this.detailsHistory.push({ screen: 'spotify-details', detailsState: { ...this.currentDetailsState } });
+                }
             } else {
                 this.detailsHistory = [{ screen: 'main' }];
             }
@@ -5226,9 +5230,12 @@ class LySincApp {
         if (artist.biography) {
             let rawBio = artist.biography.trim().replace(/^[ \t]+/gm, '');
             bioHtml = this._esc(rawBio);
-            // Corrige tags de links embutidos ignorando atributos extras como data-name
+            // Corrige tags de links embutidos (Spotify) ignorando atributos extras
             bioHtml = bioHtml.replace(/&lt;\s*a\b[\s\S]*?href\s*=\s*(?:&quot;|"|'|&#039;|&#39;)\s*spotify:(artist|album|track):\s*([a-zA-Z0-9]+)\s*(?:&quot;|"|'|&#039;|&#39;)[\s\S]*?&gt;([\s\S]*?)&lt;\s*\/\s*a\s*&gt;/gi, 
                 '<span class="text-white hover:underline cursor-pointer font-bold" onclick="window.app.openSpotifyDetails(\'$1\', \'$2\')">$3</span>');
+            // Corrige tags de links embutidos (HTTP) ignorando atributos extras
+            bioHtml = bioHtml.replace(/&lt;\s*a\b[\s\S]*?href\s*=\s*(?:&quot;|"|'|&#039;|&#39;)\s*(https?:\/\/[^&"'>\s]+)\s*(?:&quot;|"|'|&#039;|&#39;)[\s\S]*?&gt;([\s\S]*?)&lt;\s*\/\s*a\s*&gt;/gi, 
+                '<a class="text-white hover:underline font-bold" href="$1" target="_blank" rel="noopener">$2</a>');
         }
 
         return `
@@ -5270,8 +5277,8 @@ class LySincApp {
         ${singlesHtml ? `<div class="flex flex-col"><p class="details-section-header mb-4">Singles e EPs</p><div class="flex flex-col">${singlesHtml}</div></div>` : ''}
         
         ${bioHtml ? `
-            <div class="details-section mt-8">
-                <h2 class="details-section-title">Sobre</h2>
+            <div class="flex flex-col mt-8">
+                <p class="details-section-header mb-4">Sobre</p>
                 <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
                     <div id="artist-bio-container" class="text-sm text-white/70 leading-relaxed font-medium overflow-hidden transition-[max-height] duration-500 ease-in-out whitespace-pre-wrap" style="max-height: 120px;">${bioHtml}</div>
                 </div>
