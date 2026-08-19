@@ -5224,8 +5224,8 @@ class LySincApp {
         if (artist.biography) {
             let rawBio = artist.biography.trim().replace(/^[ \t]+/gm, '');
             bioHtml = this._esc(rawBio);
-            // Corrige tags de links embutidos (mesmo que o Google Translator adicione espaços)
-            bioHtml = bioHtml.replace(/&lt;\s*a\s+href\s*=\s*(?:&quot;|"|\')\s*spotify:(artist|album|track):\s*([^&"'>\s]+)\s*(?:&quot;|"|\')\s*&gt;(.*?)&lt;\s*\/\s*a\s*&gt;/gi, 
+            // Corrige tags de links embutidos ignorando atributos extras como data-name
+            bioHtml = bioHtml.replace(/&lt;\s*a\b[\s\S]*?href\s*=\s*(?:&quot;|"|'|&#039;|&#39;)\s*spotify:(artist|album|track):\s*([a-zA-Z0-9]+)\s*(?:&quot;|"|'|&#039;|&#39;)[\s\S]*?&gt;([\s\S]*?)&lt;\s*\/\s*a\s*&gt;/gi, 
                 '<span class="text-white hover:underline cursor-pointer font-bold" onclick="window.app.openSpotifyDetails(\'$1\', \'$2\')">$3</span>');
         }
 
