@@ -681,34 +681,15 @@ const SpotifyService = {
                                     const t = item.track || {};
                                     const id = t.id || t.uri?.split(':').pop();
                                     if (id) trackIds.push(id);
+                                    const images = t.albumOfTrack?.coverArt?.sources || [];
                                     return {
                                         id: id,
                                         name: t.name || '',
-                                        albumArt: '', 
+                                        albumArt: images[0]?.url || images[1]?.url || images[2]?.url || '', 
                                         durationMs: t.duration?.totalMilliseconds || 0,
                                         explicit: t.contentRating?.label === 'EXPLICIT'
                                     };
                                 }).slice(0, 10);
-
-                                if (trackIds.length > 0) {
-                                    try {
-                                        const idsParam = trackIds.slice(0, 10).join(',');
-                                        const enrichRes = await fetch(`https://api.spotify.com/v1/tracks?ids=${idsParam}`, {
-                                            headers: { 'Authorization': `Bearer ${token}` }
-                                        });
-                                        if (enrichRes.ok) {
-                                            const enrichData = await enrichRes.json();
-                                            enrichData.tracks.forEach((fullTrack, idx) => {
-                                                if (fullTrack && topTracks[idx]) {
-                                                    topTracks[idx].albumArt = fullTrack.album?.images?.[0]?.url || fullTrack.album?.images?.[1]?.url || '';
-                                                    if (!topTracks[idx].durationMs) {
-                                                        topTracks[idx].durationMs = fullTrack.duration_ms || 0;
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    } catch (e) {}
-                                }
                             }
 
                             const parseReleases = (nodeList, type) => {

@@ -5169,38 +5169,63 @@ class LySincApp {
         const next5 = (artist.topTracks || []).slice(5, 10);
 
         const renderTrack = (t, i) => `
-            <div class="details-top-track" onclick="window.app.openSpotifyDetails('track','${t.id}')">
-                <span class="w-4 text-right text-white/40 text-xs font-medium mr-2">${i + 1}</span>
-                ${t.albumArt ? `<img class="details-top-track-art" src="${t.albumArt}" alt="">` : `<div class="details-top-track-art bg-white/5 rounded flex items-center justify-center text-white/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg></div>`}
+            <div class="details-top-track group hover:bg-white/5 p-2 rounded-xl cursor-pointer transition-colors border border-transparent" onclick="window.app.openSpotifyDetails('track','${t.id}')">
+                <span class="w-6 text-center text-white/60 text-sm font-medium mr-3 shrink-0">${i + 1}</span>
+                ${t.albumArt ? `<img class="w-10 h-10 rounded object-cover shadow-sm shrink-0 mr-3" src="${t.albumArt}" alt="">` : `<div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-white/20 shrink-0 mr-3"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg></div>`}
                 <div class="flex flex-col flex-1 min-w-0">
-                    <span class="details-track-name">${this._esc(t.name)}</span>
-                    ${t.explicit ? '<span class="inline-flex items-center px-1 py-0.2 rounded bg-white/20 text-white text-[9px] font-bold w-fit mt-0.5">E</span>' : ''}
+                    <span class="text-[15px] font-medium text-white truncate group-hover:underline">${this._esc(t.name)}</span>
+                    ${t.explicit ? '<span class="inline-flex items-center px-1 rounded bg-white/20 text-white/80 text-[9px] font-bold w-fit mt-0.5">E</span>' : ''}
                 </div>
-                <span class="details-track-duration">${this._formatMs(t.durationMs)}</span>
+                <span class="text-sm text-white/50 shrink-0 ml-4">${this._formatMs(t.durationMs)}</span>
             </div>`;
 
         let topTracksHtml = top5.map((t, i) => renderTrack(t, i)).join('');
         
         if (next5.length > 0) {
             topTracksHtml += `
-                <div id="more-tracks-list" class="hidden flex-col gap-1.5 mt-1.5">
+                <div id="more-tracks-list" class="hidden flex-col">
                     ${next5.map((t, i) => renderTrack(t, i + 5)).join('')}
                 </div>
-                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'Mostrar Mais' ? 'Mostrar Menos' : 'Mostrar Mais';" class="text-xs text-white/50 hover:text-white mt-2 uppercase font-bold text-left ml-7 transition-colors w-fit">Mostrar Mais</button>
+                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 76px;">MOSTRAR MAIS</button>
             `;
         }
 
         const renderAlbumItem = (a) => `
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent hover:border-white/10" onclick="window.app.openSpotifyDetails('album','${a.id}')">
-                ${a.art ? `<img class="w-12 h-12 rounded bg-white/5 object-cover shadow-md" src="${a.art}" alt="Capa">` : `<div class="w-12 h-12 bg-white/5 rounded shadow-md flex items-center justify-center text-white/20"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div>`}
-                <div class="flex flex-col flex-1 min-w-0">
-                    <span class="text-sm font-semibold text-white truncate">${this._esc(a.name)}</span>
-                    <span class="text-[11px] text-white/40 font-medium">${a.releaseDate ? a.releaseDate.substring(0, 4) : ''}</span>
+            <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors border border-transparent" onclick="window.app.openSpotifyDetails('album','${a.id}')">
+                ${a.art ? `<img class="w-[52px] h-[52px] rounded bg-white/5 object-cover shadow-sm" src="${a.art}" alt="Capa">` : `<div class="w-[52px] h-[52px] bg-white/5 rounded shadow-sm flex items-center justify-center text-white/20"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg></div>`}
+                <div class="flex flex-col flex-1 min-w-0 justify-center">
+                    <span class="text-[15px] font-bold text-white truncate hover:underline">${this._esc(a.name)}</span>
+                    <span class="text-sm text-white/60 font-medium">${a.releaseDate ? a.releaseDate.substring(0, 4) : ''}</span>
                 </div>
             </div>`;
 
-        const albumsHtml = (artist.albums || []).filter(a => a.type === 'album').slice(0, 15).map(renderAlbumItem).join('');
-        const singlesHtml = (artist.albums || []).filter(a => a.type === 'single').slice(0, 15).map(renderAlbumItem).join('');
+        const renderAlbumList = (listData, typeId) => {
+            if (!listData || listData.length === 0) return '';
+            const t5 = listData.slice(0, 5);
+            const nX = listData.slice(5, 15);
+            let html = t5.map(renderAlbumItem).join('');
+            if (nX.length > 0) {
+                html += `
+                    <div id="more-${typeId}-list" class="hidden flex-col">
+                        ${nX.map(renderAlbumItem).join('')}
+                    </div>
+                    <button onclick="document.getElementById('more-${typeId}-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 84px;">MOSTRAR MAIS</button>
+                `;
+            }
+            return html;
+        };
+
+        const albumsHtml = renderAlbumList((artist.albums || []).filter(a => a.type === 'album'), 'albums');
+        const singlesHtml = renderAlbumList((artist.albums || []).filter(a => a.type === 'single'), 'singles');
+
+        let bioHtml = '';
+        if (artist.biography) {
+            let rawBio = artist.biography.trim();
+            bioHtml = this._esc(rawBio);
+            // Corrige tags de links embutidos (mesmo que o Google Translator adicione espaços)
+            bioHtml = bioHtml.replace(/&lt;\s*a\s+href\s*=\s*(?:&quot;|"|\')\s*spotify:(artist|album|track):\s*([^&"'>\s]+)\s*(?:&quot;|"|\')\s*&gt;(.*?)&lt;\s*\/\s*a\s*&gt;/gi, 
+                '<span class="text-white hover:underline cursor-pointer font-bold" onclick="window.app.openSpotifyDetails(\'$1\', \'$2\')">$3</span>');
+        }
 
         return `
         <div class="details-hero">
@@ -5232,17 +5257,17 @@ class LySincApp {
 
         ${genresHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Gêneros</p><div class="flex flex-wrap gap-2">${genresHtml}</div></div>` : ''}
 
-        ${topTracksHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Músicas Populares</p><div class="flex flex-col gap-1.5">${topTracksHtml}</div></div>` : ''}
+        ${topTracksHtml ? `<div class="flex flex-col"><p class="details-section-header mb-4">Músicas Populares</p><div class="flex flex-col">${topTracksHtml}</div></div>` : ''}
         
-        ${albumsHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Álbuns</p><div class="flex flex-col gap-1">${albumsHtml}</div></div>` : ''}
+        ${albumsHtml ? `<div class="flex flex-col"><p class="details-section-header mb-4">Álbuns</p><div class="flex flex-col">${albumsHtml}</div></div>` : ''}
         
-        ${singlesHtml ? `<div class="flex flex-col space-y-2"><p class="details-section-header">Singles e EPs</p><div class="flex flex-col gap-1">${singlesHtml}</div></div>` : ''}
+        ${singlesHtml ? `<div class="flex flex-col"><p class="details-section-header mb-4">Singles e EPs</p><div class="flex flex-col">${singlesHtml}</div></div>` : ''}
         
-        ${artist.biography ? `
+        ${bioHtml ? `
             <div class="details-section mt-8">
                 <h2 class="details-section-title">Sobre</h2>
-                <div class="text-sm text-white/70 leading-relaxed font-medium bg-white/5 p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
-                    ${this._esc(artist.biography)}
+                <div class="text-sm text-white/70 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 whitespace-pre-wrap">
+                    ${bioHtml}
                 </div>
             </div>
         ` : ''}
