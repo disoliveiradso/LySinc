@@ -5194,7 +5194,7 @@ class LySincApp {
                 <div id="more-tracks-list" class="hidden flex-col">
                     ${next5.map((t, i) => renderTrack(t, i + 5)).join('')}
                 </div>
-                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 8px;">MOSTRAR MAIS</button>
+                <button onclick="document.getElementById('more-tracks-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[0.65rem] font-bold tracking-[0.08em] uppercase text-white/35 hover:text-white mt-3 text-left transition-colors w-fit">MOSTRAR MAIS</button>
             `;
         }
 
@@ -5217,7 +5217,7 @@ class LySincApp {
                     <div id="more-${typeId}-list" class="hidden flex-col">
                         ${nX.map(renderAlbumItem).join('')}
                     </div>
-                    <button onclick="document.getElementById('more-${typeId}-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[11px] text-white/60 hover:text-white mt-2 uppercase font-bold text-left transition-colors w-fit tracking-widest" style="margin-left: 8px;">MOSTRAR MAIS</button>
+                    <button onclick="document.getElementById('more-${typeId}-list').classList.toggle('hidden'); this.textContent = this.textContent === 'MOSTRAR MAIS' ? 'MOSTRAR MENOS' : 'MOSTRAR MAIS';" class="text-[0.65rem] font-bold tracking-[0.08em] uppercase text-white/35 hover:text-white mt-3 text-left transition-colors w-fit">MOSTRAR MAIS</button>
                 `;
             }
             return html;
@@ -5291,7 +5291,7 @@ class LySincApp {
                         c.style.maxHeight = '120px';
                         this.textContent = 'MOSTRAR MAIS';
                     }
-                " class="text-[11px] text-white/60 hover:text-white mt-3 uppercase font-bold text-left transition-colors w-fit tracking-widest hidden">MOSTRAR MAIS</button>
+                " class="text-[0.65rem] font-bold tracking-[0.08em] uppercase text-white/35 hover:text-white mt-3 text-left transition-colors w-fit hidden">MOSTRAR MAIS</button>
             </div>
         ` : ''}
         </div>
