@@ -625,7 +625,7 @@ const SpotifyService = {
             let topTracks = [];
             let albums = [];
 
-            const SPOTIFY_PROXY = 'https://lysinc.disoliveira-dso.workers.dev/spotify/pathfinder/';
+            const SPOTIFY_PROXY = 'https://lysinc-spotify-scraper.disoliveira-dso.workers.dev/spotify/pathfinder/';
             try {
                 const operationName = 'queryArtistOverview';
                 const sha256Hash = 'ae0e2958a4ab645b35ca19ac04d0495ae12d9c5d7b7286217674801a9aab281a';
