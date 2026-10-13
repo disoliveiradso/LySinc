@@ -3093,6 +3093,8 @@ class LySincApp {
             if (this.screenTermsFeedback) this.screenTermsFeedback.classList.remove('hidden');
         } else if (screenName === 'terms-privacy') {
             if (this.screenTermsPrivacy) this.screenTermsPrivacy.classList.remove('hidden');
+        } else if (screenName === 'terms-client-id') {
+            if (this.screenTermsClientId) this.screenTermsClientId.classList.remove('hidden');
         } else if (screenName === 'spotify-details') {
             if (this.screenSpotifyDetails) this.screenSpotifyDetails.classList.remove('hidden');
         }
